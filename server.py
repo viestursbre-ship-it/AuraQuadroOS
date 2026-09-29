@@ -6,105 +6,88 @@ from pathlib import Path
 from datetime import datetime
 
 import docx
-from docx.shared import Inches
-from google import genai # Jaunā bibliotēka
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from google import genai
+from google.genai import types
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Font
 
-# --- AQ-OS Sistēmas Konfigurācija un Ceļi ---
+# --- Ceļi un mapes ---
 STORAGE_DIR = Path("storage")
 INBOX_DIR = STORAGE_DIR / "inbox"
 OUTBOX_DIR = STORAGE_DIR / "outbox"
-ARCHIVE_DIR = STORAGE_DIR / "archive" # Ja vajadzēs arhivēšanai
+ARCHIVE_DIR = STORAGE_DIR / "archive"
+EXCEL_REGISTRY_PATH = STORAGE_DIR / "Ligumu_Registrs.xlsx"
 
-# Izveido nepieciešamās mapes, ja tās neeksistē
 for _dir in [INBOX_DIR, OUTBOX_DIR, ARCHIVE_DIR]:
     _dir.mkdir(parents=True, exist_ok=True)
 
-# --- Pakalpojumi (Modulārā Monolīta Iekšējās Dzinēja Daļas) ---
-
 class DocDigestService:
     def __init__(self):
-        # Šis simulē, ka DocDigestService ir "reģistrēts" ServiceRegistry
-        # un izmanto EventEngine, bet vienā failā tas ir abstrakts.
-        print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Maestro sagatavojies simfonijai!")
+        print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Gatavs apstrādei!")
 
     def _read_docx(self, file_path: Path) -> str:
-        """Nolasa .docx faila saturu, ieskaitot tabulas."""
         doc = docx.Document(file_path)
         full_text = []
-
-        # Rindkopas
         for para in doc.paragraphs:
             if para.text.strip():
                 full_text.append(para.text.strip())
-
-        # Tabulas
         for table in doc.tables:
             for row in table.rows:
-                row_text = []
-                for cell in row.cells:
-                    cell_text = cell.text.strip()
-                    if cell_text:
-                        row_text.append(cell_text)
+                row_text = [cell.text.strip() for cell in row.cells if cell.text.strip()]
                 if row_text:
-                    full_text.append(" | ".join(row_text)) # Formats tabulas rindai
-
+                    full_text.append(" | ".join(row_text))
         return "\n".join(full_text)
 
     def _read_txt(self, file_path: Path) -> str:
-        """Nolasa .txt faila saturu."""
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             return f.read()
 
-    def _analyze_with_ai(self, text: str) -> dict:
-        """Analizē tekstu ar Google Gemini API un atgriež strukturētu JSON."""
+    def _analyze_with_gemini(self, content_payload) -> dict:
         api_key = os.getenv("AQ_AI_API_KEY")
         if not api_key:
-            print(f"[{datetime.now().strftime('%H:%M')}] Leo error: AQ_AI_API_KEY nav iestatīts!")
+            print("ERROR: AQ_AI_API_KEY nav iestatīts!")
             return {"error": "AQ_AI_API_KEY nav iestatīts."}
 
-        try:
-            from google import genai
-            from google.genai import types
+        prompt_text = """
+        Analizējiet šo juridisko dokumentu un izvelciet galveno informāciju precīzā JSON formātā:
+        {
+          "document_type": "Līgums / Rēķins / Pielikums",
+          "document_number": "Dokumenta numurs vai N/A",
+          "document_date": "Dokumenta noslēgšanas datums vai N/A",
+          "parties": [
+            {"name": "Puses nosaukums", "role": "Pasūtītājs / Piegādātājs / Iznomātājs / Nomnieks"}
+          ],
+          "subject": "Darījuma priekšmeta īss, precīzs apraksts",
+          "financial_terms": {
+            "total_amount": "Kopējā summa ar valūtu un PVN statusu",
+            "payment_schedule": "Apmaksas termiņš un kārtība",
+            "deadlines": "Būtiskākie piegādes vai izpildes termiņi",
+            "late_payment_penalties": "Kavējuma procenti vai līgumsods"
+          },
+          "ownership_termination": {
+            "ownership_transfer": "Īpašumtiesību vai riska pārejas brīdis",
+            "termination_conditions": "Līguma laušanas kārtība"
+          },
+          "risks_warnings": [
+            "Būtiskākie riski, sankcijas, atbildības ierobežojumi vai brīdinājumi"
+          ]
+        }
+        Atgrieziet TIKAI tīru JSON bez markdown blokiem.
+        """
 
+        try:
             client = genai.Client(api_key=api_key)
 
-            prompt_text = f"""
-            Analizējiet šo dokumenta tekstu un izvelciet galveno informāciju strukturētā JSON formātā.
-            JSON objektam ir jāiekļauj šādi lauki:
-            "document_type": (piemēram, "Līgums", "Rēķins", "Protokols", "Pielikums", "Atskaite")
-            "document_number": (piemēram, "LV2023/123", "N/A", ja nav atrasts)
-            "document_date": (piemēram, "2023-10-26", "N/A", ja nav atrasts)
-            "parties": [
-                {{"name": "Puses A Nosaukums", "role": "Iznomātājs / Piegādātājs"}},
-                {{"name": "Puses B Nosaukums", "role": "Nomnieks / Pasūtītājs"}}
-            ]
-            "subject": "Īss darījuma priekšmeta kopsavilkums."
-            "financial_terms": {{
-                "total_amount": "Kopējā summa ar valūtu un PVN",
-                "payment_schedule": "Maksājumu grafika apraksts",
-                "deadlines": "Galvenie termiņi",
-                "late_payment_penalties": "Kavējuma procenti vai līgumsods"
-            }}
-            "ownership_termination": {{
-                "ownership_transfer": "Īpašumtiesību pārejas nosacījumi",
-                "termination_conditions": "Līguma izbeigšanas nosacījumi"
-            }}
-            "risks_warnings": [
-                "Būtiskākie riski vai sankcijas"
-            ]
+            if isinstance(content_payload, str):
+                contents = [prompt_text, "\n\nDokumenta teksts:\n", content_payload]
+            else:
+                contents = [content_payload, prompt_text]
 
-            Dokumenta teksts:
-            ---
-            {text}
-            ---
-
-            Izvadei jābūt TIKAI tīram JSON objektam bez markdown blokiem.
-            """
-
-            # Pareizais jaunais izsaukums:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=prompt_text,
+                contents=contents,
                 config=types.GenerateContentConfig(
                     temperature=0.2,
                     response_mime_type="application/json"
@@ -112,16 +95,14 @@ class DocDigestService:
             )
 
             if response and response.text:
-                return json.loads(response.text)
-            else:
-                return {"error": "Nav teksta AI atbildē"}
+                return json.loads(response.text.strip())
+            return {"error": "Tukša AI atbilde"}
 
         except Exception as e:
-            print(f"[{datetime.now().strftime('%H:%M')}] Leo error: AI analīze neizdevās: {e}")
+            print(f"ERROR Gemini analīzē: {e}")
             return {"error": str(e)}
 
     def _create_digest_docx(self, output_path: Path, data: dict, original_filename: str):
-        """Izveido noformētu .docx kopsavilkuma failu."""
         doc = docx.Document()
 
         doc.add_heading(f"Dokumenta Kopsavilkums: {original_filename}", level=1)
@@ -159,93 +140,136 @@ class DocDigestService:
         add_section("Riski un Brīdinājumi", data.get("risks_warnings", []))
 
         doc.save(output_path)
-        print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Izveidots kopsavilkuma fails: {output_path.name}")
+        print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Izveidots kopsavilkums: {output_path.name}")
 
     def process_file(self, file_path: Path):
-        """Apstrādā vienu failu: nolasa, analizē, izveido DOCX kopsavilkumu."""
-        print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Sāku apstrādāt failu: {file_path.name}")
+        print(f"[{datetime.now().strftime('%H:%M')}] Apstrādāju failu: {file_path.name}")
+        ext = file_path.suffix.lower()
+
         try:
-            if file_path.suffix == '.docx':
-                text_content = self._read_docx(file_path)
-            elif file_path.suffix == '.txt':
-                text_content = self._read_txt(file_path)
+            if ext == ".docx":
+                text = self._read_docx(file_path)
+                if not text.strip():
+                    return
+                analysis = self._analyze_with_gemini(text)
+
+            elif ext == ".txt":
+                text = self._read_txt(file_path)
+                if not text.strip():
+                    return
+                analysis = self._analyze_with_gemini(text)
+
+            elif ext == ".pdf":
+                with open(file_path, "rb") as f:
+                    pdf_bytes = f.read()
+                if not pdf_bytes:
+                    return
+                pdf_part = types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+                analysis = self._analyze_with_gemini(pdf_part)
+
             else:
-                print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Neatbalstīts faila formāts: {file_path.name}")
+                print(f"Neatbalstīts formāts: {file_path.name}")
                 return
 
-            if not text_content.strip():
-                print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Fails {file_path.name} ir tukšs vai nesatur nolasāmu tekstu. Ignorēju.")
+            if "error" in analysis:
+                print(f"Kļūda AI analīzē: {analysis['error']}")
                 return
 
-            analysis_result = self._analyze_with_ai(text_content)
+            out_name = f"DIGEST_{file_path.stem}.docx"
+            self._create_digest_docx(OUTBOX_DIR / out_name, analysis, file_path.name)
+	    _append_to_excel_registry(file_path.name, analysis)
 
-            if "error" in analysis_result:
-                print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Kļūda AI analīzē failam {file_path.name}: {analysis_result['error']}")
-                return
-
-            original_filename_no_suffix = file_path.stem
-            digest_filename = f"DIGEST_{original_filename_no_suffix}.docx"
-            output_path = OUTBOX_DIR / digest_filename
-            self._create_digest_docx(output_path, analysis_result, file_path.name)
-
-            # Pēc apstrādes failu pārvieto uz arhīvu
-            archive_path = ARCHIVE_DIR / file_path.name
-            file_path.rename(archive_path)
-            print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Fails {file_path.name} pārvietots uz arhīvu: {archive_path.name}")
+            archive_target = ARCHIVE_DIR / file_path.name
+            file_path.rename(archive_target)
+            print(f"Fails pārvietots uz arhīvu: {file_path.name}")
 
         except Exception as e:
-            print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Neizdevās apstrādāt failu {file_path.name}: {e}")
+            print(f"Neizdevās apstrādāt {file_path.name}: {e}")
+
+# Šeit beidzas klases DocDigestService metode process_file:
+        except Exception as e:
+            print(f"Neizdevās apstrādāt {file_path.name}: {e}")
+
+# ==========================================
+# ŠEIT IELIEC 4. PUNKTA LEO FUNKCIJU:
+# ==========================================
+def _append_to_excel_registry(file_name, analysis, status="🟢 Apstrādāts"):
+    headers = [
+        "Ieraksta Datums", "Fails", "Dokumenta tips", "Dokumenta Nr.",
+        "Dokumenta Datums", "Puses", "Summa", "Termiņš", "Statuss"
+    ]
+
+    if not EXCEL_REGISTRY_PATH.exists():
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Līgumu Reģistrs"
+        ws.append(headers)
+        for col_cell in ws[1]:
+            col_cell.font = Font(bold=True)
+        wb.save(EXCEL_REGISTRY_PATH)
+
+    wb = load_workbook(EXCEL_REGISTRY_PATH)
+    ws = wb.active
+
+    parties_data = analysis.get("parties", [])
+    if isinstance(parties_data, list):
+        parties_str = ", ".join([p.get("name", str(p)) if isinstance(p, dict) else str(p) for p in parties_data])
+    else:
+        parties_str = str(parties_data)
+
+    fin = analysis.get("financial_terms", {})
+    sum_val = fin.get("total_amount", "N/A") if isinstance(fin, dict) else "N/A"
+    term_val = fin.get("deadlines", "N/A") if isinstance(fin, dict) else "N/A"
+
+    new_row_data = [
+        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        file_name,
+        analysis.get("document_type", "N/A"),
+        analysis.get("document_number", "N/A"),
+        analysis.get("document_date", "N/A"),
+        parties_str,
+        sum_val,
+        term_val,
+        status
+    ]
+    ws.append(new_row_data)
+    wb.save(EXCEL_REGISTRY_PATH)
+    print(f"[{datetime.now().strftime('%H:%M')}] Excel reģistrs atjaunināts: {file_name}")
+
+# ==========================================
+# Un tālāk turpinās klase FolderWatcherService:
+# ==========================================
+class FolderWatcherService:
+    def __init__(self, watch_dir: Path, digest_service: DocDigestService):
+        ...
 
 class FolderWatcherService:
     def __init__(self, watch_dir: Path, digest_service: DocDigestService):
         self.watch_dir = watch_dir
         self.digest_service = digest_service
         self._running = False
-        print(f"[{datetime.now().strftime('%H:%M')}] FolderWatcherService: Uzraugu mapi: {self.watch_dir}")
 
-    def _filter_files(self, file_path: Path) -> bool:
-        """Filtrē failus, kas jāignorē (Word slēdzenes, DIGEST_ faili)."""
-        filename = file_path.name
-        if filename.startswith("~$") or filename.startswith("DIGEST_"):
-            return False
-        return True
-
-    def start_watching(self, interval_sec: int = 5):
-        """Sāk mapes uzraudzību."""
+    def start_watching(self, interval_sec: int = 4):
         self._running = True
+        print(f"Uzraugu mapi: {self.watch_dir}")
         while self._running:
-            print(f"[{datetime.now().strftime('%H:%M')}] FolderWatcherService: Pārbaudu mapi {self.watch_dir}...")
-            for file_path in self.watch_dir.iterdir():
-                if file_path.is_file() and self._filter_files(file_path):
-                    print(f"[{datetime.now().strftime('%H:%M')}] FolderWatcherService: Atrasts jauns fails: {file_path.name}")
+            for file_path in list(self.watch_dir.iterdir()):
+                name = file_path.name
+                if file_path.is_file() and not (name.startswith("~$") or name.startswith("DIGEST_")):
                     self.digest_service.process_file(file_path)
             time.sleep(interval_sec)
 
-    def stop_watching(self):
-        """Pārtrauc mapes uzraudzību."""
-        self._running = False
-        print(f"[{datetime.now().strftime('%H:%M')}] FolderWatcherService: Mapes uzraudzība apturēta.")
-
-# --- Galvenā Lietojumprogrammas Loģika ---
 if __name__ == "__main__":
-    print(f"[{datetime.now().strftime('%H:%M')}] AQ-OS Modulārais Monolīts startē! Andiamo!")
+    print(f"[{datetime.now().strftime('%H:%M')}] AQ-OS startēts! Andiamo!")
+    digest = DocDigestService()
+    watcher = FolderWatcherService(INBOX_DIR, digest)
 
-    # Šajā fāzē GatewayRouter, EventEngine un ServiceRegistry ir abstrakcijas,
-    # kas nozīmē, ka pakalpojumi tiek tieši instancēti un saistīti,
-    # simulējot iekšējo komunikāciju.
-    doc_digest_service = DocDigestService()
-    folder_watcher = FolderWatcherService(watch_dir=INBOX_DIR, digest_service=doc_digest_service)
+    t = threading.Thread(target=watcher.start_watching, daemon=True)
+    t.start()
 
-    # Palaist FolderWatcherService atsevišķā pavedienā, lai galvenais pavediens nebūtu bloķēts
-    watcher_thread = threading.Thread(target=folder_watcher.start_watching, daemon=True)
-    watcher_thread.start()
-
-    print(f"[{datetime.now().strftime('%H:%M')}] Sistēma ir gatava! Novietojiet .docx vai .txt failus mapē '{INBOX_DIR}' un skatieties maģiju mapē '{OUTBOX_DIR}'!")
-    print(f"[{datetime.now().strftime('%H:%M')}] Lai apturētu, nospiediet Ctrl+C.")
-
+    print(f"Sistēma gatava! Ievietojiet failus (docx, txt, pdf) mapē '{INBOX_DIR}'...")
     try:
         while True:
-            time.sleep(1) # Turam galveno pavedienu dzīvu
+            time.sleep(1)
     except KeyboardInterrupt:
-        print(f"[{datetime.now().strftime('%H:%M')}] Sistēma tiek apturēta. Arrivederci!")
-        folder_watcher.stop_watching()
+        print("Sistēma apturēta.")
