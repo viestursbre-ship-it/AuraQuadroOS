@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+storage/processed/*
+storage/outbox/*
+!storage/processed/.gitkeep
+!storage/outbox/.gitkeep
+!storage/inbox/.gitkeep
