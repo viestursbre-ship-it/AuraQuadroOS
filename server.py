@@ -23,6 +23,49 @@ EXCEL_REGISTRY_PATH = STORAGE_DIR / "Ligumu_Registrs.xlsx"
 for _dir in [INBOX_DIR, OUTBOX_DIR, ARCHIVE_DIR]:
     _dir.mkdir(parents=True, exist_ok=True)
 
+def _append_to_excel_registry(file_name, analysis, status="🟢 Apstrādāts"):
+    headers = [
+        "Ieraksta Datums", "Fails", "Dokumenta tips", "Dokumenta Nr.",
+        "Dokumenta Datums", "Puses", "Summa", "Termiņš", "Statuss"
+    ]
+
+    if not EXCEL_REGISTRY_PATH.exists():
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Līgumu Reģistrs"
+        ws.append(headers)
+        for col_cell in ws[1]:
+            col_cell.font = Font(bold=True)
+        wb.save(EXCEL_REGISTRY_PATH)
+
+    wb = load_workbook(EXCEL_REGISTRY_PATH)
+    ws = wb.active
+
+    parties_data = analysis.get("parties", [])
+    if isinstance(parties_data, list):
+        parties_str = ", ".join([p.get("name", str(p)) if isinstance(p, dict) else str(p) for p in parties_data])
+    else:
+        parties_str = str(parties_data)
+
+    fin = analysis.get("financial_terms", {})
+    sum_val = fin.get("total_amount", "N/A") if isinstance(fin, dict) else "N/A"
+    term_val = fin.get("deadlines", "N/A") if isinstance(fin, dict) else "N/A"
+
+    new_row_data = [
+        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        file_name,
+        analysis.get("document_type", "N/A"),
+        analysis.get("document_number", "N/A"),
+        analysis.get("document_date", "N/A"),
+        parties_str,
+        sum_val,
+        term_val,
+        status
+    ]
+    ws.append(new_row_data)
+    wb.save(EXCEL_REGISTRY_PATH)
+    print(f"[{datetime.now().strftime('%H:%M')}] Excel reģistrs atjaunināts: {file_name}")
+
 class DocDigestService:
     def __init__(self):
         print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Gatavs apstrādei!")
@@ -177,7 +220,7 @@ class DocDigestService:
 
             out_name = f"DIGEST_{file_path.stem}.docx"
             self._create_digest_docx(OUTBOX_DIR / out_name, analysis, file_path.name)
-	    _append_to_excel_registry(file_path.name, analysis)
+            _append_to_excel_registry(file_path.name, analysis)
 
             archive_target = ARCHIVE_DIR / file_path.name
             file_path.rename(archive_target)
@@ -185,63 +228,6 @@ class DocDigestService:
 
         except Exception as e:
             print(f"Neizdevās apstrādāt {file_path.name}: {e}")
-
-# Šeit beidzas klases DocDigestService metode process_file:
-        except Exception as e:
-            print(f"Neizdevās apstrādāt {file_path.name}: {e}")
-
-# ==========================================
-# ŠEIT IELIEC 4. PUNKTA LEO FUNKCIJU:
-# ==========================================
-def _append_to_excel_registry(file_name, analysis, status="🟢 Apstrādāts"):
-    headers = [
-        "Ieraksta Datums", "Fails", "Dokumenta tips", "Dokumenta Nr.",
-        "Dokumenta Datums", "Puses", "Summa", "Termiņš", "Statuss"
-    ]
-
-    if not EXCEL_REGISTRY_PATH.exists():
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Līgumu Reģistrs"
-        ws.append(headers)
-        for col_cell in ws[1]:
-            col_cell.font = Font(bold=True)
-        wb.save(EXCEL_REGISTRY_PATH)
-
-    wb = load_workbook(EXCEL_REGISTRY_PATH)
-    ws = wb.active
-
-    parties_data = analysis.get("parties", [])
-    if isinstance(parties_data, list):
-        parties_str = ", ".join([p.get("name", str(p)) if isinstance(p, dict) else str(p) for p in parties_data])
-    else:
-        parties_str = str(parties_data)
-
-    fin = analysis.get("financial_terms", {})
-    sum_val = fin.get("total_amount", "N/A") if isinstance(fin, dict) else "N/A"
-    term_val = fin.get("deadlines", "N/A") if isinstance(fin, dict) else "N/A"
-
-    new_row_data = [
-        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        file_name,
-        analysis.get("document_type", "N/A"),
-        analysis.get("document_number", "N/A"),
-        analysis.get("document_date", "N/A"),
-        parties_str,
-        sum_val,
-        term_val,
-        status
-    ]
-    ws.append(new_row_data)
-    wb.save(EXCEL_REGISTRY_PATH)
-    print(f"[{datetime.now().strftime('%H:%M')}] Excel reģistrs atjaunināts: {file_name}")
-
-# ==========================================
-# Un tālāk turpinās klase FolderWatcherService:
-# ==========================================
-class FolderWatcherService:
-    def __init__(self, watch_dir: Path, digest_service: DocDigestService):
-        ...
 
 class FolderWatcherService:
     def __init__(self, watch_dir: Path, digest_service: DocDigestService):
