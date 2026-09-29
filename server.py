@@ -1,293 +1,251 @@
 import os
 import time
-import threading
-import datetime
-import uuid
 import json
-from collections import defaultdict
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+import threading
+from pathlib import Path
+from datetime import datetime
 
-# --- 1. ServiceRegistry ---
-class ServiceRegistry:
-    """
-    A simple registry for services within the modular monolith.
-    Allows services to register themselves and discover others.
-    """
-    def __init__(self):
-        self._services = {}
+import docx
+from docx.shared import Inches
+from google import genai # Jaunā bibliotēka
 
-    def register(self, name, service_instance):
-        if name in self._services:
-            print(f"Warning: Service '{name}' already registered. Overwriting.")
-        self._services[name] = service_instance
-        print(f"Service '{name}' registered.")
+# --- AQ-OS Sistēmas Konfigurācija un Ceļi ---
+STORAGE_DIR = Path("storage")
+INBOX_DIR = STORAGE_DIR / "inbox"
+OUTBOX_DIR = STORAGE_DIR / "outbox"
+ARCHIVE_DIR = STORAGE_DIR / "archive" # Ja vajadzēs arhivēšanai
 
-    def get(self, name):
-        service = self._services.get(name)
-        if not service:
-            print(f"Error: Service '{name}' not found in registry.")
-        return service
+# Izveido nepieciešamās mapes, ja tās neeksistē
+for _dir in [INBOX_DIR, OUTBOX_DIR, ARCHIVE_DIR]:
+    _dir.mkdir(parents=True, exist_ok=True)
 
-# --- 2. EventEngine ---
-class EventEngine:
-    """
-    The internal event processing and distribution mechanism.
-    Supports asynchronous communication between modules.
-    """
-    def __init__(self):
-        self._subscribers = defaultdict(list)
-        self._event_queue = [] # For simple async, could be thread-safe queue for real-world
-        self._running = False
-        self._worker_thread = None
-        self._lock = threading.Lock() # For thread-safe queue access
+# --- Pakalpojumi (Modulārā Monolīta Iekšējās Dzinēja Daļas) ---
 
-    def subscribe(self, event_type, handler):
-        self._subscribers[event_type].append(handler)
-        print(f"Handler {handler.__name__} subscribed to {event_type} events.")
-
-    def publish(self, event_type, data=None):
-        event_id = str(uuid.uuid4())
-        timestamp = datetime.datetime.now().isoformat()
-        event = {"event_id": event_id, "timestamp": timestamp, "type": event_type, "data": data}
-        with self._lock:
-            self._event_queue.append(event)
-        print(f"Event '{event_type}' published with data: {data}")
-
-    def _process_events(self):
-        while self._running:
-            event = None
-            with self._lock:
-                if self._event_queue:
-                    event = self._event_queue.pop(0) # FIFO
-            
-            if event:
-                event_type = event['type']
-                data = event['data']
-                print(f"Processing event '{event_type}'...")
-                for handler in self._subscribers[event_type]:
-                    try:
-                        handler(data) # Pass only data to the handler
-                        print(f"  Handler {handler.__name__} processed {event_type} event.")
-                    except Exception as e:
-                        print(f"  Error processing event '{event_type}' with handler {handler.__name__}: {e}")
-            else:
-                time.sleep(0.1) # Don't busy-wait
-
-    def start(self):
-        if not self._running:
-            self._running = True
-            self._worker_thread = threading.Thread(target=self._process_events, daemon=True)
-            self._worker_thread.start()
-            print("EventEngine started.")
-
-    def stop(self):
-        self._running = False
-        if self._worker_thread:
-            self._worker_thread.join(timeout=1) # Give it a moment to finish
-        print("EventEngine stopped.")
-
-
-# --- 3. GatewayRouter ---
-class GatewayRouter:
-    """
-    A simple router for handling internal "API" requests and dispatching them.
-    In this modular monolith, it acts as a basic API gateway.
-    """
-    def __init__(self, service_registry, event_engine):
-        self.service_registry = service_registry
-        self.event_engine = event_engine
-        self._routes = {}
-        self.register_route("/health", self._handle_health)
-        self.register_route("/api/v1/status", self._handle_status)
-        print("GatewayRouter initialized with basic routes.")
-
-    def register_route(self, path, handler):
-        self._routes[path] = handler
-        print(f"Route '{path}' registered.")
-
-    def handle_request(self, path, method="GET", body=None):
-        print(f"GatewayRouter received request: {method} {path}")
-        handler = self._routes.get(path)
-        if handler:
-            return handler(method, body)
-        else:
-            return {"status": "error", "message": f"Route '{path}' not found"}, 404
-
-    def _handle_health(self, method, body):
-        return {"status": "ok", "message": "System is healthy"}, 200
-
-    def _handle_status(self, method, body):
-        # A placeholder for more detailed status later
-        return {"status": "ok", "system_status": "operational", "version": "v0.1-alpha"}, 200
-
-    def start(self):
-        print("GatewayRouter ready to handle requests.")
-        # In a real app, this would be a web server loop (e.g., Flask/FastAPI)
-        # For now, it's just a conceptual "start"
-        print("To test, manually call `router.handle_request()`.")
-
-
-# --- 4. FolderWatcherService content ---
-class FolderWatcherService(FileSystemEventHandler):
-    """
-    Monitors a specified folder for new files and publishes 'file_dropped' events.
-    Utilizes the watchdog library for efficient file system event monitoring.
-    """
-    def __init__(self, path_to_watch, event_engine):
-        super().__init__()
-        self.path_to_watch = path_to_watch
-        self.event_engine = event_engine
-        self.observer = Observer()
-        print(f"FolderWatcherService initialized for path: {path_to_watch}")
-
-    def on_created(self, event):
-        if not event.is_directory:
-            print(f"File created: {event.src_path}")
-            self.event_engine.publish("file_dropped", {"file_path": event.src_path})
-
-    def start(self):
-        if not os.path.exists(self.path_to_watch):
-            os.makedirs(self.path_to_watch)
-            print(f"Created missing watch folder: {self.path_to_watch}")
-
-        self.observer.schedule(self, self.path_to_watch, recursive=False)
-        self.observer.start()
-        print(f"FolderWatcherService started monitoring '{self.path_to_watch}' in a background thread.")
-
-    def stop(self):
-        self.observer.stop()
-        self.observer.join()
-        print("FolderWatcherService stopped.")
-
-# --- 5. DocDigestService content (updated) ---
 class DocDigestService:
-    """
-    Processes 'file_dropped' events, digests file info,
-    creates a summary, and moves the original file.
-    """
-    def __init__(self, storage_root):
-        self.storage_root = storage_root
-        self.inbox_path = os.path.join(storage_root, "inbox")
-        self.processed_path = os.path.join(storage_root, "processed")
-        self.outbox_path = os.path.join(storage_root, "outbox")
-        self._ensure_storage_dirs()
-        print(f"DocDigestService initialized with storage root: {storage_root}")
+    def __init__(self):
+        # Šis simulē, ka DocDigestService ir "reģistrēts" ServiceRegistry
+        # un izmanto EventEngine, bet vienā failā tas ir abstrakts.
+        print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Maestro sagatavojies simfonijai!")
 
-    def _ensure_storage_dirs(self):
-        os.makedirs(self.inbox_path, exist_ok=True)
-        os.makedirs(self.processed_path, exist_ok=True)
-        os.makedirs(self.outbox_path, exist_ok=True)
-        print(f"Ensured storage directories exist: {self.inbox_path}, {self.processed_path}, {self.outbox_path}")
+    def _read_docx(self, file_path: Path) -> str:
+        """Nolasa .docx faila saturu, ieskaitot tabulas."""
+        doc = docx.Document(file_path)
+        full_text = []
 
-    def handle_file_dropped(self, data):
-        file_path = data.get('file_path') or data.get('path') # Robustness for both keys
-        if not file_path:
-            print("Error: No 'file_path' or 'path' provided in file_dropped event data.")
-            return
+        # Rindkopas
+        for para in doc.paragraphs:
+            if para.text.strip():
+                full_text.append(para.text.strip())
 
-        # Simple check to avoid processing watchdog internal events or duplicate events
-        # This can happen if a file is moved or copied with specific OS behaviors
-        if not os.path.exists(file_path):
-            print(f"Warning: File '{file_path}' not found, possibly already moved or deleted before processing.")
-            return
-        
-        # Avoid processing files that are still being written to (simple heuristic)
-        # In a real system, you might need a more robust file locking or completion detection.
+        # Tabulas
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = []
+                for cell in row.cells:
+                    cell_text = cell.text.strip()
+                    if cell_text:
+                        row_text.append(cell_text)
+                if row_text:
+                    full_text.append(" | ".join(row_text)) # Formats tabulas rindai
+
+        return "\n".join(full_text)
+
+    def _read_txt(self, file_path: Path) -> str:
+        """Nolasa .txt faila saturu."""
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return f.read()
+
+    def _analyze_with_ai(self, text: str) -> dict:
+        """Analizē tekstu ar Google Gemini API un atgriež strukturētu JSON."""
+        api_key = os.getenv("AQ_AI_API_KEY")
+        if not api_key:
+            print(f"[{datetime.now().strftime('%H:%M')}] Leo error: AQ_AI_API_KEY nav iestatīts!")
+            return {"error": "AQ_AI_API_KEY nav iestatīts."}
+
         try:
-            with open(file_path, 'rb') as f:
-                pass # Try to open and immediately close to check for access
-        except IOError:
-            print(f"Warning: File '{file_path}' is currently inaccessible, skipping for now. Will retry if event re-occurs.")
-            return
+            from google import genai
+            from google.genai import types
 
+            client = genai.Client(api_key=api_key)
 
-        try:
-            # 1. Read basic file data
-            file_name = os.path.basename(file_path)
-            file_size_bytes = os.path.getsize(file_path)
-            file_size_kb = round(file_size_bytes / 1024, 2)
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            prompt_text = f"""
+            Analizējiet šo dokumenta tekstu un izvelciet galveno informāciju strukturētā JSON formātā.
+            JSON objektam ir jāiekļauj šādi lauki:
+            "document_type": (piemēram, "Līgums", "Rēķins", "Protokols", "Pielikums", "Atskaite")
+            "document_number": (piemēram, "LV2023/123", "N/A", ja nav atrasts)
+            "document_date": (piemēram, "2023-10-26", "N/A", ja nav atrasts)
+            "parties": [
+                {{"name": "Puses A Nosaukums", "role": "Iznomātājs / Piegādātājs"}},
+                {{"name": "Puses B Nosaukums", "role": "Nomnieks / Pasūtītājs"}}
+            ]
+            "subject": "Īss darījuma priekšmeta kopsavilkums."
+            "financial_terms": {{
+                "total_amount": "Kopējā summa ar valūtu un PVN",
+                "payment_schedule": "Maksājumu grafika apraksts",
+                "deadlines": "Galvenie termiņi",
+                "late_payment_penalties": "Kavējuma procenti vai līgumsods"
+            }}
+            "ownership_termination": {{
+                "ownership_transfer": "Īpašumtiesību pārejas nosacījumi",
+                "termination_conditions": "Līguma izbeigšanas nosacījumi"
+            }}
+            "risks_warnings": [
+                "Būtiskākie riski vai sankcijas"
+            ]
 
-            print(f"Processing file: {file_name} (Size: {file_size_kb} KB)")
+            Dokumenta teksts:
+            ---
+            {text}
+            ---
 
-            # 2. Create digest file in storage/outbox
-            digest_file_name = f"DIGEST_{file_name}.txt"
-            digest_file_path = os.path.join(self.outbox_path, digest_file_name)
+            Izvadei jābūt TIKAI tīram JSON objektam bez markdown blokiem.
+            """
 
-            digest_content = (
-                f"--- Document Digest ---\n"
-                f"Original Filename: {file_name}\n"
-                f"File Size: {file_size_kb} KB\n"
-                f"Processing Timestamp: {timestamp}\n"
-                f"--- End Digest ---\n"
+            # Pareizais jaunais izsaukums:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt_text,
+                config=types.GenerateContentConfig(
+                    temperature=0.2,
+                    response_mime_type="application/json"
+                ),
             )
 
-            with open(digest_file_path, "w", encoding="utf-8") as f:
-                f.write(digest_content)
-            print(f"Digest created: {digest_file_path}")
-
-            # 3. Move original file to storage/processed
-            destination_path = os.path.join(self.processed_path, file_name)
-            os.rename(file_path, destination_path) # os.rename is atomic on POSIX systems
-            print(f"Original file moved to: {destination_path}")
+            if response and response.text:
+                return json.loads(response.text)
+            else:
+                return {"error": "Nav teksta AI atbildē"}
 
         except Exception as e:
-            print(f"Error processing file '{file_path}': {e}")
+            print(f"[{datetime.now().strftime('%H:%M')}] Leo error: AI analīze neizdevās: {e}")
+            return {"error": str(e)}
 
+    def _create_digest_docx(self, output_path: Path, data: dict, original_filename: str):
+        """Izveido noformētu .docx kopsavilkuma failu."""
+        doc = docx.Document()
 
-# --- Main Application Setup ---
-def main():
-    print("AQ-OS Modular Monolith Starting...")
+        doc.add_heading(f"Dokumenta Kopsavilkums: {original_filename}", level=1)
+        doc.add_paragraph(f"Izveidots: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        doc.add_paragraph("")
 
-    # 0. Setup base directories
-    STORAGE_ROOT = "storage"
-    INBOX_PATH = os.path.join(STORAGE_ROOT, "inbox")
-    os.makedirs(INBOX_PATH, exist_ok=True)
-    print(f"Ensured storage/inbox exists at: {INBOX_PATH}")
+        def add_section(title: str, content):
+            doc.add_heading(title, level=2)
+            if isinstance(content, dict):
+                for key, value in content.items():
+                    doc.add_paragraph(f"• {key.replace('_', ' ').capitalize()}: {value}")
+            elif isinstance(content, list):
+                if content:
+                    for item in content:
+                        if isinstance(item, dict):
+                            doc.add_paragraph(f"• {item.get('name', 'N/A')}: {item.get('role', 'N/A')}")
+                        else:
+                            doc.add_paragraph(f"• {item}")
+                else:
+                    doc.add_paragraph("Nav informācijas.")
+            else:
+                doc.add_paragraph(str(content))
+            doc.add_paragraph("")
 
-    # 1. Initialize core components
-    event_engine = EventEngine()
-    service_registry = ServiceRegistry()
-    gateway_router = GatewayRouter(service_registry, event_engine)
+        add_section("Vispārīgā Informācija", {
+            "Dokumenta tips": data.get("document_type", "N/A"),
+            "Dokumenta numurs": data.get("document_number", "N/A"),
+            "Dokumenta datums": data.get("document_date", "N/A")
+        })
 
-    # Register core components (optional, but good practice for service discovery)
-    service_registry.register("EventEngine", event_engine)
-    service_registry.register("ServiceRegistry", service_registry)
-    service_registry.register("GatewayRouter", gateway_router)
+        add_section("Puses un Lomas", data.get("parties", []))
+        add_section("Darījuma Priekšmets", data.get("subject", "N/A"))
+        add_section("Finanšu Noteikumi", data.get("financial_terms", {}))
+        add_section("Īpašumtiesības un Līguma Izbeigšana", data.get("ownership_termination", {}))
+        add_section("Riski un Brīdinājumi", data.get("risks_warnings", []))
 
+        doc.save(output_path)
+        print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Izveidots kopsavilkuma fails: {output_path.name}")
 
-    # 2. Initialize and register application services
-    folder_watcher = FolderWatcherService(INBOX_PATH, event_engine)
-    doc_digest_service = DocDigestService(STORAGE_ROOT)
+    def process_file(self, file_path: Path):
+        """Apstrādā vienu failu: nolasa, analizē, izveido DOCX kopsavilkumu."""
+        print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Sāku apstrādāt failu: {file_path.name}")
+        try:
+            if file_path.suffix == '.docx':
+                text_content = self._read_docx(file_path)
+            elif file_path.suffix == '.txt':
+                text_content = self._read_txt(file_path)
+            else:
+                print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Neatbalstīts faila formāts: {file_path.name}")
+                return
 
-    service_registry.register("FolderWatcherService", folder_watcher)
-    service_registry.register("DocDigestService", doc_digest_service)
+            if not text_content.strip():
+                print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Fails {file_path.name} ir tukšs vai nesatur nolasāmu tekstu. Ignorēju.")
+                return
 
-    # 3. Connect services (Event-driven architecture)
-    event_engine.subscribe("file_dropped", doc_digest_service.handle_file_dropped)
+            analysis_result = self._analyze_with_ai(text_content)
 
-    # 4. Start core components (EventEngine must start first to process events)
-    event_engine.start() # Start the event processing thread
-    folder_watcher.start() # Start file watching in its own thread
-    gateway_router.start() # Just conceptually "starts" for now
+            if "error" in analysis_result:
+                print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Kļūda AI analīzē failam {file_path.name}: {analysis_result['error']}")
+                return
 
-    print("\nAQ-OS Modular Monolith is operational. Waiting for files in storage/inbox...")
-    print("To test GatewayRouter routes, try calling:")
-    print("  router_response, status_code = gateway_router.handle_request('/health')")
-    print("  print(f'Health Check: {router_response} (Status: {status_code})')")
+            original_filename_no_suffix = file_path.stem
+            digest_filename = f"DIGEST_{original_filename_no_suffix}.docx"
+            output_path = OUTBOX_DIR / digest_filename
+            self._create_digest_docx(output_path, analysis_result, file_path.name)
 
+            # Pēc apstrādes failu pārvieto uz arhīvu
+            archive_path = ARCHIVE_DIR / file_path.name
+            file_path.rename(archive_path)
+            print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Fails {file_path.name} pārvietots uz arhīvu: {archive_path.name}")
+
+        except Exception as e:
+            print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Neizdevās apstrādāt failu {file_path.name}: {e}")
+
+class FolderWatcherService:
+    def __init__(self, watch_dir: Path, digest_service: DocDigestService):
+        self.watch_dir = watch_dir
+        self.digest_service = digest_service
+        self._running = False
+        print(f"[{datetime.now().strftime('%H:%M')}] FolderWatcherService: Uzraugu mapi: {self.watch_dir}")
+
+    def _filter_files(self, file_path: Path) -> bool:
+        """Filtrē failus, kas jāignorē (Word slēdzenes, DIGEST_ faili)."""
+        filename = file_path.name
+        if filename.startswith("~$") or filename.startswith("DIGEST_"):
+            return False
+        return True
+
+    def start_watching(self, interval_sec: int = 5):
+        """Sāk mapes uzraudzību."""
+        self._running = True
+        while self._running:
+            print(f"[{datetime.now().strftime('%H:%M')}] FolderWatcherService: Pārbaudu mapi {self.watch_dir}...")
+            for file_path in self.watch_dir.iterdir():
+                if file_path.is_file() and self._filter_files(file_path):
+                    print(f"[{datetime.now().strftime('%H:%M')}] FolderWatcherService: Atrasts jauns fails: {file_path.name}")
+                    self.digest_service.process_file(file_path)
+            time.sleep(interval_sec)
+
+    def stop_watching(self):
+        """Pārtrauc mapes uzraudzību."""
+        self._running = False
+        print(f"[{datetime.now().strftime('%H:%M')}] FolderWatcherService: Mapes uzraudzība apturēta.")
+
+# --- Galvenā Lietojumprogrammas Loģika ---
+if __name__ == "__main__":
+    print(f"[{datetime.now().strftime('%H:%M')}] AQ-OS Modulārais Monolīts startē! Andiamo!")
+
+    # Šajā fāzē GatewayRouter, EventEngine un ServiceRegistry ir abstrakcijas,
+    # kas nozīmē, ka pakalpojumi tiek tieši instancēti un saistīti,
+    # simulējot iekšējo komunikāciju.
+    doc_digest_service = DocDigestService()
+    folder_watcher = FolderWatcherService(watch_dir=INBOX_DIR, digest_service=doc_digest_service)
+
+    # Palaist FolderWatcherService atsevišķā pavedienā, lai galvenais pavediens nebūtu bloķēts
+    watcher_thread = threading.Thread(target=folder_watcher.start_watching, daemon=True)
+    watcher_thread.start()
+
+    print(f"[{datetime.now().strftime('%H:%M')}] Sistēma ir gatava! Novietojiet .docx vai .txt failus mapē '{INBOX_DIR}' un skatieties maģiju mapē '{OUTBOX_DIR}'!")
+    print(f"[{datetime.now().strftime('%H:%M')}] Lai apturētu, nospiediet Ctrl+C.")
 
     try:
-        # Keep the main thread alive for background services
         while True:
-            time.sleep(1)
+            time.sleep(1) # Turam galveno pavedienu dzīvu
     except KeyboardInterrupt:
-        print("\nShutting down AQ-OS Modular Monolith...")
-    finally:
-        folder_watcher.stop()
-        event_engine.stop()
-        print("AQ-OS Modular Monolith stopped gracefully.")
-
-if __name__ == "__main__":
-    main()
+        print(f"[{datetime.now().strftime('%H:%M')}] Sistēma tiek apturēta. Arrivederci!")
+        folder_watcher.stop_watching()
