@@ -29,42 +29,52 @@ def _append_to_excel_registry(file_name, analysis, status="🟢 Apstrādāts"):
         "Dokumenta Datums", "Puses", "Summa", "Termiņš", "Statuss"
     ]
 
-    if not EXCEL_REGISTRY_PATH.exists():
-        wb = Workbook()
+    try:
+        if not EXCEL_REGISTRY_PATH.exists():
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Līgumu Reģistrs"
+            ws.append(headers)
+            for col_cell in ws[1]:
+                col_cell.font = Font(bold=True)
+            wb.save(EXCEL_REGISTRY_PATH)
+
+        wb = load_workbook(EXCEL_REGISTRY_PATH)
         ws = wb.active
-        ws.title = "Līgumu Reģistrs"
-        ws.append(headers)
-        for col_cell in ws[1]:
-            col_cell.font = Font(bold=True)
+
+        parties_data = analysis.get("parties", [])
+        if isinstance(parties_data, list):
+            parties_str = ", ".join([p.get("name", str(p)) if isinstance(p, dict) else str(p) for p in parties_data])
+        else:
+            parties_str = str(parties_data)
+
+        fin = analysis.get("financial_terms", {})
+        sum_val = fin.get("total_amount", "N/A") if isinstance(fin, dict) else "N/A"
+        term_val = fin.get("deadlines", "N/A") if isinstance(fin, dict) else "N/A"
+
+        new_row_data = [
+            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            file_name,
+            analysis.get("document_type", "N/A"),
+            analysis.get("document_number", "N/A"),
+            analysis.get("document_date", "N/A"),
+            parties_str,
+            sum_val,
+            term_val,
+            status
+        ]
+        ws.append(new_row_data)
+
+        # Automātisks kolonnu platums
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = col[0].column_letter
+            ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+
         wb.save(EXCEL_REGISTRY_PATH)
-
-    wb = load_workbook(EXCEL_REGISTRY_PATH)
-    ws = wb.active
-
-    parties_data = analysis.get("parties", [])
-    if isinstance(parties_data, list):
-        parties_str = ", ".join([p.get("name", str(p)) if isinstance(p, dict) else str(p) for p in parties_data])
-    else:
-        parties_str = str(parties_data)
-
-    fin = analysis.get("financial_terms", {})
-    sum_val = fin.get("total_amount", "N/A") if isinstance(fin, dict) else "N/A"
-    term_val = fin.get("deadlines", "N/A") if isinstance(fin, dict) else "N/A"
-
-    new_row_data = [
-        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        file_name,
-        analysis.get("document_type", "N/A"),
-        analysis.get("document_number", "N/A"),
-        analysis.get("document_date", "N/A"),
-        parties_str,
-        sum_val,
-        term_val,
-        status
-    ]
-    ws.append(new_row_data)
-    wb.save(EXCEL_REGISTRY_PATH)
-    print(f"[{datetime.now().strftime('%H:%M')}] Excel reģistrs atjaunināts: {file_name}")
+        print(f"[{datetime.now().strftime('%H:%M')}] Excel reģistrs atjaunināts: {file_name}")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M')}] Kļūda rakstot Excel: {e}")
 
 class DocDigestService:
     def __init__(self):
@@ -247,6 +257,7 @@ class FolderWatcherService:
 
 if __name__ == "__main__":
     print(f"[{datetime.now().strftime('%H:%M')}] AQ-OS startēts! Andiamo!")
+    print('[AQ] Dzinējs pārbaudīts un gatavs darbam!')
     digest = DocDigestService()
     watcher = FolderWatcherService(INBOX_DIR, digest)
 
