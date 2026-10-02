@@ -12,6 +12,7 @@ from google import genai
 from google.genai import types
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
+from pptx import Presentation # NEW: Import for PowerPoint handling
 
 # --- Ceļi un mapes ---
 STORAGE_DIR = Path("storage")
@@ -44,28 +45,34 @@ def _append_to_excel_registry(file_name, analysis, status="🟢 Apstrādāts"):
 
         parties_data = analysis.get("parties", [])
         if isinstance(parties_data, list):
-            parties_str = ", ".join([p.get("name", str(p)) if isinstance(p, dict) else str(p) for p in parties_data])
+            parties_str = ", ".join([
+                p.get("name", str(p)) if isinstance(p, dict) else str(p) 
+                for p in parties_data
+            ])
         else:
-            parties_str = str(parties_data)
+            parties_str = str(parties_data or "N/A")
 
-        fin = analysis.get("financial_terms", {})
-        sum_val = fin.get("total_amount", "N/A") if isinstance(fin, dict) else "N/A"
-        term_val = fin.get("deadlines", "N/A") if isinstance(fin, dict) else "N/A"
+        fin = analysis.get("financial_terms")
+        if isinstance(fin, dict):
+            sum_val = fin.get("total_amount", "N/A")
+            term_val = fin.get("deadlines", "N/A")
+        else:
+            sum_val = "N/A"
+            term_val = "N/A"
 
         new_row_data = [
             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             file_name,
-            analysis.get("document_type", "N/A"),
-            analysis.get("document_number", "N/A"),
-            analysis.get("document_date", "N/A"),
+            str(analysis.get("document_type", "N/A")),
+            str(analysis.get("document_number", "N/A")),
+            str(analysis.get("document_date", "N/A")),
             parties_str,
-            sum_val,
-            term_val,
+            str(sum_val),
+            str(term_val),
             status
         ]
         ws.append(new_row_data)
 
-        # Automātisks kolonnu platums
         for col in ws.columns:
             max_len = max(len(str(cell.value or '')) for cell in col)
             col_letter = col[0].column_letter
@@ -97,38 +104,85 @@ class DocDigestService:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             return f.read()
 
-    def _analyze_with_gemini(self, content_payload) -> dict:
+    # NEW: Function to extract text from PPTX files
+    def _read_pptx(self, file_path: Path) -> str:
+        prs = Presentation(file_path)
+        full_text = []
+        for i, slide in enumerate(prs.slides):
+            full_text.append(f"\n--- Slaids {i+1} ---\n")
+            for shape in slide.shapes:
+                if not shape.has_text_frame:
+                    continue
+                for paragraph in shape.text_frame.paragraphs:
+                    if paragraph.text.strip():
+                        full_text.append(paragraph.text.strip())
+            
+            # Extract notes if available
+            if slide.has_notes_slide:
+                text_frame = slide.notes_slide.notes_text_frame
+                if text_frame is not None:
+                    for paragraph in text_frame.paragraphs:
+                        if paragraph.text.strip():
+                            full_text.append(f"Piezīmes: {paragraph.text.strip()}")
+        return "\n".join(full_text)
+
+    def _analyze_with_gemini(self, content_payload, file_type: str = ".docx") -> dict:
         api_key = os.getenv("AQ_AI_API_KEY")
         if not api_key:
             print("ERROR: AQ_AI_API_KEY nav iestatīts!")
             return {"error": "AQ_AI_API_KEY nav iestatīts."}
 
-        prompt_text = """
-        Analizējiet šo juridisko dokumentu un izvelciet galveno informāciju precīzā JSON formātā:
-        {
-          "document_type": "Līgums / Rēķins / Pielikums",
-          "document_number": "Dokumenta numurs vai N/A",
-          "document_date": "Dokumenta noslēgšanas datums vai N/A",
-          "parties": [
-            {"name": "Puses nosaukums", "role": "Pasūtītājs / Piegādātājs / Iznomātājs / Nomnieks"}
-          ],
-          "subject": "Darījuma priekšmeta īss, precīzs apraksts",
-          "financial_terms": {
-            "total_amount": "Kopējā summa ar valūtu un PVN statusu",
-            "payment_schedule": "Apmaksas termiņš un kārtība",
-            "deadlines": "Būtiskākie piegādes vai izpildes termiņi",
-            "late_payment_penalties": "Kavējuma procenti vai līgumsods"
-          },
-          "ownership_termination": {
-            "ownership_transfer": "Īpašumtiesību vai riska pārejas brīdis",
-            "termination_conditions": "Līguma laušanas kārtība"
-          },
-          "risks_warnings": [
-            "Būtiskākie riski, sankcijas, atbildības ierobežojumi vai brīdinājumi"
-          ]
-        }
-        Atgrieziet TIKAI tīru JSON bez markdown blokiem.
-        """
+        # Dynamically select prompt based on file type
+        if file_type == ".pptx":
+            prompt_text = """
+            Analizējiet šo prezentāciju un izvelciet galveno informāciju precīzā JSON formātā, pielāgojoties akadēmiskam kopsavilkumam:
+            {
+              "document_type": "Prezentācija / Lekcija",
+              "document_number": "N/A",
+              "document_date": "Prezentācijas datums vai N/A",
+              "parties": [
+                {"name": "Prezentācijas autors vai Pasniedzējs", "role": "Autors / Pasniedzējs"}
+              ],
+              "subject": "Prezentācijas galvenā tēma un mērķis",
+              "financial_terms": {},
+              "ownership_termination": {},
+              "risks_warnings": [
+                "Galvenās tēzes, kas izceltas prezentācijā",
+                "Svarīgākie jēdzieni un definīcijas",
+                "Kopsavilkums pa prezentācijas tēmām (katra tēma kā atsevišķs punkts ar īsu kopsavilkumu)",
+                "Cita svarīga informācija vai secinājumi"
+              ]
+            }
+            Centieties aizpildīt visus laukus, ja informācija ir pieejama.
+            Atgrieziet TIKAI tīru JSON bez markdown blokiem.
+            """
+        else: # Default for .docx, .txt, .pdf (legal documents)
+            prompt_text = """
+            Analizējiet šo juridisko dokumentu un izvelciet galveno informāciju precīzā JSON formātā:
+            {
+              "document_type": "Līgums / Rēķins / Pielikums",
+              "document_number": "Dokumenta numurs vai N/A",
+              "document_date": "Dokumenta noslēgšanas datums vai N/A",
+              "parties": [
+                {"name": "Puses nosaukums", "role": "Pasūtītājs / Piegādātājs / Iznomātājs / Nomnieks"}
+              ],
+              "subject": "Darījuma priekšmeta īss, precīzs apraksts",
+              "financial_terms": {
+                "total_amount": "Kopējā summa ar valūtu un PVN statusu",
+                "payment_schedule": "Apmaksas termiņš un kārtība",
+                "deadlines": "Būtiskākie piegādes vai izpildes termiņi",
+                "late_payment_penalties": "Kavējuma procenti vai līgumsods"
+              },
+              "ownership_termination": {
+                "ownership_transfer": "Īpašumtiesību vai riska pārejas brīdis",
+                "termination_conditions": "Līguma laušanas kārtība"
+              },
+              "risks_warnings": [
+                "Būtiskākie riski, sankcijas, atbildības ierobežojumi vai brīdinājumi"
+              ]
+            }
+            Atgrieziet TIKAI tīru JSON bez markdown blokiem.
+            """
 
         try:
             client = genai.Client(api_key=api_key)
@@ -171,7 +225,13 @@ class DocDigestService:
                 if content:
                     for item in content:
                         if isinstance(item, dict):
-                            doc.add_paragraph(f"• {item.get('name', 'N/A')}: {item.get('role', 'N/A')}")
+                            # Special handling for parties (name and role) and potential sub-topics for PPTX
+                            if "name" in item and "role" in item:
+                                doc.add_paragraph(f"• {item.get('name', 'N/A')}: {item.get('role', 'N/A')}")
+                            elif "topic" in item and "summary" in item: # For PPTX summary_by_topics (if AI were to put it here)
+                                doc.add_paragraph(f"• Tēma: {item['topic']} - Kopsavilkums: {item['summary']}")
+                            else:
+                                doc.add_paragraph(f"• {str(item)}")
                         else:
                             doc.add_paragraph(f"• {item}")
                 else:
@@ -190,7 +250,7 @@ class DocDigestService:
         add_section("Darījuma Priekšmets", data.get("subject", "N/A"))
         add_section("Finanšu Noteikumi", data.get("financial_terms", {}))
         add_section("Īpašumtiesības un Līguma Izbeigšana", data.get("ownership_termination", {}))
-        add_section("Riski un Brīdinājumi", data.get("risks_warnings", []))
+        add_section("Riski un Brīdinājumi", data.get("risks_warnings", [])) # This will now contain academic points for PPTX
 
         doc.save(output_path)
         print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Izveidots kopsavilkums: {output_path.name}")
@@ -203,29 +263,40 @@ class DocDigestService:
             if ext == ".docx":
                 text = self._read_docx(file_path)
                 if not text.strip():
+                    print(f"[{datetime.now().strftime('%H:%M')}] {file_path.name}: Tukšs dokuments, neapstrādāju.")
                     return
-                analysis = self._analyze_with_gemini(text)
+                analysis = self._analyze_with_gemini(text, file_type=ext)
 
             elif ext == ".txt":
                 text = self._read_txt(file_path)
                 if not text.strip():
+                    print(f"[{datetime.now().strftime('%H:%M')}] {file_path.name}: Tukšs dokuments, neapstrādāju.")
                     return
-                analysis = self._analyze_with_gemini(text)
+                analysis = self._analyze_with_gemini(text, file_type=ext)
 
             elif ext == ".pdf":
                 with open(file_path, "rb") as f:
                     pdf_bytes = f.read()
                 if not pdf_bytes:
+                    print(f"[{datetime.now().strftime('%H:%M')}] {file_path.name}: Tukšs dokuments, neapstrādāju.")
                     return
                 pdf_part = types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
-                analysis = self._analyze_with_gemini(pdf_part)
+                analysis = self._analyze_with_gemini(pdf_part, file_type=ext)
+            
+            # NEW: Handle .pptx files
+            elif ext == ".pptx":
+                text = self._read_pptx(file_path)
+                if not text.strip():
+                    print(f"[{datetime.now().strftime('%H:%M')}] {file_path.name}: Tukša prezentācija, neapstrādāju.")
+                    return
+                analysis = self._analyze_with_gemini(text, file_type=ext)
 
             else:
-                print(f"Neatbalstīts formāts: {file_path.name}")
+                print(f"[{datetime.now().strftime('%H:%M')}] Neatbalstīts faila formāts: {file_path.name}")
                 return
 
             if "error" in analysis:
-                print(f"Kļūda AI analīzē: {analysis['error']}")
+                print(f"[{datetime.now().strftime('%H:%M')}] Kļūda AI analīzē: {analysis['error']}")
                 return
 
             out_name = f"DIGEST_{file_path.stem}.docx"
@@ -234,10 +305,10 @@ class DocDigestService:
 
             archive_target = ARCHIVE_DIR / file_path.name
             file_path.rename(archive_target)
-            print(f"Fails pārvietots uz arhīvu: {file_path.name}")
+            print(f"[{datetime.now().strftime('%H:%M')}] Fails pārvietots uz arhīvu: {file_path.name}")
 
         except Exception as e:
-            print(f"Neizdevās apstrādāt {file_path.name}: {e}")
+            print(f"[{datetime.now().strftime('%H:%M')}] Neizdevās apstrādāt {file_path.name}: {e}")
 
 class FolderWatcherService:
     def __init__(self, watch_dir: Path, digest_service: DocDigestService):
@@ -247,7 +318,7 @@ class FolderWatcherService:
 
     def start_watching(self, interval_sec: int = 4):
         self._running = True
-        print(f"Uzraugu mapi: {self.watch_dir}")
+        print(f"[{datetime.now().strftime('%H:%M')}] Uzraugu mapi: {self.watch_dir}")
         while self._running:
             for file_path in list(self.watch_dir.iterdir()):
                 name = file_path.name
@@ -264,9 +335,10 @@ if __name__ == "__main__":
     t = threading.Thread(target=watcher.start_watching, daemon=True)
     t.start()
 
-    print(f"Sistēma gatava! Ievietojiet failus (docx, txt, pdf) mapē '{INBOX_DIR}'...")
+    # UPDATED: Inform about PPTX support
+    print(f"Sistēma gatava! Ievietojiet failus (docx, txt, pdf, pptx) mapē '{INBOX_DIR}'...")
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Sistēma apturēta.")
+        print(f"[{datetime.now().strftime('%H:%M')}] Sistēma apturēta. Arrivederci!")
