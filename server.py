@@ -41,9 +41,30 @@ OUTBOX_DIR = STORAGE_DIR / "outbox"
 ARCHIVE_DIR = STORAGE_DIR / "archive"
 EXCEL_REGISTRY_PATH = STORAGE_DIR / "Ligumu_Registrs.xlsx"
 STATE_FILE = "radar_state.json"
+IGNORE_FILE = "radar_ignored_senders.json"
 
 for d in [INBOX_DIR, OUTBOX_DIR, ARCHIVE_DIR]:
     d.mkdir(parents=True, exist_ok=True)
+
+# ==========================================
+# IGNORĒTO SŪTĪTĀJU PĀRVALDĪBA
+# ==========================================
+def get_ignored_senders():
+    if not os.path.exists(IGNORE_FILE):
+        return set()
+    try:
+        with open(IGNORE_FILE, "r", encoding="utf-8") as f:
+            return set(json.load(f))
+    except Exception:
+        return set()
+
+def add_ignored_sender(sender_identifier):
+    if not sender_identifier:
+        return
+    ignored = get_ignored_senders()
+    ignored.add(sender_identifier.strip().lower())
+    with open(IGNORE_FILE, "w", encoding="utf-8") as f:
+        json.dump(list(ignored), f, ensure_ascii=False, indent=2)
 
 # ==========================================
 # 1. DOKUMENTU APSTRĀDES MODULIS
@@ -210,7 +231,7 @@ Atgrieziet TIKAI derīgu JSON bez markdown blokiem."""
 
         analysis = self._analyze_with_gemini(text_payload, file_type=ext.replace(".", ""))
         if "error" in analysis:
-            print(f"⚠️️ MI kļūda failam {file_path.name}: {analysis['error']}")
+            print(f"⚠ MI kļūda failam {file_path.name}: {analysis['error']}")
             return
 
         out_name = f"DIGEST_{file_path.stem}.docx"
@@ -238,10 +259,10 @@ class FolderWatcherService:
             time.sleep(interval_sec)
 
 # ==========================================
-# 2. OUTLOOK RADARA SKENERIS (DROŠS PRET AVĀRIJĀM)
+# 2. OUTLOOK RADARA SKENERIS AR FILTRU
 # ==========================================
 def scan_outlook_mailbox():
-    """Pārbauda Outlook kasti tikai tad, ja Outlook ir pieejams"""
+    """Pārbauda Outlook kasti un filtrē bloķētos sūtītājus"""
     if not HAS_WIN32COM:
         return
 
@@ -251,10 +272,8 @@ def scan_outlook_mailbox():
         messages = inbox.Items
         messages.Sort("[ReceivedTime]", True)
     except Exception:
-        # Outlook nav instalēts vai nav atvērts — klusa iziešana
         return
 
-    # Skenējam pēdējos 10 e-pastus
     items_to_save = {}
     if os.path.exists(STATE_FILE):
         try:
@@ -263,7 +282,9 @@ def scan_outlook_mailbox():
         except Exception:
             pass
 
-    for i in range(1, min(11, messages.Count + 1)):
+    ignored_list = get_ignored_senders()
+
+    for i in range(1, min(15, messages.Count + 1)):
         try:
             msg = messages.Item(i)
             entry_id = msg.EntryID
@@ -274,7 +295,10 @@ def scan_outlook_mailbox():
             sender = msg.SenderName or "Nezināms"
             body = msg.Body or ""
 
-            # Ātrā filtrācija
+            # Ignorēto sūtītāju filtrs
+            if any(ign in sender.lower() for ign in ignored_list):
+                continue
+
             subj_lower = subj.lower()
             if any(k in subj_lower for k in ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums"]):
                 items_to_save[entry_id] = {
@@ -307,7 +331,7 @@ class OutlookRadarWatcher(threading.Thread):
             time.sleep(self.interval_sec)
 
 # ==========================================
-# 3. GRAFISKĀ SASKAIRNE (RADARA LOGS & TRAY)
+# 3. GRAFISKĀ SASKAIRNE (AR POGU "IGNORĒT")
 # ==========================================
 def open_email_in_outlook(entry_id):
     if not HAS_WIN32COM:
@@ -324,14 +348,14 @@ class RadarApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("AQ Termiņu Radars")
-        self.geometry("420x600")
+        self.geometry("440x600")
         self.resizable(False, False)
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
         sw = self.winfo_screenwidth()
         sh = self.winfo_screenheight()
-        self.geometry(f"420x600+{sw - 440}+{sh - 680}")
+        self.geometry(f"440x600+{sw - 460}+{sh - 680}")
         self.protocol("WM_DELETE_WINDOW", self.withdraw)
 
         header = ctk.CTkFrame(self, fg_color="transparent")
@@ -340,7 +364,7 @@ class RadarApp(ctk.CTk):
         ctk.CTkLabel(header, text="⚡ AQ Operētājsistēma", font=ctk.CTkFont(size=16, weight="bold")).pack(side="left")
         ctk.CTkButton(header, text="🔄", width=30, height=28, command=self.load_cards, fg_color="#1e293b").pack(side="right")
 
-        self.scroll_frame = ctk.CTkScrollableFrame(self, width=390, height=520)
+        self.scroll_frame = ctk.CTkScrollableFrame(self, width=410, height=520)
         self.scroll_frame.pack(padx=10, pady=5, fill="both", expand=True)
         self.load_cards()
 
@@ -362,6 +386,10 @@ class RadarApp(ctk.CTk):
                 pass
         card_widget.destroy()
 
+    def ignore_sender_and_remove(self, sender, entry_id, card_widget):
+        add_ignored_sender(sender)
+        self.mark_as_done(entry_id, card_widget)
+
     def load_cards(self):
         for w in self.scroll_frame.winfo_children():
             w.destroy()
@@ -376,7 +404,12 @@ class RadarApp(ctk.CTk):
         except Exception:
             data = {}
 
-        active_items = {k: v for k, v in data.items() if v.get("status") == "ACTIVE"}
+        ignored_list = get_ignored_senders()
+        active_items = {
+            k: v for k, v in data.items() 
+            if v.get("status") == "ACTIVE" and not any(ign in v.get("sender", "").lower() for ign in ignored_list)
+        }
+
         if not active_items:
             ctk.CTkLabel(self.scroll_frame, text="✨ Visi uzdevumi nokārtoti!", font=ctk.CTkFont(size=14)).pack(pady=40)
             return
@@ -394,19 +427,27 @@ class RadarApp(ctk.CTk):
             if item_data.get("received"):
                 ctk.CTkLabel(top_bar, text=item_data.get("received"), text_color="#64748b", font=ctk.CTkFont(size=10)).pack(side="right")
 
-            ctk.CTkLabel(card, text=item_data.get("subject", ""), font=ctk.CTkFont(size=12, weight="bold"), wraplength=350, justify="left").pack(anchor="w", padx=10, pady=(2, 0))
-            ctk.CTkLabel(card, text=f"No: {item_data.get('sender', '')}", font=ctk.CTkFont(size=11), text_color="#94a3b8", wraplength=350, justify="left").pack(anchor="w", padx=10)
+            ctk.CTkLabel(card, text=item_data.get("subject", ""), font=ctk.CTkFont(size=12, weight="bold"), wraplength=370, justify="left").pack(anchor="w", padx=10, pady=(2, 0))
+            ctk.CTkLabel(card, text=f"No: {item_data.get('sender', '')}", font=ctk.CTkFont(size=11), text_color="#94a3b8", wraplength=370, justify="left").pack(anchor="w", padx=10)
 
             req = item_data.get("core_request")
             if req:
-                ctk.CTkLabel(card, text=req, font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=350, justify="left").pack(anchor="w", padx=10, pady=4)
+                ctk.CTkLabel(card, text=req, font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=370, justify="left").pack(anchor="w", padx=10, pady=4)
 
             btn_row = ctk.CTkFrame(card, fg_color="transparent")
             btn_row.pack(fill="x", padx=10, pady=(4, 8))
+            
+            # Poga 1: Atvērt
             ctk.CTkButton(btn_row, text="↗ Atvērt", width=75, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
                           command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 6))
+            
+            # Poga 2: Nokārtots
             ctk.CTkButton(btn_row, text="✓ Nokārtots", width=85, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11),
-                          command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c)).pack(side="left")
+                          command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c)).pack(side="left", padx=(0, 6))
+
+            # Poga 3: Ignorēt sūtītāju
+            ctk.CTkButton(btn_row, text="🚫 Ignorēt", width=75, height=24, fg_color="#334155", hover_color="#dc2626", font=ctk.CTkFont(size=11),
+                          command=lambda s=item_data.get("sender", ""), eid=entry_id, c=card: self.ignore_sender_and_remove(s, eid, c)).pack(side="left")
 
 def run_tray(app):
     img = Image.new("RGBA", (64, 64), color=(0, 0, 0, 0))
@@ -430,17 +471,14 @@ def run_tray(app):
 if __name__ == "__main__":
     print("🚀 [AQ-OS] Dzinējs startēts...")
 
-    # A. Palaižam dokumentu uzraudzību
     digest_service = DocDigestService()
     watcher = FolderWatcherService(INBOX_DIR, digest_service)
     doc_thread = threading.Thread(target=watcher.start_watching, daemon=True)
     doc_thread.start()
 
-    # B. Palaižam fona Outlook radaru
     radar_thread = OutlookRadarWatcher(interval_sec=300)
     radar_thread.start()
 
-    # C. Palaižam GUI un System Tray
     app = RadarApp()
     tray_thread = threading.Thread(target=run_tray, args=(app,), daemon=True)
     tray_thread.start()
