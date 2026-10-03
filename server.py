@@ -4,6 +4,7 @@ import json
 import threading
 from pathlib import Path
 from datetime import datetime
+import shutil # NEW: Import for file moving utilities
 
 import docx
 from docx.shared import Inches, Pt
@@ -12,7 +13,7 @@ from google import genai
 from google.genai import types
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
-from pptx import Presentation # NEW: Import for PowerPoint handling
+from pptx import Presentation
 
 # --- Ceļi un mapes ---
 STORAGE_DIR = Path("storage")
@@ -83,6 +84,32 @@ def _append_to_excel_registry(file_name, analysis, status="🟢 Apstrādāts"):
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M')}] Kļūda rakstot Excel: {e}")
 
+# NEW: Safe archive function to prevent duplicates and overwrites
+def safe_archive_file(source_path, archive_dir):
+    """
+    Droši pārvieto failu uz arhīvu. Ja fails ar tādu nosaukumu jau eksistē,
+    pievieno laika zīmogu (YYYYMMDD_HHMMSS), novēršot pārrakstīšanas un bloķēšanas cilpas.
+    """
+    os.makedirs(archive_dir, exist_ok=True)
+    filename = os.path.basename(source_path)
+    base_name, ext = os.path.splitext(filename)
+    
+    target_path = os.path.join(archive_dir, filename)
+    
+    # Ja fails jau eksistē mērķī, pieliekam laika zīmogu
+    if os.path.exists(target_path):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        new_filename = f"{base_name}_{timestamp}{ext}"
+        target_path = os.path.join(archive_dir, new_filename)
+        
+    try:
+        shutil.move(source_path, target_path)
+        print(f"[{datetime.now().strftime('%H:%M')}] 📦 Arhīvēts: {filename} -> {os.path.basename(target_path)}")
+        return target_path
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M')}] ⚠️ Kļūda arhivējot failu {filename}: {e}")
+        return None
+
 class DocDigestService:
     def __init__(self):
         print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Gatavs apstrādei!")
@@ -104,7 +131,6 @@ class DocDigestService:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             return f.read()
 
-    # NEW: Function to extract text from PPTX files
     def _read_pptx(self, file_path: Path) -> str:
         prs = Presentation(file_path)
         full_text = []
@@ -117,7 +143,6 @@ class DocDigestService:
                     if paragraph.text.strip():
                         full_text.append(paragraph.text.strip())
             
-            # Extract notes if available
             if slide.has_notes_slide:
                 text_frame = slide.notes_slide.notes_text_frame
                 if text_frame is not None:
@@ -132,7 +157,6 @@ class DocDigestService:
             print("ERROR: AQ_AI_API_KEY nav iestatīts!")
             return {"error": "AQ_AI_API_KEY nav iestatīts."}
 
-        # Dynamically select prompt based on file type
         if file_type == ".pptx":
             prompt_text = """
             Analizējiet šo prezentāciju un izvelciet galveno informāciju precīzā JSON formātā, pielāgojoties akadēmiskam kopsavilkumam:
@@ -156,7 +180,7 @@ class DocDigestService:
             Centieties aizpildīt visus laukus, ja informācija ir pieejama.
             Atgrieziet TIKAI tīru JSON bez markdown blokiem.
             """
-        else: # Default for .docx, .txt, .pdf (legal documents)
+        else:
             prompt_text = """
             Analizējiet šo juridisko dokumentu un izvelciet galveno informāciju precīzā JSON formātā:
             {
@@ -206,7 +230,7 @@ class DocDigestService:
             return {"error": "Tukša AI atbilde"}
 
         except Exception as e:
-            print(f"ERROR Gemini analīzē: {e}")
+            print(f"[{datetime.now().strftime('%H:%M')}] ERROR Gemini analīzē: {e}")
             return {"error": str(e)}
 
     def _create_digest_docx(self, output_path: Path, data: dict, original_filename: str):
@@ -225,10 +249,9 @@ class DocDigestService:
                 if content:
                     for item in content:
                         if isinstance(item, dict):
-                            # Special handling for parties (name and role) and potential sub-topics for PPTX
                             if "name" in item and "role" in item:
                                 doc.add_paragraph(f"• {item.get('name', 'N/A')}: {item.get('role', 'N/A')}")
-                            elif "topic" in item and "summary" in item: # For PPTX summary_by_topics (if AI were to put it here)
+                            elif "topic" in item and "summary" in item:
                                 doc.add_paragraph(f"• Tēma: {item['topic']} - Kopsavilkums: {item['summary']}")
                             else:
                                 doc.add_paragraph(f"• {str(item)}")
@@ -250,7 +273,7 @@ class DocDigestService:
         add_section("Darījuma Priekšmets", data.get("subject", "N/A"))
         add_section("Finanšu Noteikumi", data.get("financial_terms", {}))
         add_section("Īpašumtiesības un Līguma Izbeigšana", data.get("ownership_termination", {}))
-        add_section("Riski un Brīdinājumi", data.get("risks_warnings", [])) # This will now contain academic points for PPTX
+        add_section("Riski un Brīdinājumi", data.get("risks_warnings", []))
 
         doc.save(output_path)
         print(f"[{datetime.now().strftime('%H:%M')}] DocDigestService: Izveidots kopsavilkums: {output_path.name}")
@@ -260,6 +283,7 @@ class DocDigestService:
         ext = file_path.suffix.lower()
 
         try:
+            analysis = None
             if ext == ".docx":
                 text = self._read_docx(file_path)
                 if not text.strip():
@@ -283,7 +307,6 @@ class DocDigestService:
                 pdf_part = types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
                 analysis = self._analyze_with_gemini(pdf_part, file_type=ext)
             
-            # NEW: Handle .pptx files
             elif ext == ".pptx":
                 text = self._read_pptx(file_path)
                 if not text.strip():
@@ -295,17 +318,16 @@ class DocDigestService:
                 print(f"[{datetime.now().strftime('%H:%M')}] Neatbalstīts faila formāts: {file_path.name}")
                 return
 
-            if "error" in analysis:
-                print(f"[{datetime.now().strftime('%H:%M')}] Kļūda AI analīzē: {analysis['error']}")
+            if analysis is None or "error" in analysis:
+                print(f"[{datetime.now().strftime('%H:%M')}] Kļūda AI analīzē vai tukša atbilde {file_path.name}: {analysis.get('error', 'N/A')}")
                 return
 
             out_name = f"DIGEST_{file_path.stem}.docx"
             self._create_digest_docx(OUTBOX_DIR / out_name, analysis, file_path.name)
             _append_to_excel_registry(file_path.name, analysis)
 
-            archive_target = ARCHIVE_DIR / file_path.name
-            file_path.rename(archive_target)
-            print(f"[{datetime.now().strftime('%H:%M')}] Fails pārvietots uz arhīvu: {file_path.name}")
+            # OLD: file_path.rename(ARCHIVE_DIR / file_path.name)
+            safe_archive_file(file_path, ARCHIVE_DIR) # NEW: Use the safe archive function
 
         except Exception as e:
             print(f"[{datetime.now().strftime('%H:%M')}] Neizdevās apstrādāt {file_path.name}: {e}")
@@ -335,7 +357,6 @@ if __name__ == "__main__":
     t = threading.Thread(target=watcher.start_watching, daemon=True)
     t.start()
 
-    # UPDATED: Inform about PPTX support
     print(f"Sistēma gatava! Ievietojiet failus (docx, txt, pdf, pptx) mapē '{INBOX_DIR}'...")
     try:
         while True:
