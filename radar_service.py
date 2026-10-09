@@ -18,6 +18,7 @@ except ImportError:
     HAS_WIN32COM = False
 
 from cockpit import CockpitWindow
+from daily_briefing import generate_daily_report
 
 BASE_DIR = Path(__file__).resolve().parent
 STATE_FILE = BASE_DIR / "radar_state.json"
@@ -274,6 +275,16 @@ class RadarMainApp(ctk.CTk):
             command=self.load_cards
         ).pack(side="left", padx=2)
 
+        ctk.CTkButton(
+            btn_box, 
+            text="📋", 
+            width=30, 
+            height=26, 
+            fg_color="#475569", 
+            hover_color="#334155", 
+            command=self.trigger_briefing
+        ).pack(side="left", padx=2)
+
         self.scroll_frame = ctk.CTkScrollableFrame(self, width=450, height=580, fg_color="#0b1329")
         self.scroll_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
@@ -298,16 +309,84 @@ class RadarMainApp(ctk.CTk):
             self.cockpit_win.lift()
             self.cockpit_win.focus_force()
 
-    def start_background_watcher(self, interval_sec=300):
+    def trigger_offer_flow(self, item_data):
+        self.open_cockpit()
+        if self.cockpit_win:
+            self.cockpit_win.open_for_offer(
+                subject=item_data.get("subject", ""),
+                sender=item_data.get("sender", ""),
+                body=item_data.get("core_request", "")
+            )
+
+    def show_briefing_popup(self, report_text):
+        win = ctk.CTkToplevel(self)
+        win.title("📋 Vakara Komandanta Atskaite")
+        win.geometry("520x460")
+        win.attributes("-topmost", True)
+        win.configure(fg_color="#0b1329")
+
+        header = ctk.CTkFrame(win, fg_color="#0f172a", height=45)
+        header.pack(fill="x")
+        ctk.CTkLabel(
+            header,
+            text="🐾 KVARKA KOMANDANTA ATSKAITE",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="#f59e0b"
+        ).pack(side="left", padx=15, pady=10)
+
+        txt = ctk.CTkTextbox(win, fg_color="#131b2e", font=ctk.CTkFont(size=12), wrap="word")
+        txt.pack(fill="both", expand=True, padx=15, pady=15)
+        txt.insert("end", report_text)
+        txt.configure(state="disabled")
+
+        ctk.CTkButton(
+            win,
+            text="Sapratu! (Pieņemt zināšanai)",
+            fg_color="#2563eb",
+            hover_color="#1d4ed8",
+            command=win.destroy
+        ).pack(pady=(0, 15))
+
+    def trigger_briefing(self):
+        report = generate_daily_report()
+        if report:
+            self.show_briefing_popup(report)
+
+    def start_background_watcher(self):
+        self.last_briefing_date = None
+        self.scan_tick = 0
+
         def _loop():
             while True:
-                threading.Event().wait(interval_sec)
+                threading.Event().wait(5)
                 try:
-                    added = scan_outlook_mailbox()
-                    if added > 0:
-                        self.after(0, self.load_cards)
+                    self.scan_tick += 5
+                    if self.scan_tick >= 300:
+                        self.scan_tick = 0
+                        added = scan_outlook_mailbox()
+                        if added > 0:
+                            self.after(0, self.load_cards)
+
+                    cfg_time = "18:00"
+                    if os.path.exists("config.json"):
+                        try:
+                            with open("config.json", "r", encoding="utf-8") as f:
+                                cfg_time = json.load(f).get("briefing_time", "18:00")
+                        except Exception:
+                            pass
+
+                    target_hour, target_min = map(int, cfg_time.split(":"))
+                    now = datetime.now()
+                    today = now.date()
+
+                    if now.hour == target_hour and now.minute == target_min and self.last_briefing_date != today:
+                        self.last_briefing_date = today
+                        report = generate_daily_report()
+                        if report:
+                            self.after(0, lambda r=report: self.show_briefing_popup(r))
                 except Exception:
                     pass
+
         threading.Thread(target=_loop, daemon=True).start()
 
     def trigger_scan(self):
@@ -396,13 +475,16 @@ class RadarMainApp(ctk.CTk):
             btn_row = ctk.CTkFrame(card, fg_color="transparent")
             btn_row.pack(fill="x", padx=10, pady=(4, 8))
             
-            ctk.CTkButton(btn_row, text="↗ Atvērt", width=75, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
-                          command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 6))
-            
-            ctk.CTkButton(btn_row, text="✓ Nokārtots", width=85, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11),
-                          command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c)).pack(side="left", padx=(0, 6))
+            ctk.CTkButton(btn_row, text="↗ Atvērt", width=65, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
+                          command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 4))
 
-            ctk.CTkButton(btn_row, text="🚫 Ignorēt", width=75, height=24, fg_color="#334155", hover_color="#dc2626", font=ctk.CTkFont(size=11),
+            ctk.CTkButton(btn_row, text="💼 Piedāvājums", width=85, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11),
+                          command=lambda item=item_data: self.trigger_offer_flow(item)).pack(side="left", padx=(0, 4))
+            
+            ctk.CTkButton(btn_row, text="✓ Nokārtots", width=75, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11),
+                          command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c)).pack(side="left", padx=(0, 4))
+
+            ctk.CTkButton(btn_row, text="🚫 Ignorēt", width=65, height=24, fg_color="#334155", hover_color="#dc2626", font=ctk.CTkFont(size=11),
                           command=lambda s=item_data.get("sender", ""), eid=entry_id, c=card: self.ignore_sender_and_remove(s, eid, c)).pack(side="left")
 
     def quit_completely(self):
