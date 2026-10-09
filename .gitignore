@@ -5,3 +5,12 @@ storage/outbox/*
 !storage/processed/.gitkeep
 !storage/outbox/.gitkeep
 !storage/inbox/.gitkeep
+
+dist/
+build/
+*.build/
+*.onefile-build/
+*.dist/
+config.json
+radar_state.json
+radar_ignored_senders.json
