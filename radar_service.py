@@ -23,6 +23,10 @@ from daily_briefing import generate_daily_report
 BASE_DIR = Path(__file__).resolve().parent
 STATE_FILE = BASE_DIR / "radar_state.json"
 IGNORE_FILE = BASE_DIR / "radar_ignored_senders.json"
+VOICE_DIR = BASE_DIR / "storage" / "voice"
+VOICE_DIR.mkdir(parents=True, exist_ok=True)
+
+AUDIO_EXTENSIONS = {".ogg", ".opus", ".mp3", ".m4a", ".wav", ".aac"}
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -172,20 +176,42 @@ def scan_outlook_mailbox():
                     elif "radar" in subj_lower:
                         is_self_task = True
 
+                    # Pārbaudām audio pielikumus TIKAI no sevis sūtītajiem e-pastiem
+                    saved_audio_path = None
+                    if is_self_task and hasattr(msg, "Attachments") and msg.Attachments.Count > 0:
+                        for att_idx in range(1, msg.Attachments.Count + 1):
+                            try:
+                                att = msg.Attachments.Item(att_idx)
+                                att_name = att.FileName.lower()
+                                ext = Path(att_name).suffix
+                                if ext in AUDIO_EXTENSIONS:
+                                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                    clean_name = f"voice_{timestamp}_{att.FileName}"
+                                    target_path = VOICE_DIR / clean_name
+                                    att.SaveAsFile(str(target_path))
+                                    saved_audio_path = str(target_path)
+                                    break
+                            except Exception:
+                                pass
+
                     matches_keywords = any(k in subj_lower for k in keywords)
 
-                    if matches_keywords or is_self_task:
+                    if matches_keywords or is_self_task or saved_audio_path:
                         import re
                         date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
                         
-                        if date_match:
+                        if saved_audio_path:
+                            found_deadline = "Balss apstrāde"
+                            cat = "🎙️ Balss ziņa"
+                        elif date_match:
                             found_deadline = f"Līdz {date_match.group(1)}"
+                            cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
                         elif "rīt" in body_lower or "rītdien" in body_lower:
                             found_deadline = "Līdz rītdienai"
+                            cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
                         else:
                             found_deadline = "Steidzams"
-
-                        cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
+                            cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
 
                         items_to_save[entry_id] = {
                             "subject": subj,
@@ -194,6 +220,7 @@ def scan_outlook_mailbox():
                             "deadline": found_deadline,
                             "category": cat,
                             "status": "ACTIVE",
+                            "audio_path": saved_audio_path,
                             "received": msg.ReceivedTime.strftime("%d.%m %H:%M") if hasattr(msg, "ReceivedTime") else ""
                         }
                         new_count += 1
@@ -317,6 +344,11 @@ class RadarMainApp(ctk.CTk):
                 sender=item_data.get("sender", ""),
                 body=item_data.get("core_request", "")
             )
+
+    def trigger_voice_flow(self, audio_path):
+        self.open_cockpit()
+        if self.cockpit_win:
+            self.cockpit_win.open_for_voice(audio_path)
 
     def show_briefing_popup(self, report_text):
         win = ctk.CTkToplevel(self)
@@ -452,7 +484,7 @@ class RadarMainApp(ctk.CTk):
             card.pack(pady=6, padx=4, fill="x")
 
             cat = item_data.get("category", "Cits")
-            badge_bg = "#ef4444" if cat in ["Līgums", "Kritisks"] else "#f59e0b" if "pieprasījums" in cat.lower() else "#3b82f6"
+            badge_bg = "#8b5cf6" if "balss" in cat.lower() else ("#ef4444" if cat in ["Līgums", "Kritisks"] else ("#f59e0b" if "pieprasījums" in cat.lower() else "#3b82f6"))
 
             top_bar = ctk.CTkFrame(card, fg_color="transparent")
             top_bar.pack(fill="x", padx=10, pady=(8, 2))
@@ -478,8 +510,13 @@ class RadarMainApp(ctk.CTk):
             ctk.CTkButton(btn_row, text="↗ Atvērt", width=65, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
                           command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 4))
 
-            ctk.CTkButton(btn_row, text="💼 Piedāvājums", width=85, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11),
-                          command=lambda item=item_data: self.trigger_offer_flow(item)).pack(side="left", padx=(0, 4))
+            # Poga: Balss Studija (ja ir audio fails)
+            if item_data.get("audio_path"):
+                ctk.CTkButton(btn_row, text="🎙️ Balss", width=70, height=24, fg_color="#8b5cf6", hover_color="#7c3aed", font=ctk.CTkFont(size=11, weight="bold"),
+                              command=lambda path=item_data.get("audio_path"): self.trigger_voice_flow(path)).pack(side="left", padx=(0, 4))
+            else:
+                ctk.CTkButton(btn_row, text="💼 Piedāvājums", width=85, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11),
+                              command=lambda item=item_data: self.trigger_offer_flow(item)).pack(side="left", padx=(0, 4))
             
             ctk.CTkButton(btn_row, text="✓ Nokārtots", width=75, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11),
                           command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c)).pack(side="left", padx=(0, 4))

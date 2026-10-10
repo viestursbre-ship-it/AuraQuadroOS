@@ -78,6 +78,22 @@ class CockpitWindow(ctk.CTkToplevel):
         self.tabview.set("💼 Piedāvājumi")
         self.offer_module.load_request(subject, sender, body)
 
+    def open_for_voice(self, audio_path):
+        """Atver Cockpit, pārslēdz uz Balss Studiju un padod audio failu."""
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+        self.tabview.set("🎙️ Balss Studija")
+        
+        # Mēģinām ielādēt failu atkarībā no metodes nosaukuma tavā voice_studio
+        if hasattr(self, "voice_module"):
+            if hasattr(self.voice_module, "load_audio"):
+                self.voice_module.load_audio(audio_path)
+            elif hasattr(self.voice_module, "set_audio_file"):
+                self.voice_module.set_audio_file(audio_path)
+            elif hasattr(self.voice_module, "current_audio_path"):
+                self.voice_module.current_audio_path = audio_path
+
     def setup_settings_tab(self):
         # 1. Atskaites laiks
         lbl_time = ctk.CTkLabel(

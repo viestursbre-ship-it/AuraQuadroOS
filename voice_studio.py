@@ -85,6 +85,21 @@ class VoiceStudioFrame(ctk.CTkFrame):
             self.selected_audio_path = f
             self.lbl_audio_name.configure(text=os.path.basename(f), text_color="#38bdf8")
 
+    def choose_audio_file(self):
+        f = filedialog.askopenfilename(
+            filetypes=[("Audio faili", "*.ogg *.mp3 *.m4a *.wav"), ("Visi faili", "*.*")]
+        )
+        if f:
+            self.load_audio(f)
+
+    def load_audio(self, filepath):
+        """Ielādē audio failu no Radara vai failu dialoga un atjaunina UI."""
+        if filepath and os.path.exists(filepath):
+            self.selected_audio_path = filepath
+            file_name = os.path.basename(filepath)
+            self.lbl_audio_name.configure(text=file_name, text_color="#38bdf8")
+            self.txt_voice_output.insert("end", f"📥 Ielādēts audio no Radara: {file_name}\nIzvēlieties režīmu un spiediet 'Apstrādāt ar Gemini MI'.\n\n")
+
     def process_audio(self):
         if not self.selected_audio_path:
             self.txt_voice_output.insert("end", "⚠️ Lūdzu, vispirms izvēlieties audio failu!\n")
