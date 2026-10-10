@@ -137,9 +137,6 @@ def scan_outlook_mailbox():
 
         ignored_list = get_ignored_senders()
 
-        # Attēlu formāti garantijas uzlīmēm
-        IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"]
-
         for folder in all_target_folders:
             folder_name = getattr(folder, "Name", "Nezināma")
             try:
@@ -174,49 +171,38 @@ def scan_outlook_mailbox():
                     elif current_user_email and current_user_email in sender_lower:
                         is_self_task = True
                     elif "outlook for android" in body_lower or "outlook for ios" in body_lower:
-                        if "līdz rītdienai" in body_lower or "radar" in subj_lower or "rīt" in body_lower or "garantij" in subj_lower or "warranty" in subj_lower:
+                        if "līdz rītdienai" in body_lower or "radar" in subj_lower or "rīt" in body_lower:
                             is_self_task = True
                     elif "radar" in subj_lower:
                         is_self_task = True
 
-                    # Pārbaudām audio un attēlu pielikumus no sevis sūtītajiem e-pastiem
+                    # Pārbaudām audio pielikumus TIKAI no sevis sūtītajiem e-pastiem
                     saved_audio_path = None
-                    saved_image_path = None
-
                     if is_self_task and hasattr(msg, "Attachments") and msg.Attachments.Count > 0:
                         for att_idx in range(1, msg.Attachments.Count + 1):
                             try:
                                 att = msg.Attachments.Item(att_idx)
                                 att_name = att.FileName.lower()
                                 ext = Path(att_name).suffix
-                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-                                if ext in AUDIO_EXTENSIONS and not saved_audio_path:
+                                if ext in AUDIO_EXTENSIONS:
+                                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                                     clean_name = f"voice_{timestamp}_{att.FileName}"
                                     target_path = VOICE_DIR / clean_name
                                     att.SaveAsFile(str(target_path))
                                     saved_audio_path = str(target_path)
-
-                                elif ext in IMAGE_EXTENSIONS and not saved_image_path:
-                                    clean_name = f"warranty_{timestamp}_{att.FileName}"
-                                    target_path = VOICE_DIR / clean_name  # vai ATTACHMENTS_DIR
-                                    att.SaveAsFile(str(target_path))
-                                    saved_image_path = str(target_path)
+                                    break
                             except Exception:
                                 pass
 
                     matches_keywords = any(k in subj_lower for k in keywords)
 
-                    if matches_keywords or is_self_task or saved_audio_path or saved_image_path:
+                    if matches_keywords or is_self_task or saved_audio_path:
                         import re
                         date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
                         
                         if saved_audio_path:
                             found_deadline = "Balss apstrāde"
                             cat = "🎙️ Balss ziņa"
-                        elif saved_image_path or "garantij" in subj_lower or "warranty" in subj_lower:
-                            found_deadline = "Steidzams"
-                            cat = "🛡️ Garantija"
                         elif date_match:
                             found_deadline = f"Līdz {date_match.group(1)}"
                             cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
@@ -235,7 +221,6 @@ def scan_outlook_mailbox():
                             "category": cat,
                             "status": "ACTIVE",
                             "audio_path": saved_audio_path,
-                            "image_path": saved_image_path,
                             "received": msg.ReceivedTime.strftime("%d.%m %H:%M") if hasattr(msg, "ReceivedTime") else ""
                         }
                         new_count += 1
@@ -394,11 +379,6 @@ class RadarMainApp(ctk.CTk):
         self.open_cockpit()
         if self.cockpit_win:
             self.cockpit_win.open_for_voice(audio_path)
-
-    def trigger_warranty_flow(self, image_path):
-        self.open_cockpit()
-        if self.cockpit_win:
-            self.cockpit_win.open_for_warranty(image_path)
 
     def show_briefing_popup(self, report_text):
         win = ctk.CTkToplevel(self)
@@ -593,32 +573,19 @@ class RadarMainApp(ctk.CTk):
             ctk.CTkButton(btn_row, text=btn_open_txt, width=65, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
                           command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 4))
 
-            # Dinamiskie pogu teksti
-            btn_open_txt = "↗ Open" if is_en else "↗ Atvērt"
-            btn_voice_txt = "🎙️ Voice" if is_en else "🎙️ Balss"
-            btn_warranty_txt = "🛡️ Warranty" if is_en else "🛡️ Garantija"
-            btn_offer_txt = "💼 Quote" if is_en else "💼 Piedāvājums"
-            btn_done_txt = "✓ Done" if is_en else "✓ Nokārtots"
-            btn_dismiss_txt = "🚫 Dismiss" if is_en else "🚫 Ignorēt"
-
-            ctk.CTkButton(btn_row, text=btn_open_txt, width=65, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
-                          command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 4))
-
-            # 1. Ja ir audio fails -> Balss Studija
+            # Poga: Balss Studija (ja ir audio fails)
             if item_data.get("audio_path"):
                 ctk.CTkButton(btn_row, text=btn_voice_txt, width=70, height=24, fg_color="#8b5cf6", hover_color="#7c3aed", font=ctk.CTkFont(size=11, weight="bold"),
                               command=lambda path=item_data.get("audio_path"): self.trigger_voice_flow(path)).pack(side="left", padx=(0, 4))
-            
-            # 2. Ja ir bilde vai kategorija ir Garantija -> Garantijas modulis
-            elif item_data.get("image_path") or item_data.get("category") == "Garantija":
-                img_p = item_data.get("image_path", "")
-                ctk.CTkButton(btn_row, text=btn_warranty_txt, width=85, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11, weight="bold"),
-                              command=lambda path=img_p: self.trigger_warranty_flow(path)).pack(side="left", padx=(0, 4))
-            
-            # 3. Pārējos gadījumos -> Piedāvājumu Studija
             else:
                 ctk.CTkButton(btn_row, text=btn_offer_txt, width=85, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11),
                               command=lambda item=item_data: self.trigger_offer_flow(item)).pack(side="left", padx=(0, 4))
+            
+            ctk.CTkButton(btn_row, text=btn_done_txt, width=75, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11),
+                          command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c)).pack(side="left", padx=(0, 4))
+
+            ctk.CTkButton(btn_row, text=btn_dismiss_txt, width=65, height=24, fg_color="#334155", hover_color="#dc2626", font=ctk.CTkFont(size=11),
+                          command=lambda s=item_data.get("sender", ""), eid=entry_id, c=card: self.ignore_sender_and_remove(s, eid, c)).pack(side="left")
 
     def quit_completely(self):
         if hasattr(self, "tray_icon") and self.tray_icon:

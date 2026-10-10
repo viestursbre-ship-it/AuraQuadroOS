@@ -371,37 +371,56 @@ class OfferStudioFrame(ctk.CTkFrame):
         mode_bar = ctk.CTkFrame(self, fg_color="#0f172a", height=50)
         mode_bar.pack(fill="x", padx=10, pady=(10, 5))
 
-        self.lbl_margin_text = ctk.CTkLabel(mode_bar, text="Marža (%):", font=ctk.CTkFont(size=12, weight="bold"), text_color="#38bdf8")
-        self.lbl_margin_text.pack(side="left", padx=(15, 5))
-
+        # Maržas ievade
+        ctk.CTkLabel(mode_bar, text="Marža (%):", font=ctk.CTkFont(size=12, weight="bold"), text_color="#38bdf8").pack(side="left", padx=(15, 5))
         self.entry_margin = ctk.CTkEntry(mode_bar, width=50, height=30, font=ctk.CTkFont(size=12, weight="bold"))
         self.entry_margin.insert(0, "12")
         self.entry_margin.pack(side="left", padx=(0, 10))
 
-        self.lbl_lang_text = ctk.CTkLabel(mode_bar, text="Valoda:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#cbd5e1")
-        self.lbl_lang_text.pack(side="left", padx=(5, 5))
-
-        self.seg_lang = ctk.CTkSegmentedButton(mode_bar, values=["Auto", "LV", "EN"], width=130, height=30)
+        # Valodas selektors
+        ctk.CTkLabel(mode_bar, text="Valoda:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#cbd5e1").pack(side="left", padx=(5, 5))
+        self.seg_lang = ctk.CTkSegmentedButton(
+            mode_bar,
+            values=["Auto", "LV", "EN"],
+            width=130,
+            height=30
+        )
         self.seg_lang.set("Auto")
         self.seg_lang.pack(side="left", padx=(0, 12))
 
         self.btn_calculate = ctk.CTkButton(
-            mode_bar, text="⚡ Aprēķināt & Noformēt", width=180, height=32,
-            fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=12, weight="bold"),
+            mode_bar,
+            text="⚡ Aprēķināt & Noformēt",
+            width=180,
+            height=32,
+            fg_color="#2563eb",
+            hover_color="#1d4ed8",
+            font=ctk.CTkFont(size=12, weight="bold"),
             command=self.process_offer
         )
         self.btn_calculate.pack(side="left", padx=5, pady=8)
 
         self.btn_open_excel = ctk.CTkButton(
-            mode_bar, text="📊 Atvērt Excel Tāmēšanai", width=180, height=32,
-            fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=12, weight="bold"),
-            command=self.open_generated_excel, state="disabled"
+            mode_bar,
+            text="📊 Atvērt Excel Tāmēšanai",
+            width=180,
+            height=32,
+            fg_color="#0284c7",
+            hover_color="#0369a1",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=self.open_generated_excel,
+            state="disabled"
         )
         self.btn_open_excel.pack(side="left", padx=5, pady=8)
 
         self.btn_copy = ctk.CTkButton(
-            mode_bar, text="📋 Kopēt E-pastam", width=130, height=32,
-            fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=12, weight="bold"),
+            mode_bar,
+            text="📋 Kopēt E-pastam",
+            width=130,
+            height=32,
+            fg_color="#059669",
+            hover_color="#047857",
+            font=ctk.CTkFont(size=12, weight="bold"),
             command=self.copy_to_clipboard
         )
         self.btn_copy.pack(side="left", padx=5, pady=8)
@@ -409,70 +428,46 @@ class OfferStudioFrame(ctk.CTkFrame):
         self.lbl_status = ctk.CTkLabel(mode_bar, text="", font=ctk.CTkFont(size=12), text_color="#38bdf8")
         self.lbl_status.pack(side="right", padx=15)
 
-        # Divas galvenās kolonnas
+        # Sadalījums 2 kolonnās
         panes = ctk.CTkFrame(self, fg_color="transparent")
         panes.pack(fill="both", expand=True, padx=10, pady=5)
 
+        # Kreisā kolonna
         left_col = ctk.CTkFrame(panes, fg_color="#0b1329", corner_radius=8)
         left_col.pack(side="left", fill="both", expand=True, padx=(0, 5))
 
         h1 = ctk.CTkFrame(left_col, fg_color="transparent")
         h1.pack(fill="x", padx=10, pady=(6, 2))
-        self.lbl_client_header = ctk.CTkLabel(h1, text="1. 📥 Klienta Pieprasījums:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#94a3b8")
-        self.lbl_client_header.pack(side="left")
-        self.btn_load_client = ctk.CTkButton(h1, text="📁 Ielādēt", width=70, height=22, fg_color="#334155", hover_color="#475569", font=ctk.CTkFont(size=10), command=lambda: self.load_into_textbox(self.txt_client))
-        self.btn_load_client.pack(side="right")
+        ctk.CTkLabel(h1, text="1. 📥 Klienta Pieprasījums:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#94a3b8").pack(side="left")
+        ctk.CTkButton(
+            h1, text="📁 Ielādēt", width=70, height=22, fg_color="#334155", hover_color="#475569", font=ctk.CTkFont(size=10),
+            command=lambda: self.load_into_textbox(self.txt_client)
+        ).pack(side="right")
 
         self.txt_client = ctk.CTkTextbox(left_col, fg_color="#0f172a", font=ctk.CTkFont(size=11), wrap="word", height=140)
         self.txt_client.pack(fill="x", padx=10, pady=(0, 8))
 
         h2 = ctk.CTkFrame(left_col, fg_color="transparent")
         h2.pack(fill="x", padx=10, pady=(4, 2))
-        self.lbl_dist_header = ctk.CTkLabel(h2, text="2. 🏷️ Distributora Pašizmaksa / Cenas:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#38bdf8")
-        self.lbl_dist_header.pack(side="left")
-        self.btn_load_dist = ctk.CTkButton(h2, text="📁 Ielādēt (.xlsx)", width=105, height=22, fg_color="#334155", hover_color="#475569", font=ctk.CTkFont(size=10), command=lambda: self.load_into_textbox(self.txt_dist))
-        self.btn_load_dist.pack(side="right")
+        ctk.CTkLabel(h2, text="2. 🏷️ Distributora Pašizmaksa / Cenas:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#38bdf8").pack(side="left")
+        ctk.CTkButton(
+            h2, text="📁 Ielādēt (.xlsx)", width=105, height=22, fg_color="#334155", hover_color="#475569", font=ctk.CTkFont(size=10),
+            command=lambda: self.load_into_textbox(self.txt_dist)
+        ).pack(side="right")
 
         self.txt_dist = ctk.CTkTextbox(left_col, fg_color="#0f172a", font=ctk.CTkFont(size=11), wrap="word")
         self.txt_dist.pack(fill="both", expand=True, padx=10, pady=(0, 8))
 
+        # Labā kolonna
         right_col = ctk.CTkFrame(panes, fg_color="#0b1329", corner_radius=8)
         right_col.pack(side="right", fill="both", expand=True, padx=(5, 0))
 
         right_header = ctk.CTkFrame(right_col, fg_color="transparent")
         right_header.pack(fill="x", padx=10, pady=(6, 2))
-        self.lbl_result_header = ctk.CTkLabel(right_header, text="⚡ Gatavais Piedāvājums Klientam (Drošs):", font=ctk.CTkFont(size=12, weight="bold"), text_color="#10b981")
-        self.lbl_result_header.pack(side="left")
+        ctk.CTkLabel(right_header, text="⚡ Gatavais Piedāvājums Klientam (Drošs):", font=ctk.CTkFont(size=12, weight="bold"), text_color="#10b981").pack(side="left")
 
         self.txt_preview = ctk.CTkTextbox(right_col, fg_color="#0f172a", font=ctk.CTkFont(size=12), wrap="word")
         self.txt_preview.pack(fill="both", expand=True, padx=10, pady=(0, 8))
-
-    def set_ui_language(self, lang: str):
-        """Dinamiski pārslēdz visus tekstus."""
-        if hasattr(self, "seg_lang"):
-            self.seg_lang.set(lang)
-        if lang == "EN":
-            self.btn_calculate.configure(text="⚡ Calculate & Generate")
-            self.btn_open_excel.configure(text="📊 Open Excel Sheet")
-            self.btn_copy.configure(text="📋 Copy for Email")
-            self.lbl_margin_text.configure(text="Margin (%):")
-            self.lbl_lang_text.configure(text="Language:")
-            self.lbl_client_header.configure(text="1. 📥 Client RFQ / Requirements:")
-            self.btn_load_client.configure(text="📁 Load")
-            self.lbl_dist_header.configure(text="2. 🏷️ Supplier / Disti Costs:")
-            self.btn_load_dist.configure(text="📁 Load (.xlsx)")
-            self.lbl_result_header.configure(text="⚡ Commercial Offer (Client-Safe):")
-        else:
-            self.btn_calculate.configure(text="⚡ Aprēķināt & Noformēt")
-            self.btn_open_excel.configure(text="📊 Atvērt Excel Tāmēšanai")
-            self.btn_copy.configure(text="📋 Kopēt E-pastam")
-            self.lbl_margin_text.configure(text="Marža (%):")
-            self.lbl_lang_text.configure(text="Valoda:")
-            self.lbl_client_header.configure(text="1. 📥 Klienta Pieprasījums:")
-            self.btn_load_client.configure(text="📁 Ielādēt")
-            self.lbl_dist_header.configure(text="2. 🏷️ Distributora Pašizmaksa / Cenas:")
-            self.btn_load_dist.configure(text="📁 Ielādēt (.xlsx)")
-            self.lbl_result_header.configure(text="⚡ Gatavais Piedāvājums Klientam (Drošs):")
 
     def load_into_textbox(self, target_widget):
         f = filedialog.askopenfilename(

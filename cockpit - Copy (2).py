@@ -7,7 +7,6 @@ from hp_expert import HPExpertFrame
 from voice_studio import VoiceStudioFrame
 from doc_digest import DocDigestFrame
 from offer_studio import OfferStudioFrame
-from warranty_hub import WarrantyHubFrame
 
 UI_TEXTS = {
     "LV": {
@@ -17,7 +16,6 @@ UI_TEXTS = {
         "tab_voice": "🎙️ Balss Studija",
         "tab_docs": "📄 Dokumentu Drop-Zone",
         "tab_settings": "⚙️ Radara Iestatījumi",
-        "tab_warranty": "🛡️ Garantija",
         "lbl_time": "🕒 Vakara Komandanta Atskaites laiks (HH:MM):",
         "lbl_kw": "📡 Radara Atslēgvārdi (atdalīti ar komatiem):",
         "lbl_desc": "E-pasti, kuru temats vai teksts satur šos vārdus, automātiski pārtop par uzdevumiem.",
@@ -31,7 +29,6 @@ UI_TEXTS = {
         "tab_voice": "🎙️ Voice Studio",
         "tab_docs": "📄 Document Drop-Zone",
         "tab_settings": "⚙️ Radar Settings",
-        "tab_warranty": "🛡️ Warranty",
         "lbl_time": "🕒 Evening Commandant Briefing Time (HH:MM):",
         "lbl_kw": "📡 Radar Keywords (comma separated):",
         "lbl_desc": "Emails containing these words in subject or body automatically become tasks.",
@@ -109,7 +106,6 @@ class CockpitWindow(ctk.CTkToplevel):
         self.tab_hp = self.tabview.add(t["tab_hp"])
         self.tab_voice = self.tabview.add(t["tab_voice"])
         self.tab_docs = self.tabview.add(t["tab_docs"])
-        self.tab_warranty = self.tabview.add(t["tab_warranty"])
         self.tab_settings = self.tabview.add(t["tab_settings"])
 
         # Moduļu izvietošana
@@ -125,14 +121,6 @@ class CockpitWindow(ctk.CTkToplevel):
         self.docs_module = DocDigestFrame(self.tab_docs, get_gemini_key_fn=get_gemini_api_key)
         self.docs_module.pack(fill="both", expand=True)
 
-        # Jaunais Garantijas modulis ar piesaisti Piedāvājumiem
-        self.warranty_module = WarrantyHubFrame(
-            self.tab_warranty, 
-            get_gemini_key_fn=get_gemini_api_key,
-            on_send_to_offer_fn=self.transfer_warranty_to_offer
-        )
-        self.warranty_module.pack(fill="both", expand=True)
-
         self.setup_settings_tab()
 
     def on_language_change(self, lang):
@@ -142,7 +130,7 @@ class CockpitWindow(ctk.CTkToplevel):
         self.title(t["title"])
 
         # 1. Atjaunina ciļņu pogu tekstus
-        tab_keys = ["tab_offers", "tab_hp", "tab_voice", "tab_docs", "tab_warranty", "tab_settings"]
+        tab_keys = ["tab_offers", "tab_hp", "tab_voice", "tab_docs", "tab_settings"]
         button_list = list(self.tabview._segmented_button._buttons_dict.values())
         for idx, key in enumerate(tab_keys):
             if idx < len(button_list):
@@ -291,19 +279,3 @@ class CockpitWindow(ctk.CTkToplevel):
 
         msg_fmt = UI_TEXTS[self.current_lang]["saved_msg"]
         self.lbl_saved.configure(text=msg_fmt.format(time=b_time))
-
-    def transfer_warranty_to_offer(self, req_text):
-        """Pārmet nolasītos iekārtas datus uz Piedāvājumu Studiju."""
-        t = UI_TEXTS[self.current_lang]
-        self.tabview.set(t["tab_offers"])
-        self.offer_module.load_request("Iekārtas apkope / garantija", "Tehniķis", req_text)
-
-    def open_for_warranty(self, img_path):
-        """Atver Garantijas cilni un sāk bildes analīzi."""
-        self.deiconify()
-        self.lift()
-        self.focus_force()
-        t = UI_TEXTS[self.current_lang]
-        self.tabview.set(t["tab_warranty"])
-        if hasattr(self, "warranty_module"):
-            self.warranty_module.load_and_analyze(img_path)
