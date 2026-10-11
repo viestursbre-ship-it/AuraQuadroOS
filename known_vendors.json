@@ -1,0 +1,26 @@
+{
+    "40003000000": {
+        "name": "ELKO Latvija AS",
+        "ibans": [
+            "LV88PARX0011223344556"
+        ]
+    },
+    "40003010000": {
+        "name": "ALSO Latvia SIA",
+        "ibans": [
+            "LV55HABA0001112223334"
+        ]
+    },
+    "40003032949": {
+        "name": "Latvenergo AS",
+        "ibans": [
+            "LV11UNLA0000001111111"
+        ]
+    },
+    "40003423085": {
+        "name": "SIA \"Citadele Leasing\"",
+        "ibans": [
+            "LV10PARX0012849810003"
+        ]
+    }
+}

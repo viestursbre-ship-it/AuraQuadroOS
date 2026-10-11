@@ -8,6 +8,7 @@ from voice_studio import VoiceStudioFrame
 from doc_digest import DocDigestFrame
 from offer_studio import OfferStudioFrame
 from warranty_hub import WarrantyHubFrame
+from bank_studio import BankStudioFrame
 
 UI_TEXTS = {
     "LV": {
@@ -18,6 +19,7 @@ UI_TEXTS = {
         "tab_docs": "📄 Dokumentu Drop-Zone",
         "tab_settings": "⚙️ Radara Iestatījumi",
         "tab_warranty": "🛡️ Garantija",
+        "tab_bank": "🏦 Bank Studio",
         "lbl_time": "🕒 Vakara Komandanta Atskaites laiks (HH:MM):",
         "lbl_kw": "📡 Radara Atslēgvārdi (atdalīti ar komatiem):",
         "lbl_desc": "E-pasti, kuru temats vai teksts satur šos vārdus, automātiski pārtop par uzdevumiem.",
@@ -32,6 +34,7 @@ UI_TEXTS = {
         "tab_docs": "📄 Document Drop-Zone",
         "tab_settings": "⚙️ Radar Settings",
         "tab_warranty": "🛡️ Warranty",
+        "tab_bank": "🏦 Bank Studio",
         "lbl_time": "🕒 Evening Commandant Briefing Time (HH:MM):",
         "lbl_kw": "📡 Radar Keywords (comma separated):",
         "lbl_desc": "Emails containing these words in subject or body automatically become tasks.",
@@ -107,6 +110,7 @@ class CockpitWindow(ctk.CTkToplevel):
         t = UI_TEXTS[self.current_lang]
         self.tab_offers = self.tabview.add(t["tab_offers"])
         self.tab_hp = self.tabview.add(t["tab_hp"])
+        self.tab_bank = self.tabview.add(t.get("tab_bank", "🏦 Bank Studio")) # <--- JAUNĀ CILNE ŠEIT!
         self.tab_voice = self.tabview.add(t["tab_voice"])
         self.tab_docs = self.tabview.add(t["tab_docs"])
         self.tab_warranty = self.tabview.add(t["tab_warranty"])
@@ -118,6 +122,10 @@ class CockpitWindow(ctk.CTkToplevel):
 
         self.hp_module = HPExpertFrame(self.tab_hp, get_gemini_key_fn=get_gemini_api_key)
         self.hp_module.pack(fill="both", expand=True)
+
+        # <--- JAUNAIS BANKAS MODULIS ŠEIT!
+        self.bank_module = BankStudioFrame(self.tab_bank, get_gemini_key_fn=get_gemini_api_key)
+        self.bank_module.pack(fill="both", expand=True)
 
         self.voice_module = VoiceStudioFrame(self.tab_voice, get_gemini_key_fn=get_gemini_api_key)
         self.voice_module.pack(fill="both", expand=True)

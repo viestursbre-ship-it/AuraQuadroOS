@@ -27,6 +27,7 @@ VOICE_DIR = BASE_DIR / "storage" / "voice"
 VOICE_DIR.mkdir(parents=True, exist_ok=True)
 
 AUDIO_EXTENSIONS = {".ogg", ".opus", ".mp3", ".m4a", ".wav", ".aac"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -111,7 +112,7 @@ def scan_outlook_mailbox():
             except Exception:
                 pass
 
-        default_keywords = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin"]
+        default_keywords = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin", "leasing", "līzing"]
         keywords = default_keywords
         days_back = 30
         if os.path.exists("config.json"):
@@ -136,9 +137,6 @@ def scan_outlook_mailbox():
                 pass
 
         ignored_list = get_ignored_senders()
-
-        # Attēlu formāti garantijas uzlīmēm
-        IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"]
 
         for folder in all_target_folders:
             folder_name = getattr(folder, "Name", "Nezināma")
@@ -179,11 +177,12 @@ def scan_outlook_mailbox():
                     elif "radar" in subj_lower:
                         is_self_task = True
 
-                    # Pārbaudām audio un attēlu pielikumus no sevis sūtītajiem e-pastiem
                     saved_audio_path = None
                     saved_image_path = None
+                    saved_pdf_path = None
 
-                    if is_self_task and hasattr(msg, "Attachments") and msg.Attachments.Count > 0:
+                    # Pielikumu nolasīšana
+                    if hasattr(msg, "Attachments") and msg.Attachments.Count > 0:
                         for att_idx in range(1, msg.Attachments.Count + 1):
                             try:
                                 att = msg.Attachments.Item(att_idx)
@@ -198,25 +197,35 @@ def scan_outlook_mailbox():
                                     saved_audio_path = str(target_path)
 
                                 elif ext in IMAGE_EXTENSIONS and not saved_image_path:
-                                    clean_name = f"warranty_{timestamp}_{att.FileName}"
-                                    target_path = VOICE_DIR / clean_name  # vai ATTACHMENTS_DIR
+                                    if "garantij" in subj_lower or "warranty" in subj_lower or is_self_task:
+                                        clean_name = f"warranty_{timestamp}_{att.FileName}"
+                                        target_path = VOICE_DIR / clean_name
+                                        att.SaveAsFile(str(target_path))
+                                        saved_image_path = str(target_path)
+
+                                elif ext == ".pdf" and not saved_pdf_path:
+                                    clean_name = f"inv_{timestamp}_{att.FileName}"
+                                    target_path = VOICE_DIR / clean_name
                                     att.SaveAsFile(str(target_path))
-                                    saved_image_path = str(target_path)
+                                    saved_pdf_path = str(target_path)
                             except Exception:
                                 pass
 
                     matches_keywords = any(k in subj_lower for k in keywords)
 
-                    if matches_keywords or is_self_task or saved_audio_path or saved_image_path:
+                    if matches_keywords or is_self_task or saved_audio_path or saved_image_path or saved_pdf_path:
                         import re
                         date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
                         
                         if saved_audio_path:
                             found_deadline = "Balss apstrāde"
                             cat = "🎙️ Balss ziņa"
-                        elif saved_image_path or "garantij" in subj_lower or "warranty" in subj_lower:
+                        elif "garantij" in subj_lower or "warranty" in subj_lower:
                             found_deadline = "Steidzams"
                             cat = "🛡️ Garantija"
+                        elif any(w in subj_lower for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"]) or saved_pdf_path:
+                            found_deadline = f"Līdz {date_match.group(1)}" if date_match else "Apmaksai"
+                            cat = "Rēķins"
                         elif date_match:
                             found_deadline = f"Līdz {date_match.group(1)}"
                             cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
@@ -236,6 +245,7 @@ def scan_outlook_mailbox():
                             "status": "ACTIVE",
                             "audio_path": saved_audio_path,
                             "image_path": saved_image_path,
+                            "pdf_path": saved_pdf_path,
                             "received": msg.ReceivedTime.strftime("%d.%m %H:%M") if hasattr(msg, "ReceivedTime") else ""
                         }
                         new_count += 1
@@ -268,7 +278,6 @@ class RadarMainApp(ctk.CTk):
 
         self.protocol("WM_DELETE_WINDOW", self.hide_window)
 
-        # Sākotnējā valoda (mēģinām ielasīt no config.json)
         self.current_lang = "LV"
         if os.path.exists("config.json"):
             try:
@@ -277,10 +286,8 @@ class RadarMainApp(ctk.CTk):
             except Exception:
                 pass
         
-        # Cockpit logs sākotnēji nav atvērts
         self.cockpit_win = None
 
-        # Augšējā josla
         header = ctk.CTkFrame(self, fg_color="#0f172a", corner_radius=0)
         header.pack(fill="x", padx=0, pady=0)
 
@@ -348,7 +355,6 @@ class RadarMainApp(ctk.CTk):
         self.start_tray_icon()
 
     def set_ui_language(self, lang: str):
-        """Pārslēdz Radara valodu un uzreiz pārzīmē kartītes."""
         self.current_lang = lang
         if lang == "EN":
             if hasattr(self, "btn_cockpit"):
@@ -360,8 +366,6 @@ class RadarMainApp(ctk.CTk):
                 self.btn_cockpit.configure(text="🎛️ Vadības Centrs")
             if hasattr(self, "btn_scan"):
                 self.btn_scan.configure(text="📥 Skenēt")
-
-        # Uzreiz pārzīmē visas kartītes jaunajā valodā!
         self.load_cards()
 
     def hide_window(self):
@@ -389,6 +393,25 @@ class RadarMainApp(ctk.CTk):
                 sender=item_data.get("sender", ""),
                 body=item_data.get("core_request", "")
             )
+
+    def trigger_bank_flow(self, pdf_path):
+        """Atver Cockpit un pārslēdz uz Bank Studio cilni ar PDF failu."""
+        self.open_cockpit()
+        if self.cockpit_win:
+            try:
+                tab_name = "🏦 Bank Studio"
+                if hasattr(self.cockpit_win, "UI_TEXTS") and hasattr(self.cockpit_win, "current_lang"):
+                    t = self.cockpit_win.UI_TEXTS.get(self.cockpit_win.current_lang, {})
+                    tab_name = t.get("tab_bank", "🏦 Bank Studio")
+                self.cockpit_win.tabview.set(tab_name)
+            except Exception:
+                try:
+                    self.cockpit_win.tabview.set("🏦 Bank Studio")
+                except Exception:
+                    pass
+
+            if hasattr(self.cockpit_win, "bank_module") and pdf_path:
+                self.cockpit_win.bank_module.process_pdf_direct(pdf_path)
 
     def trigger_voice_flow(self, audio_path):
         self.open_cockpit()
@@ -453,8 +476,8 @@ class RadarMainApp(ctk.CTk):
                     cfg_time = "18:00"
                     if os.path.exists("config.json"):
                         try:
-                            with open("config.json", "r", encoding="utf-8") as f:
-                                cfg_time = json.load(f).get("briefing_time", "18:00")
+                            with open("config.json", "r", encoding="utf-8") as cf:
+                                cfg_time = json.load(cf).get("briefing_time", "18:00")
                         except Exception:
                             pass
 
@@ -498,8 +521,10 @@ class RadarMainApp(ctk.CTk):
         self.mark_as_done(entry_id, card_widget)
 
     def load_cards(self):
+        # 1. Notīrām iepriekšējos logrīkus un atbrīvojam grafiskos resursus
         for w in self.scroll_frame.winfo_children():
             w.destroy()
+        self.update_idletasks()
 
         is_en = getattr(self, "current_lang", "LV") == "EN"
 
@@ -529,6 +554,9 @@ class RadarMainApp(ctk.CTk):
 
         active_items.sort(key=parse_date, reverse=True)
 
+        # Ierobežojam rādāmo skaitu līdz 20, lai Windows nepārsniegtu User/GDI rokturu limitu
+        active_items = active_items[:20]
+
         if not active_items:
             empty_msg = "✨ All tasks completed!" if is_en else "✨ Visi uzdevumi nokārtoti!"
             ctk.CTkLabel(self.scroll_frame, text=empty_msg, font=ctk.CTkFont(size=14), text_color="#10b981").pack(pady=40)
@@ -539,13 +567,17 @@ class RadarMainApp(ctk.CTk):
             card.pack(pady=6, padx=4, fill="x")
 
             cat = item_data.get("category", "Cits")
-            
-            # Dinamiskais birkas tulkojums
             cat_display = cat
             cat_lower = cat.lower()
             if "balss" in cat_lower or "voice" in cat_lower:
                 cat_display = "Voice Memo" if is_en else "Balss ziņa"
                 badge_bg = "#8b5cf6"
+            elif "garant" in cat_lower or "war" in cat_lower:
+                cat_display = "Warranty" if is_en else "Garantija"
+                badge_bg = "#059669"
+            elif "rēķin" in cat_lower or "rekin" in cat_lower or "leas" in cat_lower or "līzing" in cat_lower:
+                cat_display = "Invoice" if is_en else "Rēķins"
+                badge_bg = "#0284c7"
             elif "kritisk" in cat_lower or "crit" in cat_lower:
                 cat_display = "Critical" if is_en else "Kritisks"
                 badge_bg = "#ef4444"
@@ -559,6 +591,7 @@ class RadarMainApp(ctk.CTk):
                 cat_display = "Info" if is_en else cat
                 badge_bg = "#3b82f6"
 
+            # Augšējā josla ar statusa birkām
             top_bar = ctk.CTkFrame(card, fg_color="transparent")
             top_bar.pack(fill="x", padx=10, pady=(8, 2))
             ctk.CTkLabel(top_bar, text=f" {cat_display} ", fg_color=badge_bg, corner_radius=4, text_color="white", font=ctk.CTkFont(size=10, weight="bold")).pack(side="left")
@@ -571,6 +604,7 @@ class RadarMainApp(ctk.CTk):
             if item_data.get("received"):
                 ctk.CTkLabel(top_bar, text=item_data.get("received"), text_color="#64748b", font=ctk.CTkFont(size=10)).pack(side="right")
 
+            # Galvenā informācija
             ctk.CTkLabel(card, text=item_data.get("subject", ""), font=ctk.CTkFont(size=12, weight="bold"), wraplength=410, justify="left").pack(anchor="w", padx=10, pady=(2, 0))
             
             sender_prefix = "From: " if is_en else "No: "
@@ -580,45 +614,52 @@ class RadarMainApp(ctk.CTk):
             if req:
                 ctk.CTkLabel(card, text=req, font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=410, justify="left").pack(anchor="w", padx=10, pady=4)
 
+            # Pogu rinda
             btn_row = ctk.CTkFrame(card, fg_color="transparent")
             btn_row.pack(fill="x", padx=10, pady=(4, 8))
             
-            # Dinamiskie pogu teksti
-            btn_open_txt = "↗ Open" if is_en else "↗ Atvērt"
-            btn_voice_txt = "🎙️ Voice" if is_en else "🎙️ Balss"
-            btn_offer_txt = "💼 Quote" if is_en else "💼 Piedāvājums"
-            btn_done_txt = "✓ Done" if is_en else "✓ Nokārtots"
-            btn_dismiss_txt = "🚫 Dismiss" if is_en else "🚫 Ignorēt"
-
-            ctk.CTkButton(btn_row, text=btn_open_txt, width=65, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
-                          command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 4))
-
-            # Dinamiskie pogu teksti
             btn_open_txt = "↗ Open" if is_en else "↗ Atvērt"
             btn_voice_txt = "🎙️ Voice" if is_en else "🎙️ Balss"
             btn_warranty_txt = "🛡️ Warranty" if is_en else "🛡️ Garantija"
+            btn_bank_txt = "🏦 Bank" if is_en else "🏦 Rēķins"
             btn_offer_txt = "💼 Quote" if is_en else "💼 Piedāvājums"
             btn_done_txt = "✓ Done" if is_en else "✓ Nokārtots"
             btn_dismiss_txt = "🚫 Dismiss" if is_en else "🚫 Ignorēt"
 
-            ctk.CTkButton(btn_row, text=btn_open_txt, width=65, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
-                          command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 4))
+            # 1. Poga "Atvērt e-pastu Outlook"
+            ctk.CTkButton(btn_row, text=btn_open_txt, width=54, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
+                          command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 2))
 
-            # 1. Ja ir audio fails -> Balss Studija
-            if item_data.get("audio_path"):
-                ctk.CTkButton(btn_row, text=btn_voice_txt, width=70, height=24, fg_color="#8b5cf6", hover_color="#7c3aed", font=ctk.CTkFont(size=11, weight="bold"),
-                              command=lambda path=item_data.get("audio_path"): self.trigger_voice_flow(path)).pack(side="left", padx=(0, 4))
-            
-            # 2. Ja ir bilde vai kategorija ir Garantija -> Garantijas modulis
-            elif item_data.get("image_path") or item_data.get("category") == "Garantija":
-                img_p = item_data.get("image_path", "")
-                ctk.CTkButton(btn_row, text=btn_warranty_txt, width=85, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11, weight="bold"),
-                              command=lambda path=img_p: self.trigger_warranty_flow(path)).pack(side="left", padx=(0, 4))
-            
-            # 3. Pārējos gadījumos -> Piedāvājumu Studija
+            # Saturs un nosacījumi
+            audio_p = item_data.get("audio_path")
+            img_p = item_data.get("image_path", "")
+            pdf_p = item_data.get("pdf_path") or item_data.get("attachment_path", "")
+            subj_l = str(item_data.get("subject", "")).lower()
+
+            is_strict_warranty = "warranty" in subj_l or "garantij" in subj_l
+            is_inv = bool(pdf_p) or any(w in subj_l for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"])
+
+            # 2. Viedā moduļa poga
+            if audio_p:
+                ctk.CTkButton(btn_row, text=btn_voice_txt, width=64, height=24, fg_color="#8b5cf6", hover_color="#7c3aed", font=ctk.CTkFont(size=11, weight="bold"),
+                              command=lambda path=audio_p: self.trigger_voice_flow(path)).pack(side="left", padx=(0, 2))
+            elif is_strict_warranty:
+                target_p = img_p or pdf_p or ""
+                ctk.CTkButton(btn_row, text=btn_warranty_txt, width=74, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11, weight="bold"),
+                              command=lambda path=target_p: self.trigger_warranty_flow(path)).pack(side="left", padx=(0, 2))
+            elif is_inv:
+                ctk.CTkButton(btn_row, text=btn_bank_txt, width=64, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11, weight="bold"),
+                              command=lambda path=pdf_p: self.trigger_bank_flow(path)).pack(side="left", padx=(0, 2))
             else:
-                ctk.CTkButton(btn_row, text=btn_offer_txt, width=85, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11),
-                              command=lambda item=item_data: self.trigger_offer_flow(item)).pack(side="left", padx=(0, 4))
+                ctk.CTkButton(btn_row, text=btn_offer_txt, width=70, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11),
+                              command=lambda item=item_data: self.trigger_offer_flow(item)).pack(side="left", padx=(0, 2))
+
+            # 3. Labās puses pārvaldības pogas
+            ctk.CTkButton(btn_row, text=btn_dismiss_txt, width=58, height=24, fg_color="#475569", hover_color="#334155", font=ctk.CTkFont(size=11),
+                          command=lambda s=item_data.get("sender", ""), eid=entry_id, c=card: self.ignore_sender_and_remove(s, eid, c)).pack(side="right", padx=(2, 0))
+
+            ctk.CTkButton(btn_row, text=btn_done_txt, width=58, height=24, fg_color="#10b981", hover_color="#059669", font=ctk.CTkFont(size=11),
+                          command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c)).pack(side="right", padx=(2, 0))
 
     def quit_completely(self):
         if hasattr(self, "tray_icon") and self.tray_icon:

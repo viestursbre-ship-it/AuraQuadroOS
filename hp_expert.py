@@ -1,55 +1,51 @@
 # -*- coding: utf-8 -*-
 import os
-import re
-import urllib.request
-import urllib.parse
 import threading
 import customtkinter as ctk
 import google.generativeai as genai
 
 # ==========================================
-# HP MEKLĒŠANAS UN DATU IEGŪŠANAS FUNKCIJAS
+# HP EKSPERTA SISTĒMAS UZVEDNE (PROMPT)
 # ==========================================
-def fetch_hp_page(url):
-    """Nolasa HP lapas tekstu tieši no saites."""
-    try:
-        req = urllib.request.Request(
-            url, 
-            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-        )
-        with urllib.request.urlopen(req, timeout=8) as res:
-            html = res.read().decode('utf-8', errors='ignore')
-            text = re.sub(r'<script.*?</script>', '', html, flags=re.DOTALL)
-            text = re.sub(r'<style.*?</style>', '', text, flags=re.DOTALL)
-            text = re.sub(r'<[^>]+>', ' ', text)
-            clean_text = ' '.join(text.split())
-            return clean_text[:6000]
-    except Exception:
-        return ""
+HP_EXPERT_SYSTEM_PROMPT = """Tu esi sertificēts HP Inc. vecākais risinājumu arhitekts un ekosistēmas eksperts (HP Master Certified System Engineer).
+Tava pamatkompetence aptver visu HP komerciālo iekārtu klāstu, sākot no G6 paaudzes līdz jaunākajiem modeļiem:
 
-def search_hp_official(query_term):
-    """Meklē HP oficiālajos avotos, izmantojot tīru detaļas kodu."""
-    url_match = re.search(r'https?://[^\s]+hp\.com[^\s]+', query_term)
-    if url_match:
-        return fetch_hp_page(url_match.group(0))
+1. PĀRNĒSĀJAMIE UN GALDA DATORI:
+   - EliteBook (sērijas 600, 800, 1000 no G6 līdz G10 un jaunā Next-Gen AI PC nomenklatūra)
+   - ProBook (sērijas 400, 440, 450 no G6 līdz G10)
+   - EliteDesk / ProDesk (Mini, SFF, Tower no G6 uz augšu)
 
-    code_match = re.search(r'\b([A-Z0-9]{6,8}(?:#[A-Z0-9]+)?)\b', query_term.upper())
-    search_target = code_match.group(1) if code_match else query_term
+2. STACIONĀRĀS UN MOBILĀS DARBSTACIJAS (HP Z WORKSTATIONS / WKS):
+   - Mobilās darbstacijas: ZBook (Firefly, Power, Studio, Fury paaudzēs G6–G11)
+   - Galda darbstacijas (WKS): Z2 (Mini, SFF, Tower), Z4, Z6, Z8 (ar Intel Xeon W un AMD Threadripper PRO)
+   - WKS specifika: ECC / RDIMM atmiņa, barošanas bloki (PSU), NVIDIA RTX Ada / A-sērijas profesionālā grafika.
 
-    search_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(search_target + ' site:hp.com')}"
-    req = urllib.request.Request(
-        search_url, 
-        headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'}
-    )
-    
-    try:
-        with urllib.request.urlopen(req, timeout=8) as response:
-            html = response.read().decode('utf-8', errors='ignore')
-            snippets = re.findall(r'<a class="result__snippet[^>]*>(.*?)</a>', html, re.DOTALL)
-            clean_snippets = [re.sub(r'<[^>]+>', '', s).strip() for s in snippets[:5]]
-            return "\n---\n".join([s for s in clean_snippets if s])
-    except Exception:
-        return ""
+3. HP DISPLEJI UN MONITORI:
+   - E-Series (ergonomiskie biznesa), P-Series (standarta), Z-Series (DreamColor krāsu precīzie studiju monitori).
+   - Konferences un USB-C/Thunderbolt Hub monitori (E24m, Z32k, Z40c) ar USB-C Power Delivery (PD 65W–140W), RJ-45 un Daisy Chain (MST).
+
+4. HP PRINTERI UN MULTIFUNKCIONĀLĀS IEKĀRTAS (PRINTING & MFP):
+   - HP LaserJet Pro un LaserJet Enterprise (mono un Color MFP).
+   - Izejmateriāli: oriģinālās kasetnes (standarta 'A' vs palielinātā 'X' resursa, piem., 59A/59X, 139A/139X), Maintenance Kits, papildu papīra kasetes.
+
+5. AKSESUĀRI UN DOKI:
+   - HP Thunderbolt Dock G2/G4, USB-C Dock G5, barošanas bloki (65W, 100W, 120W, 280W Smart AC / USB-C PD).
+
+MEKLĒŠANAS UN IDENTIFIKĀCIJAS STRATĒĢIJA:
+- Ja lietotājs ievada produkta kodu (P/N, ProdID, piem., 401N4EA vai 401N4EA#B1R):
+  * Izmanto meklēšanas rīku, lai atrastu precīzo HP rūpnīcas modeli un procesoru no oficiālajiem HP datiem (QuickSpecs, support.hp.com).
+  * Paskaidro koda reģionu (piem., #B1R = Baltija, #ABB = Eiropa).
+  * Kad modelis un procesors atrasts (piem., 401N4EA ir HP EliteBook 845 G8 ar AMD Ryzen 5 PRO 5650U), sniedz detalizētu specifikāciju:
+    1. Procesors un arhitektūra (Zen 3 / Tiger Lake / Alder Lake utt.).
+    2. RAM arhitektūra (SODIMM slotu skaits, DDR4 vai DDR5, vai nav ielodēts).
+    3. Glabātuve (M.2 NVMe PCIe atbalsts).
+    4. Ekrāns un grafika.
+    5. Ieteicamās dokstacijas un aksesuāri (piem., HP USB-C Dock G5).
+
+ATBILDES STILS:
+- Profesionāls, inženiera cienīgs tonis latviešu valodā.
+- Precīzos tehniskos terminus saglabā angliski (SODIMM, RDIMM, NVMe PCIe Gen4, Thunderbolt 4, Power Delivery, QuickSpecs).
+"""
 
 # ==========================================
 # HP EKSPERTA UI CILNE (CTkFrame)
@@ -67,7 +63,11 @@ class HPExpertFrame(ctk.CTkFrame):
             wrap="word"
         )
         self.chat_box.pack(fill="both", expand=True, padx=10, pady=(10, 5))
-        self.chat_box.insert("end", "HP Solution Architect gatavs darbam.\nUzdodiet jautājumu par EliteBook, ZBook, dokiem, RAM arhitektūru vai printeriem...\n\n")
+        self.chat_box.insert(
+            "end", 
+            "HP Solution Architect gatavs darbam.\n"
+            "Uzdodiet jautājumu par EliteBook, ZBook, Z darbstacijām, dokiem, displejiem vai printeriem...\n\n"
+        )
         self.chat_box.configure(state="disabled")
 
         input_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -75,7 +75,7 @@ class HPExpertFrame(ctk.CTkFrame):
 
         self.hp_input = ctk.CTkEntry(
             input_frame, 
-            placeholder_text="Piemēram: Vai E11NXAT ir ar ielodētu RAM? Kāds doks der ZBook Fury?",
+            placeholder_text="Piemēram: Kāda ir 401N4EA#B1R specifikācija? Kāds doks der ZBook Fury?",
             font=ctk.CTkFont(size=13),
             height=40
         )
@@ -106,7 +106,7 @@ class HPExpertFrame(ctk.CTkFrame):
         self.hp_input.delete(0, "end")
         self.chat_box.configure(state="normal")
         self.chat_box.insert("end", f"\n👤 Jūs: {query}\n")
-        self.chat_box.insert("end", "⏳ HP Eksperts meklē oficiālajos avotos...\n")
+        self.chat_box.insert("end", "⏳ HP Eksperts meklē oficiālajos avotos un analizē specifikāciju...\n")
         self.chat_box.see("end")
         self.chat_box.configure(state="disabled")
 
@@ -118,40 +118,37 @@ class HPExpertFrame(ctk.CTkFrame):
 
         try:
             if not api_key:
-                response_text = "⚠️ Gemini API atslēga nav atrasta! Pārbaudiet config.json failu."
+                response_text = "⚠️ Gemini API atslēga nav atrasta! Pārbaudiet iestatījumus."
             else:
                 genai.configure(api_key=api_key)
-                official_data = search_hp_official(query)
 
-                hp_strict_prompt = (
-                    "Tu esi sertificēts HP Inc. sistēmu inženieris un aparatūras arhitekts.\n\n"
-                    "ZINĀŠANU BĀZE PAR JAUNAJIEM MODEĻIEM:\n"
-                    "- HP EliteBook 8 G2i / 6 G2i Next Gen AI PC ir Intel Core Ultra bāzēti portatīvie datori.\n"
-                    "- EliteBook 8 G2i izmanto LPDDR5x (onboard / ielodētu RAM).\n"
-                    "- EliteBook 6 G2i izmanto DDR5 SODIMM (maināmu RAM).\n"
-                    "- Savietojamība ar monitoriem: Šiem datoriem ir Thunderbolt 4 / USB-C ar DisplayPort 1.4 atbalstu un HDMI 2.1. "
-                    "Tie ir savietojami ar jebkuru modernu monitoru (HP E-sērijas USB-C ar Power Delivery, HP Series 7 Pro, Z-sērijas 4K displejiem).\n\n"
-                    "NOTEIKUMI:\n"
-                    "1. Ja norādīts produkta kods (piemēram, DG0L7AT), tas pieder HP EliteBook 8 G2i 14 AI PC sērijai.\n"
-                    "2. Atbildi uz lietotāja jautājumu konkrēti, strukturēti un latviešu valodā."
-                )
-
+                # Izmantojam modeli ar iebūvēto Google Search rīku tiešsaistes meklēšanai
                 model = genai.GenerativeModel(
                     model_name="gemini-2.5-flash",
-                    system_instruction=hp_strict_prompt
+                    system_instruction=HP_EXPERT_SYSTEM_PROMPT,
+                    tools="google_search_retrieval"
                 )
 
-                prompt = f"Lietotāja jautājums: {query}\n\nOficiālie atrastie dati:\n{official_data if official_data else 'Nav papildu tīmekļa fragmentu'}"
-                res = model.generate_content(prompt)
+                res = model.generate_content(query)
                 response_text = res.text
 
         except Exception as e:
-            response_text = f"⚠️ Kļūda saziņā ar ekspertu: {e}"
+            # Ja gadījumā konkrētajam modelim rīks ir ar citu nosaukumu, rezerves izsaukums:
+            try:
+                model_fallback = genai.GenerativeModel(
+                    model_name="gemini-2.5-flash",
+                    system_instruction=HP_EXPERT_SYSTEM_PROMPT
+                )
+                res = model_fallback.generate_content(query)
+                response_text = res.text
+            except Exception as e2:
+                response_text = f"⚠️ Kļūda saziņā ar ekspertu: {e2}"
 
         def update_ui():
             self.chat_box.configure(state="normal")
             content = self.chat_box.get("1.0", "end")
-            idx = content.rfind("⏳ HP Eksperts meklē oficiālajos avotos...\n")
+            marker = "⏳ HP Eksperts meklē oficiālajos avotos un analizē specifikāciju...\n"
+            idx = content.rfind(marker)
             if idx != -1:
                 self.chat_box.delete(f"1.0 + {idx} chars", "end")
             self.chat_box.insert("end", f"🧠 HP Eksperts:\n{response_text.strip()}\n\n")
