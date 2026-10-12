@@ -17,9 +17,12 @@ UI_TEXTS = {
         "tab_hp": "🧠 HP Eksperts",
         "tab_voice": "🎙️ Balss Studija",
         "tab_docs": "📄 Dokumentu Drop-Zone",
-        "tab_settings": "⚙️ Radara Iestatījumi",
+        "tab_settings": "⚙️ AQ Iestatījumi",
         "tab_warranty": "🛡️ Garantija",
         "tab_bank": "🏦 Bank Studio",
+        "lbl_bank_header": "🏦 Bankas Rekvizīti (Citadele / ISO 20022):",
+        "lbl_my_iban": "Maksātāja IBAN konts:",
+        "lbl_my_name": "Maksātāja Uzņēmums / Vārds:",
         "lbl_time": "🕒 Vakara Komandanta Atskaites laiks (HH:MM):",
         "lbl_kw": "📡 Radara Atslēgvārdi (atdalīti ar komatiem):",
         "lbl_desc": "E-pasti, kuru temats vai teksts satur šos vārdus, automātiski pārtop par uzdevumiem.",
@@ -32,9 +35,12 @@ UI_TEXTS = {
         "tab_hp": "🧠 HP Expert",
         "tab_voice": "🎙️ Voice Studio",
         "tab_docs": "📄 Document Drop-Zone",
-        "tab_settings": "⚙️ Radar Settings",
+        "tab_settings": "⚙️ AQ Settings",
         "tab_warranty": "🛡️ Warranty",
         "tab_bank": "🏦 Bank Studio",
+        "lbl_bank_header": "🏦 Banking Details (Citadele / ISO 20022):",
+        "lbl_my_iban": "Payer IBAN Account:",
+        "lbl_my_name": "Payer Company / Name:",
         "lbl_time": "🕒 Evening Commandant Briefing Time (HH:MM):",
         "lbl_kw": "📡 Radar Keywords (comma separated):",
         "lbl_desc": "Emails containing these words in subject or body automatically become tasks.",
@@ -218,24 +224,52 @@ class CockpitWindow(ctk.CTkToplevel):
     def setup_settings_tab(self):
         t = UI_TEXTS[self.current_lang]
 
-        # 1. Atskaites laiks
+        # 1. Bankas rekvizīti
+        self.lbl_bank_sec = ctk.CTkLabel(
+            self.tab_settings, 
+            text=t["lbl_bank_header"], 
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="#38bdf8"
+        )
+        self.lbl_bank_sec.pack(anchor="w", padx=25, pady=(15, 6))
+
+        bank_row = ctk.CTkFrame(self.tab_settings, fg_color="transparent")
+        bank_row.pack(fill="x", padx=25, pady=(0, 10))
+
+        # IBAN lauks
+        f_iban = ctk.CTkFrame(bank_row, fg_color="transparent")
+        f_iban.pack(side="left", padx=(0, 20))
+        self.lbl_iban = ctk.CTkLabel(f_iban, text=t["lbl_my_iban"], font=ctk.CTkFont(size=12))
+        self.lbl_iban.pack(anchor="w", pady=(0, 2))
+        self.entry_my_iban = ctk.CTkEntry(f_iban, width=240, height=32, font=ctk.CTkFont(size=13), placeholder_text="LV..PARX...")
+        self.entry_my_iban.pack(anchor="w")
+
+        # Uzņēmuma nosaukuma lauks
+        f_name = ctk.CTkFrame(bank_row, fg_color="transparent")
+        f_name.pack(side="left")
+        self.lbl_name = ctk.CTkLabel(f_name, text=t["lbl_my_name"], font=ctk.CTkFont(size=12))
+        self.lbl_name.pack(anchor="w", pady=(0, 2))
+        self.entry_my_name = ctk.CTkEntry(f_name, width=280, height=32, font=ctk.CTkFont(size=13), placeholder_text="Mans Uzņēmums SIA")
+        self.entry_my_name.pack(anchor="w")
+
+        # 2. Atskaites laiks
         self.lbl_time_header = ctk.CTkLabel(
             self.tab_settings, 
             text=t["lbl_time"], 
             font=ctk.CTkFont(size=14, weight="bold")
         )
-        self.lbl_time_header.pack(anchor="w", padx=25, pady=(20, 4))
+        self.lbl_time_header.pack(anchor="w", padx=25, pady=(10, 4))
 
         self.entry_briefing_time = ctk.CTkEntry(self.tab_settings, width=120, height=32, font=ctk.CTkFont(size=13))
-        self.entry_briefing_time.pack(anchor="w", padx=25, pady=(0, 15))
+        self.entry_briefing_time.pack(anchor="w", padx=25, pady=(0, 10))
 
-        # 2. Atslēgvārdi
+        # 3. Atslēgvārdi
         self.lbl_kw_header = ctk.CTkLabel(
             self.tab_settings, 
             text=t["lbl_kw"], 
             font=ctk.CTkFont(size=14, weight="bold")
         )
-        self.lbl_kw_header.pack(anchor="w", padx=25, pady=(10, 4))
+        self.lbl_kw_header.pack(anchor="w", padx=25, pady=(5, 4))
 
         self.lbl_desc_text = ctk.CTkLabel(
             self.tab_settings,
@@ -243,13 +277,15 @@ class CockpitWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=12),
             text_color="#94a3b8"
         )
-        self.lbl_desc_text.pack(anchor="w", padx=25, pady=(0, 8))
+        self.lbl_desc_text.pack(anchor="w", padx=25, pady=(0, 6))
 
-        self.txt_keywords = ctk.CTkTextbox(self.tab_settings, height=110, fg_color="#0f172a", font=ctk.CTkFont(size=13))
+        self.txt_keywords = ctk.CTkTextbox(self.tab_settings, height=90, fg_color="#0f172a", font=ctk.CTkFont(size=13))
         self.txt_keywords.pack(fill="x", padx=25, pady=(0, 15))
 
         kw_list = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin"]
         briefing_time = "18:00"
+        my_iban = "LV00PARX0000000000000"
+        my_name = "Mans Uzņēmums SIA"
 
         if os.path.exists("config.json"):
             try:
@@ -257,9 +293,13 @@ class CockpitWindow(ctk.CTkToplevel):
                     cfg = json.load(f)
                     kw_list = cfg.get("keywords", kw_list)
                     briefing_time = cfg.get("briefing_time", "18:00")
+                    my_iban = cfg.get("my_iban", my_iban)
+                    my_name = cfg.get("my_name", my_name)
             except Exception:
                 pass
 
+        self.entry_my_iban.insert(0, my_iban)
+        self.entry_my_name.insert(0, my_name)
         self.entry_briefing_time.insert(0, briefing_time)
         self.txt_keywords.insert("end", ", ".join(kw_list))
 
@@ -281,6 +321,8 @@ class CockpitWindow(ctk.CTkToplevel):
         raw_kw = self.txt_keywords.get("1.0", "end").strip()
         kw = [x.strip() for x in raw_kw.split(",") if x.strip()]
         b_time = self.entry_briefing_time.get().strip() or "18:00"
+        my_iban = self.entry_my_iban.get().strip()
+        my_name = self.entry_my_name.get().strip()
 
         cfg = {}
         if os.path.exists("config.json"):
@@ -293,6 +335,8 @@ class CockpitWindow(ctk.CTkToplevel):
         cfg["keywords"] = kw
         cfg["briefing_time"] = b_time
         cfg["ui_language"] = self.current_lang
+        cfg["my_iban"] = my_iban
+        cfg["my_name"] = my_name
 
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump(cfg, f, ensure_ascii=False, indent=2)

@@ -2,6 +2,8 @@
 import os
 import re
 import json
+from pathlib import Path
+import sys
 import threading
 from datetime import datetime
 import xml.etree.ElementTree as ET
@@ -9,6 +11,20 @@ from xml.dom import minidom
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import google.generativeai as genai
+
+def get_app_config():
+    if getattr(sys, 'frozen', False):
+        app_dir = Path(sys.executable).parent
+    else:
+        app_dir = Path(__file__).resolve().parent
+    cfg_path = app_dir / "config.json"
+    if cfg_path.exists():
+        try:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
 
 VENDORS_DB_FILE = "known_vendors.json"
 
@@ -263,6 +279,8 @@ class BankStudioFrame(ctk.CTkFrame):
             raw_json = re.sub(r'\s*```$', '', raw_json)
 
             data = json.loads(raw_json)
+            if isinstance(data, list) and len(data) > 0:
+                data = data[0]
             self.current_invoice = data
 
             # Drošības pārbaude ("Kvarka Drošinātājs")
@@ -332,7 +350,11 @@ class BankStudioFrame(ctk.CTkFrame):
         if not self.current_invoice:
             return
 
-        xml_content = generate_citadele_xml(self.current_invoice)
+        cfg = get_app_config()
+        my_iban = cfg.get("my_iban", "LV00PARX0000000000000").replace(" ", "").strip()
+        my_name = cfg.get("my_name", "Mans Uzņēmums SIA").strip()
+
+        xml_content = generate_citadele_xml(self.current_invoice, my_iban=my_iban, my_name=my_name)
 
         # Attīrām rēķina numuru no slīpsvītrām un citiem Windows aizliegtajiem simboliem:
         raw_inv_no = str(self.current_invoice.get('invoice_no', 'Export'))
@@ -352,12 +374,29 @@ class BankStudioFrame(ctk.CTkFrame):
 
     def process_pdf_direct(self, file_path):
         """Metode, ko izsauc Radars, kad nospiež pogu [🏦 Bank]."""
-        if not file_path or not os.path.exists(file_path):
-            self._update_status_ui("⚠️ Fails nav atrasts!", "#ef4444")
+        if not file_path:
+            self._update_status_ui("⚠️ Faila ceļš nav norādīts!", "#ef4444")
             return
 
+        resolved_path = Path(file_path)
+        
+        # Ja tiešais ceļš neeksistē, pameklējam relatīvi pret lietotnes mapi vai storage/invoices
+        if not resolved_path.exists():
+            base_dir = Path(__file__).resolve().parent
+            candidate1 = base_dir / file_path
+            candidate2 = base_dir / "storage" / "invoices" / Path(file_path).name
+            
+            if candidate1.exists():
+                resolved_path = candidate1
+            elif candidate2.exists():
+                resolved_path = candidate2
+            else:
+                self._update_status_ui(f"⚠️ Fails nav atrasts: {resolved_path.name}", "#ef4444")
+                return
+
+        file_path_str = str(resolved_path)
         self.lbl_status.configure(text="⏳ Gemini analizē ienākošo rēķinu no Radara...", text_color="#38bdf8")
         self.btn_export_xml.configure(state="disabled")
         self.btn_whitelist.configure(state="disabled")
 
-        threading.Thread(target=self._parse_invoice_thread, args=(file_path,), daemon=True).start()
+        threading.Thread(target=self._parse_invoice_thread, args=(file_path_str,), daemon=True).start()

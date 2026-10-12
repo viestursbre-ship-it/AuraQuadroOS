@@ -20,11 +20,59 @@ except ImportError:
 from cockpit import CockpitWindow
 from daily_briefing import generate_daily_report
 
+class CTkToolTip:
+    def __init__(self, widget, text, delay_ms=400):
+        self.widget = widget
+        self.text = text
+        self.delay_ms = delay_ms
+        self.tip_window = None
+        self.schedule_id = None
+        self.widget.bind("<Enter>", self._on_enter, add="+")
+        self.widget.bind("<Leave>", self._on_leave, add="+")
+        self.widget.bind("<ButtonPress>", self._on_leave, add="+")
+
+    def _on_enter(self, event=None):
+        self._cancel_schedule()
+        self.schedule_id = self.widget.after(self.delay_ms, self._show_tip)
+
+    def _on_leave(self, event=None):
+        self._cancel_schedule()
+        self._hide_tip()
+
+    def _cancel_schedule(self):
+        if self.schedule_id:
+            self.widget.after_cancel(self.schedule_id)
+            self.schedule_id = None
+
+    def _show_tip(self):
+        if self.tip_window or not self.text:
+            return
+        x = self.widget.winfo_rootx() + 10
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 6
+        self.tip_window = tw = ctk.CTkToplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        tw.attributes("-topmost", True)
+        ctk.CTkLabel(
+            tw, text=self.text, fg_color="#334155", text_color="#f8fafc",
+            corner_radius=6, padx=8, pady=4, font=("Segoe UI", 11, "bold")
+        ).pack()
+
+    def _hide_tip(self):
+        if self.tip_window:
+            self.tip_window.destroy()
+            self.tip_window = None
+
 BASE_DIR = Path(__file__).resolve().parent
 STATE_FILE = BASE_DIR / "radar_state.json"
 IGNORE_FILE = BASE_DIR / "radar_ignored_senders.json"
 VOICE_DIR = BASE_DIR / "storage" / "voice"
+INVOICE_DIR = BASE_DIR / "storage" / "invoices"
+WARRANTY_DIR = BASE_DIR / "storage" / "warranty"
+
 VOICE_DIR.mkdir(parents=True, exist_ok=True)
+INVOICE_DIR.mkdir(parents=True, exist_ok=True)
+WARRANTY_DIR.mkdir(parents=True, exist_ok=True)
 
 AUDIO_EXTENSIONS = {".ogg", ".opus", ".mp3", ".m4a", ".wav", ".aac"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
@@ -88,15 +136,29 @@ def collect_all_folders(root_folder):
     return folders
 
 def scan_outlook_mailbox():
+    new_count = 0
+
     if not HAS_WIN32COM:
+        try:
+            import tkinter.messagebox as mb
+            mb.showerror("AQ Radar Kļūda", "Outlook MAPI modulis (win32com) nav ielādēts!")
+        except Exception:
+            pass
         return 0
 
-    pythoncom.CoInitialize()
-    new_count = 0
     try:
-        outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-        inbox = outlook.GetDefaultFolder(6)
-        
+        pythoncom.CoInitialize()
+        try:
+            outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
+            inbox = outlook.GetDefaultFolder(6)
+        except Exception as mapi_err:
+            try:
+                import tkinter.messagebox as mb
+                mb.showerror("Outlook Savienojums", f"Nevar pieslēgties Outlook:\n{mapi_err}")
+            except Exception:
+                pass
+            return 0
+
         current_user_name = ""
         current_user_email = ""
         try:
@@ -112,12 +174,30 @@ def scan_outlook_mailbox():
             except Exception:
                 pass
 
-        default_keywords = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin", "leasing", "līzing"]
+        default_keywords = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin", "leasing", "līzing", "pied"]
         keywords = default_keywords
         days_back = 30
-        if os.path.exists("config.json"):
+
+        # Nosakām patieso bāzes mapi
+        if getattr(sys, 'frozen', False):
+            BASE_DIR = Path(sys.executable).parent
+        else:
+            BASE_DIR = Path(__file__).resolve().parent
+
+        STORAGE_DIR = BASE_DIR / "storage"
+        INVOICE_DIR = STORAGE_DIR / "invoices"
+        VOICE_DIR = STORAGE_DIR / "voice"
+        WARRANTY_DIR = STORAGE_DIR / "warranty"
+
+        INVOICE_DIR.mkdir(parents=True, exist_ok=True)
+        VOICE_DIR.mkdir(parents=True, exist_ok=True)
+        WARRANTY_DIR.mkdir(parents=True, exist_ok=True)
+
+        cfg_path = BASE_DIR / "config.json"
+
+        if cfg_path.exists():
             try:
-                with open("config.json", "r", encoding="utf-8") as cf:
+                with open(cfg_path, "r", encoding="utf-8") as cf:
                     cfg = json.load(cf)
                     keywords = cfg.get("keywords", default_keywords)
                     days_back = cfg.get("days_back", 30)
@@ -183,31 +263,43 @@ def scan_outlook_mailbox():
 
                     # Pielikumu nolasīšana
                     if hasattr(msg, "Attachments") and msg.Attachments.Count > 0:
+                        is_strict_warranty_mail = is_self_task and any(w in subj_lower for w in ["garant", "war"])
+                        is_invoice_mail = any(w in subj_lower for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"]) or any(k in subj_lower for k in keywords)
+
                         for att_idx in range(1, msg.Attachments.Count + 1):
                             try:
                                 att = msg.Attachments.Item(att_idx)
-                                att_name = att.FileName.lower()
-                                ext = Path(att_name).suffix
-                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                att_name = att.FileName
+                                ext = Path(att_name).suffix.lower()
 
                                 if ext in AUDIO_EXTENSIONS and not saved_audio_path:
-                                    clean_name = f"voice_{timestamp}_{att.FileName}"
+                                    clean_name = f"voice_{att_name}"
                                     target_path = VOICE_DIR / clean_name
-                                    att.SaveAsFile(str(target_path))
+                                    if not target_path.exists():
+                                        att.SaveAsFile(str(target_path))
                                     saved_audio_path = str(target_path)
 
-                                elif ext in IMAGE_EXTENSIONS and not saved_image_path:
-                                    if "garantij" in subj_lower or "warranty" in subj_lower or is_self_task:
-                                        clean_name = f"warranty_{timestamp}_{att.FileName}"
-                                        target_path = VOICE_DIR / clean_name
+                                elif ext in IMAGE_EXTENSIONS and not saved_image_path and is_strict_warranty_mail:
+                                    if hasattr(att, "Size") and att.Size < 20000:
+                                        continue
+                                    clean_name = f"warranty_{att_name}"
+                                    target_path = WARRANTY_DIR / clean_name
+                                    if not target_path.exists():
                                         att.SaveAsFile(str(target_path))
-                                        saved_image_path = str(target_path)
+                                    saved_image_path = str(target_path)
 
-                                elif ext == ".pdf" and not saved_pdf_path:
-                                    clean_name = f"inv_{timestamp}_{att.FileName}"
-                                    target_path = VOICE_DIR / clean_name
-                                    att.SaveAsFile(str(target_path))
-                                    saved_pdf_path = str(target_path)
+                                # C) PDF rēķini
+                                elif ext == ".pdf" and not saved_pdf_path and (is_invoice_mail or "rekins" in att_name.lower() or "invoice" in att_name.lower()):
+                                    try:
+                                        INVOICE_DIR.mkdir(parents=True, exist_ok=True)
+                                        clean_name = f"inv_{att_name}"
+                                        target_path = (INVOICE_DIR / clean_name).resolve()
+                                        att.SaveAsFile(str(target_path))
+                                        saved_pdf_path = str(target_path)
+                                        print(f"✅ [PDF SAGLABĀTS]: {saved_pdf_path}")
+                                    except Exception as save_err:
+                                        print(f"⚠️ [KĻŪDA SAGLABĀJOT PDF]: {save_err}")
+
                             except Exception:
                                 pass
 
@@ -216,7 +308,7 @@ def scan_outlook_mailbox():
                     if matches_keywords or is_self_task or saved_audio_path or saved_image_path or saved_pdf_path:
                         import re
                         date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
-                        
+
                         if saved_audio_path:
                             found_deadline = "Balss apstrāde"
                             cat = "🎙️ Balss ziņa"
@@ -315,6 +407,7 @@ class RadarMainApp(ctk.CTk):
             command=self.open_cockpit
         )
         self.btn_cockpit.pack(side="left", padx=3)
+        CTkToolTip(self.btn_cockpit, "Atvērt AQ-OS Vadības Centru (Cockpit)")
 
         self.btn_scan = ctk.CTkButton(
             btn_box, 
@@ -327,17 +420,23 @@ class RadarMainApp(ctk.CTk):
             command=self.trigger_scan
         )
         self.btn_scan.pack(side="left", padx=3)
+        CTkToolTip(self.btn_scan, "Skenēt Outlook iesūtni tūlīt")
 
-        ctk.CTkButton(
+        # --- ŠĪ IR TAVA POGA: '🔄' PĀRTOPOŠA PAR '☕' KVARKU ---
+        self.btn_briefing = ctk.CTkButton(
             btn_box, 
-            text="🔄", 
+            text="☕", 
             width=30, 
             height=26, 
             fg_color="#334155", 
-            command=self.load_cards
-        ).pack(side="left", padx=2)
+            hover_color="#d97706",
+            command=self.open_kvark_briefing
+        )
+        self.btn_briefing.pack(side="left", padx=2)
+        CTkToolTip(self.btn_briefing, "Komandanta Kvarka Rīta Brīfings")
 
-        ctk.CTkButton(
+        # Žurnāla/pārskata poga
+        self.btn_log = ctk.CTkButton(
             btn_box, 
             text="📋", 
             width=30, 
@@ -345,7 +444,9 @@ class RadarMainApp(ctk.CTk):
             fg_color="#475569", 
             hover_color="#334155", 
             command=self.trigger_briefing
-        ).pack(side="left", padx=2)
+        )
+        self.btn_log.pack(side="left", padx=2)
+        CTkToolTip(self.btn_log, "Vakara atskaite / arhīvs")
 
         self.scroll_frame = ctk.CTkScrollableFrame(self, width=450, height=580, fg_color="#0b1329")
         self.scroll_frame.pack(padx=10, pady=10, fill="both", expand=True)
@@ -384,6 +485,15 @@ class RadarMainApp(ctk.CTk):
             self.cockpit_win.deiconify()
             self.cockpit_win.lift()
             self.cockpit_win.focus_force()
+
+    def open_kvark_briefing(self):
+        try:
+            # Ja nosauci failu par morning.py, tad: from morning import KvarkBriefingDialog
+            from morning_briefing import KvarkBriefingDialog
+            KvarkBriefingDialog(self)
+        except Exception as e:
+            import tkinter.messagebox as mb
+            mb.showerror("Kļūda", f"Nevar atvērt Kvarka brīfingu: {e}")
 
     def trigger_offer_flow(self, item_data):
         self.open_cockpit()
