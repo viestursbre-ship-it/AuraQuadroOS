@@ -101,6 +101,15 @@ def add_ignored_sender(sender_identifier):
         pass
 
 def open_email_in_outlook(entry_id):
+    if str(entry_id).startswith("imap_"):
+        # Ja vēstule nākusi no IMAP režīma, COM to neatvērs
+        try:
+            import tkinter.messagebox as mb
+            mb.showinfo("E-pasts (IMAP)", "Šis e-pasts tika nolasīts tieši caur IMAP serveri.\nAtveriet to savā pasta pārlūkā vai lietotnē.")
+        except Exception:
+            pass
+        return
+
     if not HAS_WIN32COM:
         return
     try:
@@ -113,52 +122,135 @@ def open_email_in_outlook(entry_id):
     finally:
         pythoncom.CoUninitialize()
 
-def clean_msg_text(msg):
-    text = ""
-    try:
-        if hasattr(msg, "Body") and msg.Body:
-            text = msg.Body
-        elif hasattr(msg, "HTMLBody") and msg.HTMLBody:
-            import re
-            text = re.sub(r'<[^<]+?>', '', msg.HTMLBody)
-    except Exception:
-        text = ""
-    text = text.replace(r"\d", "ī").replace(r"\t", "ī").replace(r"\i", "ī").replace(r"\j", "ā")
-    return text.strip()
 
-def collect_all_folders(root_folder):
-    folders = [root_folder]
+def scan_via_imap(items_to_save, keywords, default_keywords):
+    """Rezerves e-pastu nolasīšanas dzinējs, ja Classic Outlook nav pieejams."""
+    new_count = 0
     try:
-        for sub in root_folder.Folders:
-            folders.extend(collect_all_folders(sub))
-    except Exception:
-        pass
-    return folders
+        from imap_reader import fetch_emails_via_imap
+        imap_items = fetch_emails_via_imap(limit=25)
+    except Exception as e:
+        print(f"⚠️ [IMAP Imports/Izsaukums Neizdevās]: {e}")
+        return 0
+
+    ignored_list = get_ignored_senders()
+
+    for mail in imap_items:
+        entry_id = mail.get("entry_id")
+        if not entry_id or entry_id in items_to_save:
+            continue
+
+        subj = mail.get("subject", "(Bez temata)")
+        sender = mail.get("sender", "Nezināms")
+        body = mail.get("core_request", "")
+        pdf_path = mail.get("pdf_path")
+
+        if any(ign in sender.lower() for ign in ignored_list):
+            continue
+
+        subj_lower = subj.lower()
+        body_lower = body.lower()
+
+        matches_keywords = any(k in subj_lower for k in keywords)
+
+        if matches_keywords or pdf_path:
+            import re
+            date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
+
+            if any(w in subj_lower for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"]) or pdf_path:
+                found_deadline = f"Līdz {date_match.group(1)}" if date_match else "Apmaksai"
+                cat = "Rēķins"
+            elif date_match:
+                found_deadline = f"Līdz {date_match.group(1)}"
+                cat = "Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks"
+            elif "rīt" in body_lower or "rītdien" in body_lower:
+                found_deadline = "Līdz rītdienai"
+                cat = "Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks"
+            else:
+                found_deadline = "Steidzams"
+                cat = "Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks"
+
+            items_to_save[entry_id] = {
+                "subject": subj,
+                "sender": f"{sender} (IMAP)",
+                "core_request": body[:120].strip() + "..." if body else subj,
+                "deadline": found_deadline,
+                "category": cat,
+                "status": "ACTIVE",
+                "audio_path": None,
+                "image_path": None,
+                "pdf_path": pdf_path,
+                "received": mail.get("received", "")
+            }
+            new_count += 1
+
+    return new_count
+
 
 def scan_outlook_mailbox():
     new_count = 0
 
-    if not HAS_WIN32COM:
+    # Nosakām patieso bāzes mapi
+    if getattr(sys, 'frozen', False):
+        BASE_DIR = Path(sys.executable).parent
+    else:
+        BASE_DIR = Path(__file__).resolve().parent
+
+    STORAGE_DIR = BASE_DIR / "storage"
+    INVOICE_DIR = STORAGE_DIR / "invoices"
+    VOICE_DIR = STORAGE_DIR / "voice"
+    WARRANTY_DIR = STORAGE_DIR / "warranty"
+
+    INVOICE_DIR.mkdir(parents=True, exist_ok=True)
+    VOICE_DIR.mkdir(parents=True, exist_ok=True)
+    WARRANTY_DIR.mkdir(parents=True, exist_ok=True)
+
+    default_keywords = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin", "leasing", "līzing", "pied"]
+    keywords = default_keywords
+    days_back = 30
+
+    cfg_path = BASE_DIR / "config.json"
+    if cfg_path.exists():
         try:
-            import tkinter.messagebox as mb
-            mb.showerror("AQ Radar Kļūda", "Outlook MAPI modulis (win32com) nav ielādēts!")
+            with open(cfg_path, "r", encoding="utf-8") as cf:
+                cfg = json.load(cf)
+                keywords = cfg.get("keywords", default_keywords)
+                days_back = cfg.get("days_back", 30)
         except Exception:
             pass
-        return 0
 
-    try:
-        pythoncom.CoInitialize()
+    items_to_save = {}
+    if os.path.exists(STATE_FILE):
         try:
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
+                items_to_save = json.load(f)
+        except Exception:
+            pass
+
+    # 1. Pārbaudām, vai ir pieejams Classic Outlook MAPI
+    use_imap = not HAS_WIN32COM
+    outlook = None
+    inbox = None
+
+    if HAS_WIN32COM:
+        try:
+            pythoncom.CoInitialize()
             outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
             inbox = outlook.GetDefaultFolder(6)
         except Exception as mapi_err:
-            try:
-                import tkinter.messagebox as mb
-                mb.showerror("Outlook Savienojums", f"Nevar pieslēgties Outlook:\n{mapi_err}")
-            except Exception:
-                pass
-            return 0
+            print(f"⚠️ Classic Outlook MAPI nav pieejams ({mapi_err}). Pārslēdzamies uz IMAP režīmu...")
+            use_imap = True
 
+    # 2. Ja Outlook Classic nav — iedarbinām IMAP dzinēju
+    if use_imap or inbox is None:
+        new_count = scan_via_imap(items_to_save, keywords, default_keywords)
+        if new_count > 0:
+            with open(STATE_FILE, "w", encoding="utf-8") as f:
+                json.dump(items_to_save, f, ensure_ascii=False, indent=2)
+        return new_count
+
+    # 3. Ja Outlook Classic ir pieejams — turpinām ar standarta MAPI skenēšanu
+    try:
         current_user_name = ""
         current_user_email = ""
         try:
@@ -174,47 +266,9 @@ def scan_outlook_mailbox():
             except Exception:
                 pass
 
-        default_keywords = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin", "leasing", "līzing", "pied"]
-        keywords = default_keywords
-        days_back = 30
-
-        # Nosakām patieso bāzes mapi
-        if getattr(sys, 'frozen', False):
-            BASE_DIR = Path(sys.executable).parent
-        else:
-            BASE_DIR = Path(__file__).resolve().parent
-
-        STORAGE_DIR = BASE_DIR / "storage"
-        INVOICE_DIR = STORAGE_DIR / "invoices"
-        VOICE_DIR = STORAGE_DIR / "voice"
-        WARRANTY_DIR = STORAGE_DIR / "warranty"
-
-        INVOICE_DIR.mkdir(parents=True, exist_ok=True)
-        VOICE_DIR.mkdir(parents=True, exist_ok=True)
-        WARRANTY_DIR.mkdir(parents=True, exist_ok=True)
-
-        cfg_path = BASE_DIR / "config.json"
-
-        if cfg_path.exists():
-            try:
-                with open(cfg_path, "r", encoding="utf-8") as cf:
-                    cfg = json.load(cf)
-                    keywords = cfg.get("keywords", default_keywords)
-                    days_back = cfg.get("days_back", 30)
-            except Exception:
-                pass
-
         all_target_folders = collect_all_folders(inbox)
         start_date = (datetime.now() - timedelta(days=days_back)).strftime("%d/%m/%Y")
         filter_query = f"[ReceivedTime] >= '{start_date}'"
-
-        items_to_save = {}
-        if os.path.exists(STATE_FILE):
-            try:
-                with open(STATE_FILE, "r", encoding="utf-8") as f:
-                    items_to_save = json.load(f)
-            except Exception:
-                pass
 
         ignored_list = get_ignored_senders()
 
@@ -352,6 +406,7 @@ def scan_outlook_mailbox():
         print(f"⚠️ [RADARS KĻŪDA]: {e}")
     finally:
         pythoncom.CoUninitialize()
+
     return new_count
 
 # ==========================================
@@ -435,6 +490,19 @@ class RadarMainApp(ctk.CTk):
         self.btn_briefing.pack(side="left", padx=2)
         CTkToolTip(self.btn_briefing, "Komandanta Kvarka Rīta Brīfings")
 
+        # Poga: Reakcijas audits (Follow-Up Hub)
+        self.btn_stale = ctk.CTkButton(
+            btn_box, 
+            text="⏳", 
+            width=30, 
+            height=26, 
+            fg_color="#334155", 
+            hover_color="#d97706", 
+            command=self.open_followup_hub
+        )
+        self.btn_stale.pack(side="left", padx=2)
+        CTkToolTip(self.btn_stale, "Neaktīvo klientu un uzdevumu reakcijas audits (> 3 d.)")
+
         # Žurnāla/pārskata poga
         self.btn_log = ctk.CTkButton(
             btn_box, 
@@ -485,6 +553,76 @@ class RadarMainApp(ctk.CTk):
             self.cockpit_win.deiconify()
             self.cockpit_win.lift()
             self.cockpit_win.focus_force()
+
+    def draft_smart_reply(self, entry_id, card_data, btn_widget):
+        """Asinhroni ar Gemini uzģenerē atbildes melnrakstu un atver to Outlook."""
+        if not HAS_WIN32COM:
+            messagebox.showerror("Kļūda", "Outlook modulis (win32com) nav pieejams!")
+            return
+
+        # Vizuālais indikators uz pogas
+        orig_text = btn_widget.cget("text")
+        btn_widget.configure(text="⏳ Raksta...", state="disabled")
+
+        def _worker():
+            try:
+                # 1. Sagatavojam kontekstu Gemini
+                subj = card_data.get("subject", "")
+                sender = card_data.get("sender", "")
+                body_snippet = card_data.get("core_request", "")
+
+                api_key = get_gemini_api_key() if "get_gemini_api_key" in globals() else os.environ.get("GEMINI_API_KEY", "")
+                if not api_key:
+                    # Mēģinām paņemt no config.json
+                    cfg = get_app_config() if "get_app_config" in globals() else {}
+                    api_key = cfg.get("gemini_api_key", "")
+
+                reply_text = ""
+                if api_key:
+                    import google.generativeai as genai
+                    genai.configure(api_key=api_key)
+                    model = genai.GenerativeModel("gemini-2.5-flash")
+                    prompt = f"""Tu esi profesionāls, atsaucīgs un lietišķs partneris uzņēmuma komunikācijā.
+                    Sagatavo kodolīgu, pieklājīgu un profesionālu e-pasta atbildes melnrakstu latviešu valodā uz šādu vēstuli.
+                    Sūtītājs: {sender}
+                    Temats: {subj}
+                    Saturs / konteksts:
+                    {body_snippet}
+
+                    Norādījumi:
+                    - Esi pieklājīgs, lietišķs un pozitīvs.
+                    - Apstiprini saņemšanu un norādi, ka jautājums tiek/tiks operatīvi izskatīts.
+                    - Neizmanto liekus ievadvārdus vai paskaidrojumus — sniedz TIKAI gatavu e-pasta tekstu (ar uzrunu un nobeiguma sveicienu)."""
+                    response = model.generate_content(prompt)
+                    reply_text = response.text.strip()
+                else:
+                    reply_text = "Labdien!\n\nPaldies par informāciju un vēstuli. Esam to saņēmuši un tuvākajā laikā sazināsimies ar Jums.\n\nAr cieņu,\nKomanda"
+
+                # 2. Pieslēdzamies Outlook MAPI caur COM šajā pavedienā
+                pythoncom.CoInitialize()
+                try:
+                    outlook_app = win32com.client.Dispatch("Outlook.Application")
+                    namespace = outlook_app.GetNamespace("MAPI")
+                    mail_item = namespace.GetItemFromID(entry_id)
+
+                    # Izveidojam atbildi
+                    reply_item = mail_item.Reply()
+                    # Ievietojam uzģenerēto tekstu pirms oriģinālās vēstules
+                    reply_item.Body = reply_text + "\n\n" + reply_item.Body
+                    
+                    # Saglabājam pie melnrakstiem un parādām lietotājam logu
+                    reply_item.Save()
+                    reply_item.Display()
+                finally:
+                    pythoncom.CoUninitialize()
+
+            except Exception as e:
+                print(f"⚠️ [Smart Reply Kļūda]: {e}")
+                self.after(0, lambda: messagebox.showerror("Smart Reply Kļūda", f"Neizdevās izveidot melnrakstu:\n{e}"))
+            finally:
+                self.after(0, lambda: btn_widget.configure(text=orig_text, state="normal"))
+
+        threading.Thread(target=_worker, daemon=True).start()
 
     def open_kvark_briefing(self):
         try:
@@ -729,6 +867,7 @@ class RadarMainApp(ctk.CTk):
             btn_row.pack(fill="x", padx=10, pady=(4, 8))
             
             btn_open_txt = "↗ Open" if is_en else "↗ Atvērt"
+            btn_reply_txt = "✍️ Reply" if is_en else "✍️ Atbilde"
             btn_voice_txt = "🎙️ Voice" if is_en else "🎙️ Balss"
             btn_warranty_txt = "🛡️ Warranty" if is_en else "🛡️ Garantija"
             btn_bank_txt = "🏦 Bank" if is_en else "🏦 Rēķins"
@@ -737,8 +876,22 @@ class RadarMainApp(ctk.CTk):
             btn_dismiss_txt = "🚫 Dismiss" if is_en else "🚫 Ignorēt"
 
             # 1. Poga "Atvērt e-pastu Outlook"
-            ctk.CTkButton(btn_row, text=btn_open_txt, width=54, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
-                          command=lambda eid=entry_id: open_email_in_outlook(eid)).pack(side="left", padx=(0, 2))
+            btn_open_mail = ctk.CTkButton(
+                btn_row, text=btn_open_txt, width=50, height=24, fg_color="#2563eb", hover_color="#1d4ed8", font=ctk.CTkFont(size=11),
+                command=lambda eid=entry_id: open_email_in_outlook(eid)
+            )
+            btn_open_mail.pack(side="left", padx=(0, 2))
+            CTkToolTip(btn_open_mail, "Atvērt oriģinālo e-pastu Outlook")
+
+            # 1.1 Viedā atbildes poga (Smart Reply)
+            btn_smart_reply = ctk.CTkButton(
+                btn_row, text=btn_reply_txt, width=65, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11, weight="bold")
+            )
+            btn_smart_reply.configure(
+                command=lambda eid=entry_id, cdata=item_data, b=btn_smart_reply: self.draft_smart_reply(eid, cdata, b)
+            )
+            btn_smart_reply.pack(side="left", padx=(0, 2))
+            CTkToolTip(btn_smart_reply, "Ar Gemini sagatavot pieklājīgu atbildes melnrakstu Outlook")
 
             # Saturs un nosacījumi
             audio_p = item_data.get("audio_path")
@@ -751,25 +904,37 @@ class RadarMainApp(ctk.CTk):
 
             # 2. Viedā moduļa poga
             if audio_p:
-                ctk.CTkButton(btn_row, text=btn_voice_txt, width=64, height=24, fg_color="#8b5cf6", hover_color="#7c3aed", font=ctk.CTkFont(size=11, weight="bold"),
-                              command=lambda path=audio_p: self.trigger_voice_flow(path)).pack(side="left", padx=(0, 2))
+                btn_mod = ctk.CTkButton(btn_row, text=btn_voice_txt, width=60, height=24, fg_color="#8b5cf6", hover_color="#7c3aed", font=ctk.CTkFont(size=11, weight="bold"),
+                                        command=lambda path=audio_p: self.trigger_voice_flow(path))
+                btn_mod.pack(side="left", padx=(0, 2))
+                CTkToolTip(btn_mod, "Pāriet uz balss ieraksta atšifrēšanu")
             elif is_strict_warranty:
                 target_p = img_p or pdf_p or ""
-                ctk.CTkButton(btn_row, text=btn_warranty_txt, width=74, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11, weight="bold"),
-                              command=lambda path=target_p: self.trigger_warranty_flow(path)).pack(side="left", padx=(0, 2))
+                btn_mod = ctk.CTkButton(btn_row, text=btn_warranty_txt, width=70, height=24, fg_color="#059669", hover_color="#047857", font=ctk.CTkFont(size=11, weight="bold"),
+                                        command=lambda path=target_p: self.trigger_warranty_flow(path))
+                btn_mod.pack(side="left", padx=(0, 2))
+                CTkToolTip(btn_mod, "Reģistrēt garantijas dokumentu")
             elif is_inv:
-                ctk.CTkButton(btn_row, text=btn_bank_txt, width=64, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11, weight="bold"),
-                              command=lambda path=pdf_p: self.trigger_bank_flow(path)).pack(side="left", padx=(0, 2))
+                btn_mod = ctk.CTkButton(btn_row, text=btn_bank_txt, width=60, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11, weight="bold"),
+                                        command=lambda path=pdf_p: self.trigger_bank_flow(path))
+                btn_mod.pack(side="left", padx=(0, 2))
+                CTkToolTip(btn_mod, "Atvērt Bank Studio un sagatavot maksājumu")
             else:
-                ctk.CTkButton(btn_row, text=btn_offer_txt, width=70, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11),
-                              command=lambda item=item_data: self.trigger_offer_flow(item)).pack(side="left", padx=(0, 2))
+                btn_mod = ctk.CTkButton(btn_row, text=btn_offer_txt, width=65, height=24, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=11),
+                                        command=lambda item=item_data: self.trigger_offer_flow(item))
+                btn_mod.pack(side="left", padx=(0, 2))
+                CTkToolTip(btn_mod, "Atvērt Quote Studio cenu piedāvājuma izveidei")
 
             # 3. Labās puses pārvaldības pogas
-            ctk.CTkButton(btn_row, text=btn_dismiss_txt, width=58, height=24, fg_color="#475569", hover_color="#334155", font=ctk.CTkFont(size=11),
-                          command=lambda s=item_data.get("sender", ""), eid=entry_id, c=card: self.ignore_sender_and_remove(s, eid, c)).pack(side="right", padx=(2, 0))
+            btn_dismiss = ctk.CTkButton(btn_row, text=btn_dismiss_txt, width=54, height=24, fg_color="#475569", hover_color="#334155", font=ctk.CTkFont(size=11),
+                                        command=lambda s=item_data.get("sender", ""), eid=entry_id, c=card: self.ignore_sender_and_remove(s, eid, c))
+            btn_dismiss.pack(side="right", padx=(2, 0))
+            CTkToolTip(btn_dismiss, "Paslēpt uzdevumu un ignorēt šo sūtītāju nākotnē")
 
-            ctk.CTkButton(btn_row, text=btn_done_txt, width=58, height=24, fg_color="#10b981", hover_color="#059669", font=ctk.CTkFont(size=11),
-                          command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c)).pack(side="right", padx=(2, 0))
+            btn_done = ctk.CTkButton(btn_row, text=btn_done_txt, width=54, height=24, fg_color="#10b981", hover_color="#059669", font=ctk.CTkFont(size=11),
+                                     command=lambda eid=entry_id, c=card: self.mark_as_done(eid, c))
+            btn_done.pack(side="right", padx=(2, 0))
+            CTkToolTip(btn_done, "Atzīmēt uzdevumu kā izpildītu un pārvietot uz arhīvu")
 
     def quit_completely(self):
         if hasattr(self, "tray_icon") and self.tray_icon:
@@ -815,6 +980,14 @@ class RadarMainApp(ctk.CTk):
         )
         self.tray_icon = pystray.Icon("AQ_Cockpit", img, "AQ-OS Radar", menu)
         threading.Thread(target=self.tray_icon.run, daemon=True).start()
+
+    def open_followup_hub(self):
+        try:
+            from followup_hub import FollowUpDialog
+            FollowUpDialog(self)
+        except Exception as e:
+            import tkinter.messagebox as mb
+            mb.showerror("Kļūda", f"Nevar atvērt audita moduli: {e}")
 
 if __name__ == "__main__":
     app = RadarMainApp()
