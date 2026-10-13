@@ -100,12 +100,21 @@ def add_ignored_sender(sender_identifier):
     except Exception:
         pass
 
+def collect_all_folders(root_folder):
+    """Rekursīvi savāc visas apakšmapes no Inbox."""
+    folders = [root_folder]
+    try:
+        for sub in root_folder.Folders:
+            folders.extend(collect_all_folders(sub))
+    except Exception:
+        pass
+    return folders
+
 def open_email_in_outlook(entry_id):
     if str(entry_id).startswith("imap_"):
-        # Ja vēstule nākusi no IMAP režīma, COM to neatvērs
         try:
             import tkinter.messagebox as mb
-            mb.showinfo("E-pasts (IMAP)", "Šis e-pasts tika nolasīts tieši caur IMAP serveri.\nAtveriet to savā pasta pārlūkā vai lietotnē.")
+            mb.showinfo("E-pasts (IMAP)", "Šis e-pasts tika nolasīts caur IMAP serveri.\nAtveriet to savā e-pasta programmā.")
         except Exception:
             pass
         return
@@ -123,14 +132,39 @@ def open_email_in_outlook(entry_id):
         pythoncom.CoUninitialize()
 
 
+def clean_msg_text(msg):
+    text = ""
+    try:
+        if hasattr(msg, "Body") and msg.Body:
+            text = msg.Body
+        elif hasattr(msg, "HTMLBody") and msg.HTMLBody:
+            import re
+            text = re.sub(r'<[^<]+?>', '', msg.HTMLBody)
+    except Exception:
+        text = ""
+    text = text.replace(r"\d", "ī").replace(r"\t", "ī").replace(r"\i", "ī").replace(r"\j", "ā")
+    return text.strip()
+
+
+def collect_all_folders(root_folder):
+    """Rekursīvi savāc visas mapes un apakšmapes."""
+    folders = [root_folder]
+    try:
+        for sub in root_folder.Folders:
+            folders.extend(collect_all_folders(sub))
+    except Exception:
+        pass
+    return folders
+
+
 def scan_via_imap(items_to_save, keywords, default_keywords):
-    """Rezerves e-pastu nolasīšanas dzinējs, ja Classic Outlook nav pieejams."""
+    """Rezerves IMAP skeneris, ja Classic Outlook MAPI nav pieejams."""
     new_count = 0
     try:
         from imap_reader import fetch_emails_via_imap
         imap_items = fetch_emails_via_imap(limit=25)
     except Exception as e:
-        print(f"⚠️ [IMAP Imports/Izsaukums Neizdevās]: {e}")
+        print(f"⚠️ [IMAP Izsaukuma kļūda]: {e}")
         return 0
 
     ignored_list = get_ignored_senders()
@@ -190,7 +224,6 @@ def scan_via_imap(items_to_save, keywords, default_keywords):
 def scan_outlook_mailbox():
     new_count = 0
 
-    # Nosakām patieso bāzes mapi
     if getattr(sys, 'frozen', False):
         BASE_DIR = Path(sys.executable).parent
     else:
@@ -205,7 +238,11 @@ def scan_outlook_mailbox():
     VOICE_DIR.mkdir(parents=True, exist_ok=True)
     WARRANTY_DIR.mkdir(parents=True, exist_ok=True)
 
-    default_keywords = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin", "leasing", "līzing", "pied"]
+    default_keywords = [
+        "cenu piepras", "iepirkums", "termin", "vid", "pasutijum", 
+        "līgums", "rekins", "rēķin", "leasing", "līzing", "pied", 
+        "garantij", "warranty", "radar"
+    ]
     keywords = default_keywords
     days_back = 30
 
@@ -227,29 +264,24 @@ def scan_outlook_mailbox():
         except Exception:
             pass
 
-    # 1. Pārbaudām, vai ir pieejams Classic Outlook MAPI
     use_imap = not HAS_WIN32COM
     outlook = None
-    inbox = None
 
     if HAS_WIN32COM:
         try:
             pythoncom.CoInitialize()
             outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-            inbox = outlook.GetDefaultFolder(6)
         except Exception as mapi_err:
-            print(f"⚠️ Classic Outlook MAPI nav pieejams ({mapi_err}). Pārslēdzamies uz IMAP režīmu...")
+            print(f"⚠️ Classic Outlook MAPI nav pieejams ({mapi_err}). Pārslēdzamies uz IMAP...")
             use_imap = True
 
-    # 2. Ja Outlook Classic nav — iedarbinām IMAP dzinēju
-    if use_imap or inbox is None:
+    if use_imap or outlook is None:
         new_count = scan_via_imap(items_to_save, keywords, default_keywords)
         if new_count > 0:
             with open(STATE_FILE, "w", encoding="utf-8") as f:
                 json.dump(items_to_save, f, ensure_ascii=False, indent=2)
         return new_count
 
-    # 3. Ja Outlook Classic ir pieejams — turpinām ar standarta MAPI skenēšanu
     try:
         current_user_name = ""
         current_user_email = ""
@@ -266,7 +298,19 @@ def scan_outlook_mailbox():
             except Exception:
                 pass
 
-        all_target_folders = collect_all_folders(inbox)
+        # Savācam visas mapes no visiem kontiem, lai nepaliktu ārpusē mape "15" vai citas apakšmapes
+        all_target_folders = []
+        try:
+            for store in outlook.Folders:
+                all_target_folders.extend(collect_all_folders(store))
+        except Exception:
+            try:
+                inbox = outlook.GetDefaultFolder(6)
+                all_target_folders = collect_all_folders(inbox)
+            except Exception:
+                all_target_folders = []
+
+        # Datuma filtrs
         start_date = (datetime.now() - timedelta(days=days_back)).strftime("%d/%m/%Y")
         filter_query = f"[ReceivedTime] >= '{start_date}'"
 
@@ -311,13 +355,14 @@ def scan_outlook_mailbox():
                     elif "radar" in subj_lower:
                         is_self_task = True
 
+                    is_warranty_topic = any(w in subj_lower for w in ["garant", "war", "warranty"])
+
                     saved_audio_path = None
                     saved_image_path = None
                     saved_pdf_path = None
 
                     # Pielikumu nolasīšana
                     if hasattr(msg, "Attachments") and msg.Attachments.Count > 0:
-                        is_strict_warranty_mail = is_self_task and any(w in subj_lower for w in ["garant", "war"])
                         is_invoice_mail = any(w in subj_lower for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"]) or any(k in subj_lower for k in keywords)
 
                         for att_idx in range(1, msg.Attachments.Count + 1):
@@ -326,6 +371,7 @@ def scan_outlook_mailbox():
                                 att_name = att.FileName
                                 ext = Path(att_name).suffix.lower()
 
+                                # A) Audio
                                 if ext in AUDIO_EXTENSIONS and not saved_audio_path:
                                     clean_name = f"voice_{att_name}"
                                     target_path = VOICE_DIR / clean_name
@@ -333,7 +379,8 @@ def scan_outlook_mailbox():
                                         att.SaveAsFile(str(target_path))
                                     saved_audio_path = str(target_path)
 
-                                elif ext in IMAGE_EXTENSIONS and not saved_image_path and is_strict_warranty_mail:
+                                # B) Garantijas attēli (der jebkurš attēls, ja temats ir warranty/garantija, vai ja pats sev sūtījis)
+                                elif ext in IMAGE_EXTENSIONS and not saved_image_path and (is_warranty_topic or is_self_task):
                                     if hasattr(att, "Size") and att.Size < 20000:
                                         continue
                                     clean_name = f"warranty_{att_name}"
@@ -341,32 +388,31 @@ def scan_outlook_mailbox():
                                     if not target_path.exists():
                                         att.SaveAsFile(str(target_path))
                                     saved_image_path = str(target_path)
+                                    print(f"🛡️ [GARANTIJA SAGLABĀTA]: {saved_image_path}")
 
                                 # C) PDF rēķini
                                 elif ext == ".pdf" and not saved_pdf_path and (is_invoice_mail or "rekins" in att_name.lower() or "invoice" in att_name.lower()):
-                                    try:
-                                        INVOICE_DIR.mkdir(parents=True, exist_ok=True)
-                                        clean_name = f"inv_{att_name}"
-                                        target_path = (INVOICE_DIR / clean_name).resolve()
+                                    clean_name = f"inv_{att_name}"
+                                    target_path = (INVOICE_DIR / clean_name).resolve()
+                                    if not target_path.exists():
                                         att.SaveAsFile(str(target_path))
-                                        saved_pdf_path = str(target_path)
-                                        print(f"✅ [PDF SAGLABĀTS]: {saved_pdf_path}")
-                                    except Exception as save_err:
-                                        print(f"⚠️ [KĻŪDA SAGLABĀJOT PDF]: {save_err}")
+                                    saved_pdf_path = str(target_path)
+                                    print(f"✅ [PDF SAGLABĀTS]: {saved_pdf_path}")
 
                             except Exception:
                                 pass
 
                     matches_keywords = any(k in subj_lower for k in keywords)
 
-                    if matches_keywords or is_self_task or saved_audio_path or saved_image_path or saved_pdf_path:
+                    # Ja atbilst atslēgvārdiem, ir paša uzdevums, vai atrasts kāds no failiem
+                    if matches_keywords or is_self_task or is_warranty_topic or saved_audio_path or saved_image_path or saved_pdf_path:
                         import re
                         date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
 
                         if saved_audio_path:
                             found_deadline = "Balss apstrāde"
                             cat = "🎙️ Balss ziņa"
-                        elif "garantij" in subj_lower or "warranty" in subj_lower:
+                        elif is_warranty_topic or saved_image_path:
                             found_deadline = "Steidzams"
                             cat = "🛡️ Garantija"
                         elif any(w in subj_lower for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"]) or saved_pdf_path:
@@ -395,6 +441,8 @@ def scan_outlook_mailbox():
                             "received": msg.ReceivedTime.strftime("%d.%m %H:%M") if hasattr(msg, "ReceivedTime") else ""
                         }
                         new_count += 1
+                        print(f"📥 [JAUNS IERAKSTS]: {cat} | {subj} | No: {sender} ({folder_name})")
+
                 except Exception:
                     continue
 
