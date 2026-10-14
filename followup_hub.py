@@ -32,6 +32,26 @@ def load_config():
     return {}
 
 
+def update_record_status(entry_id, new_status="DONE"):
+    """Atjauno statusu radar_state.json failā, lai ieraksts vairs neparādītos aktīvajos."""
+    base_dir = get_base_dir()
+    state_file = base_dir / "radar_state.json"
+    if not state_file.exists():
+        return
+
+    try:
+        with open(state_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        if entry_id in data:
+            data[entry_id]["status"] = new_status
+            with open(state_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"✅ [Follow-Up]: Ieraksts {entry_id} atzīmēts kā {new_status}")
+    except Exception as e:
+        print(f"⚠️ [Kļūda atjaunojot statusu]: {e}")
+
+
 def check_stale_records(days_limit=3):
     """Pārbauda radar_state.json un atrod neaktīvos ierakstus virs sliekšņa."""
     base_dir = get_base_dir()
@@ -49,22 +69,22 @@ def check_stale_records(days_limit=3):
         threshold = now - timedelta(days=days_limit)
 
         for entry_id, item in data.items():
+            # Rādām TIKAI tos, kas vēl ir ACTIVE (ja DONE, DISMISSED vai RESOLVED - nerādām)
             if item.get("status") != "ACTIVE":
                 continue
 
-            # --- FILTRS: Izlaižam rēķinus, vebinārus un automatizētos pasta paziņojumus ---
+            # --- FILTRS: Izlaižam rēķinus, vebinārus un robotu e-pastus ---
             subj_lower = str(item.get("subject", "")).lower()
             cat_lower = str(item.get("category", "")).lower()
             sender_lower = str(item.get("sender", "")).lower()
 
-            # Nevajag sūtīt follow-up uz rēķiniem, vebināru ielūgumiem vai robotu e-pastiem
             ignore_keywords = [
                 "vebinār", "webinar", "rēķin", "invoice", "līzing", "leasing", 
                 "pasta burgers", "jauns likums", "no-reply", "noreply", "info nodokļu"
             ]
             if any(kw in subj_lower or kw in cat_lower or kw in sender_lower for kw in ignore_keywords):
                 continue
-            # --------------------------------------------------------------------------
+            # -------------------------------------------------------------
 
             rec_str = item.get("received", "").strip()
             if not rec_str:
@@ -102,8 +122,8 @@ class FollowUpDialog(ctk.CTkToplevel):
     def __init__(self, master=None):
         super().__init__(master)
         self.title("⏳ Klientu Reakcijas Audits (Follow-Up Hub)")
-        self.geometry("720x520")
-        self.minsize(580, 400)
+        self.geometry("780x540")
+        self.minsize(620, 420)
         self.configure(fg_color="#0f172a")
 
         header = ctk.CTkFrame(self, fg_color="#1e293b", corner_radius=0, height=50)
@@ -145,8 +165,8 @@ class FollowUpDialog(ctk.CTkToplevel):
             info_box.pack(side="left", fill="both", expand=True, padx=12, pady=10)
 
             title_txt = f"[{it['category']}] {it['subject']}"
-            if len(title_txt) > 65:
-                title_txt = title_txt[:62] + "..."
+            if len(title_txt) > 55:
+                title_txt = title_txt[:52] + "..."
 
             ctk.CTkLabel(
                 info_box,
@@ -164,18 +184,60 @@ class FollowUpDialog(ctk.CTkToplevel):
                 anchor="w"
             ).pack(fill="x")
 
-            # Poga: Follow-Up melnraksts
+            # Pogas darbībām labajā pusē
+            btn_box = ctk.CTkFrame(card, fg_color="transparent")
+            btn_box.pack(side="right", padx=10, pady=5)
+
+            # 1. Poga: Follow-Up melnraksts (AI)
             btn_act = ctk.CTkButton(
-                card,
+                btn_box,
                 text="✉️ Follow-Up",
-                width=85,
+                width=80,
                 height=26,
                 fg_color="#0284c7",
                 hover_color="#0369a1",
                 font=ctk.CTkFont(size=11, weight="bold")
             )
             btn_act.configure(command=lambda itm=it, b=btn_act: self.send_followup(itm, b))
-            btn_act.pack(side="right", padx=12)
+            btn_act.pack(side="left", padx=3)
+
+            # 2. Poga: Atrisināts / Pabeigts
+            btn_done = ctk.CTkButton(
+                btn_box,
+                text="✓ Gatavs",
+                width=65,
+                height=26,
+                fg_color="#15803d",
+                hover_color="#166534",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                command=lambda eid=it["entry_id"], c=card: self.mark_done(eid, c)
+            )
+            btn_done.pack(side="left", padx=3)
+
+            # 3. Poga: Ignorēt / Izdzēst
+            btn_dismiss = ctk.CTkButton(
+                btn_box,
+                text="✕",
+                width=28,
+                height=26,
+                fg_color="#334155",
+                hover_color="#ef4444",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                command=lambda eid=it["entry_id"], c=card: self.mark_dismiss(eid, c)
+            )
+            btn_dismiss.pack(side="left", padx=3)
+
+    def mark_done(self, entry_id, card_widget):
+        update_record_status(entry_id, new_status="DONE")
+        card_widget.destroy()
+        if len(self.scroll.winfo_children()) == 0:
+            self.render_items()
+
+    def mark_dismiss(self, entry_id, card_widget):
+        update_record_status(entry_id, new_status="DISMISSED")
+        card_widget.destroy()
+        if len(self.scroll.winfo_children()) == 0:
+            self.render_items()
 
     def send_followup(self, item, btn_widget):
         if not HAS_WIN32COM:

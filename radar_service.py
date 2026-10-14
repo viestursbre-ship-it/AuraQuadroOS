@@ -11,6 +11,11 @@ import pystray
 from pystray import MenuItem as item
 
 try:
+    from alert_service import notify_urgent_request
+except ImportError:
+    notify_urgent_request = None
+
+try:
     import win32com.client
     import pythoncom
     HAS_WIN32COM = True
@@ -157,70 +162,6 @@ def collect_all_folders(root_folder):
     return folders
 
 
-def scan_via_imap(items_to_save, keywords, default_keywords):
-    """Rezerves IMAP skeneris, ja Classic Outlook MAPI nav pieejams."""
-    new_count = 0
-    try:
-        from imap_reader import fetch_emails_via_imap
-        imap_items = fetch_emails_via_imap(limit=25)
-    except Exception as e:
-        print(f"⚠️ [IMAP Izsaukuma kļūda]: {e}")
-        return 0
-
-    ignored_list = get_ignored_senders()
-
-    for mail in imap_items:
-        entry_id = mail.get("entry_id")
-        if not entry_id or entry_id in items_to_save:
-            continue
-
-        subj = mail.get("subject", "(Bez temata)")
-        sender = mail.get("sender", "Nezināms")
-        body = mail.get("core_request", "")
-        pdf_path = mail.get("pdf_path")
-
-        if any(ign in sender.lower() for ign in ignored_list):
-            continue
-
-        subj_lower = subj.lower()
-        body_lower = body.lower()
-
-        matches_keywords = any(k in subj_lower for k in keywords)
-
-        if matches_keywords or pdf_path:
-            import re
-            date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
-
-            if any(w in subj_lower for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"]) or pdf_path:
-                found_deadline = f"Līdz {date_match.group(1)}" if date_match else "Apmaksai"
-                cat = "Rēķins"
-            elif date_match:
-                found_deadline = f"Līdz {date_match.group(1)}"
-                cat = "Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks"
-            elif "rīt" in body_lower or "rītdien" in body_lower:
-                found_deadline = "Līdz rītdienai"
-                cat = "Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks"
-            else:
-                found_deadline = "Steidzams"
-                cat = "Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks"
-
-            items_to_save[entry_id] = {
-                "subject": subj,
-                "sender": f"{sender} (IMAP)",
-                "core_request": body[:120].strip() + "..." if body else subj,
-                "deadline": found_deadline,
-                "category": cat,
-                "status": "ACTIVE",
-                "audio_path": None,
-                "image_path": None,
-                "pdf_path": pdf_path,
-                "received": mail.get("received", "")
-            }
-            new_count += 1
-
-    return new_count
-
-
 def scan_outlook_mailbox():
     new_count = 0
 
@@ -264,6 +205,14 @@ def scan_outlook_mailbox():
         except Exception:
             pass
 
+    # Izveidojam esošo ierakstu pirkstu nospiedumus, lai novērstu dublikātus
+    existing_fingerprints = set()
+    for itm in items_to_save.values():
+        s_clean = str(itm.get("subject", "")).strip().lower()
+        r_clean = str(itm.get("received", "")).strip()
+        if s_clean:
+            existing_fingerprints.add((s_clean, r_clean))
+
     use_imap = not HAS_WIN32COM
     outlook = None
 
@@ -298,7 +247,7 @@ def scan_outlook_mailbox():
             except Exception:
                 pass
 
-        # Savācam visas mapes no visiem kontiem, lai nepaliktu ārpusē mape "15" vai citas apakšmapes
+        # Savācam visas mapes no visiem kontiem
         all_target_folders = []
         try:
             for store in outlook.Folders:
@@ -344,6 +293,13 @@ def scan_outlook_mailbox():
                     body_lower = body.lower()
                     sender_lower = sender.lower()
 
+                    # Saņemšanas laiks un dublikātu pārbaude
+                    rec_time_str = msg.ReceivedTime.strftime("%d.%m %H:%M") if hasattr(msg, "ReceivedTime") and msg.ReceivedTime else ""
+                    current_fp = (subj.strip().lower(), rec_time_str)
+
+                    if current_fp in existing_fingerprints:
+                        continue  # Izlaižam dublikātu, ja tas jau reģistrēts no citas mapes
+
                     is_self_task = False
                     if current_user_name and current_user_name in sender_lower:
                         is_self_task = True
@@ -379,7 +335,7 @@ def scan_outlook_mailbox():
                                         att.SaveAsFile(str(target_path))
                                     saved_audio_path = str(target_path)
 
-                                # B) Garantijas attēli (der jebkurš attēls, ja temats ir warranty/garantija, vai ja pats sev sūtījis)
+                                # B) Garantijas attēli
                                 elif ext in IMAGE_EXTENSIONS and not saved_image_path and (is_warranty_topic or is_self_task):
                                     if hasattr(att, "Size") and att.Size < 20000:
                                         continue
@@ -438,10 +394,19 @@ def scan_outlook_mailbox():
                             "audio_path": saved_audio_path,
                             "image_path": saved_image_path,
                             "pdf_path": saved_pdf_path,
-                            "received": msg.ReceivedTime.strftime("%d.%m %H:%M") if hasattr(msg, "ReceivedTime") else ""
+                            "received": rec_time_str
                         }
                         new_count += 1
+                        existing_fingerprints.add(current_fp)
                         print(f"📥 [JAUNS IERAKSTS]: {cat} | {subj} | No: {sender} ({folder_name})")
+
+                        # Trauksmes zvans uz Telegram
+                        try:
+                            from alert_service import notify_urgent_request
+                            if cat in ["Cenu pieprasījums", "🛡️ Garantija", "Kritisks"]:
+                                notify_urgent_request(category=cat, subject=subj, sender=sender, deadline=found_deadline)
+                        except Exception:
+                            pass
 
                 except Exception:
                     continue
