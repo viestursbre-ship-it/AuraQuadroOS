@@ -1,0 +1,74 @@
+name: Leo Autonomous Coder
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  run-leo:
+    # Leo nostrādā tikai tad, ja Issue virsraksts sākas ar [LEO]
+    if: startsWith(github.event.issue.title, '[LEO]')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install google-generativeai
+
+      - name: Run Leo Task
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python - << 'EOF'
+          import os
+          import sys
+          import json
+          from pathlib import Path
+
+          # Pielāgojam vidi Leo izpildei
+          gemini_key = os.environ.get("GEMINI_API_KEY")
+          title = os.environ.get("ISSUE_TITLE", "")
+          body = os.environ.get("ISSUE_BODY", "")
+
+          # Izveidojam pagaidu config.json priekš leo_executor
+          with open("config.json", "w", encoding="utf-8") as f:
+              json.dump({"gemini_api_key": gemini_key}, f)
+
+          # Formatējam uzdevumu: Title parasti satur faila vārdu, body satur uzdevumu
+          # Piemērs virsrakstam: [LEO] portfolio.json
+          parts = title.replace("[LEO]", "").strip().split(" ", 1)
+          target_file = parts[0].strip()
+          task_desc = body if body.strip() else (parts[1] if len(parts) > 1 else "Koda uzlabojums")
+
+          print(f"Mērķa fails: {target_file}")
+          print(f"Uzdevums: {task_desc}")
+
+          from leo_executor import run_leo_task
+          success = run_leo_task(target_file, task_desc)
+          if not success:
+              sys.exit(1)
+          EOF
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "Leo (MI Coder)"
+          git config --global user.email "leo-agent@auraquadro.os"
+          # Noņemam pagaidu config.json pirms komita, lai nekad neaizietu atslēgas!
+          rm -f config.json
+          git add -A
+          git diff-index --quiet HEAD || git commit -m "feat(leo-cloud): izpildīts uzdevums no Issue #${{ github.event.issue.number }}"
+          git push
