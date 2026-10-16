@@ -1,7 +1,6 @@
 {
   "tickers": [
     "DAL",
-    "USO",
     "MSFT",
     "ABNB",
     "OXY",
@@ -10,7 +9,8 @@
     "CMG",
     "ARM",
     "SNOW",
-    "AVGO"
+    "AVGO",
+    "TSLA"
   ],
   "cash_usd": "500"
 }
