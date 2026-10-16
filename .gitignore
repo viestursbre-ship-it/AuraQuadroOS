@@ -1,16 +1,27 @@
 __pycache__/
 *.pyc
-storage/processed/*
-storage/outbox/*
+
+# Vides un konfigurācijas faili ar parolēm un API atslēgām
+.env
+.env.*
+config.json
+radar_state.json
+radar_ignored_senders.json
+
+# Visas lokālās datu glabātuves (rēķini, balss faili, garantijas attēli)
+storage/*
 !storage/processed/.gitkeep
 !storage/outbox/.gitkeep
 !storage/inbox/.gitkeep
 
+# Kompilācijas un Nuitka / PyInstaller mapes
 dist/
 build/
 *.build/
 *.onefile-build/
 *.dist/
-config.json
-radar_state.json
-radar_ignored_senders.json
+*.exe
+
+# Redaktoru konfigurācijas
+.vscode/
+.idea/

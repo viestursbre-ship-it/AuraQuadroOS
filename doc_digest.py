@@ -133,7 +133,7 @@ class DocDigestService:
   "document_type": "Līgums / Rēķins / Akts / Specifikācija / Cits",
   "document_number": "Numurs vai N/A",
   "document_date": "Datums vai N/A",
-  "parties": [{"name": "Puses nosaukums", "role": "Pasūtītājs/Piegādātājs"}],
+  "parties": [{"name": "Puses nosaukums", "role": "Izīrētājs/Īrnieks/Pasūtītājs/Piegādātājs"}],
   "subject": "Darījuma priekšmets",
   "financial_terms": {"total_amount": "Summa ar PVN", "deadlines": "Apmaksas/Izpildes termiņi"},
   "risks_warnings": ["Konstatētie riski vai brīdinājumi"]
@@ -147,10 +147,13 @@ Atgrieziet TIKAI derīgu JSON bez markdown blokiem."""
             )
             
             if file_type == "pdf":
-                uploaded = genai.upload_file(str(content_payload))
-                response = model.generate_content([prompt_text, uploaded])
+                # Nolasām tieši baitos, neizsaucot novecojušo upload_file
+                with open(str(content_payload), "rb") as f:
+                    pdf_bytes = f.read()
+                pdf_blob = {"mime_type": "application/pdf", "data": pdf_bytes}
+                response = model.generate_content([prompt_text, pdf_blob])
             else:
-                response = model.generate_content(f"{prompt_text}\n\nDokumenta saturs:\n{content_payload[:20000]}")
+                response = model.generate_content(f"{prompt_text}\n\nDokumenta saturs:\n{content_payload[:25000]}")
 
             if response and response.text:
                 return json.loads(response.text.strip())
@@ -265,6 +268,63 @@ class DocDigestFrame(ctk.CTkFrame):
         else:
             self.lbl_status.configure(text="Reģistrs vēl nav izveidots")
 
+    def _format_clean_report(self, filename: str, analysis: dict, docx_path: str) -> str:
+        """Pārvērš JSON datus glītā, lasāmā cilvēka formātā."""
+        lines = []
+        lines.append("=" * 65)
+        lines.append(f"📄 DOKUMENTA KOPSAVILKUMS: {filename}")
+        lines.append("=" * 65)
+
+        doc_type = analysis.get("document_type", "Dokuments")
+        doc_nr = analysis.get("document_number", "Nav norādīts")
+        doc_date = analysis.get("document_date", "Nav norādīts")
+        lines.append(f"📌 Tips: {doc_type} | Nr: {doc_nr} | Datums: {doc_date}")
+
+        subject = analysis.get("subject", "Nav norādīts")
+        lines.append(f"🎯 Priekšmets: {subject}\n")
+
+        # Puses
+        parties = analysis.get("parties", [])
+        if parties and isinstance(parties, list):
+            lines.append("👥 LĪGUMA PUSES:")
+            for p in parties:
+                if isinstance(p, dict):
+                    lines.append(f"   • {p.get('name', 'Nezināms')} ({p.get('role', 'Puse')})")
+                else:
+                    lines.append(f"   • {p}")
+            lines.append("")
+
+        # Finanšu nosacījumi
+        fin = analysis.get("financial_terms", {})
+        if fin:
+            lines.append("💵 FINANŠU NOSACĪJUMI & TERMIŅI:")
+            if isinstance(fin, dict):
+                if "total_amount" in fin:
+                    lines.append(f"   • Summa / Maksa: {fin.get('total_amount')}")
+                if "deadlines" in fin:
+                    lines.append(f"   • Termiņi: {fin.get('deadlines')}")
+                for k, v in fin.items():
+                    if k not in ["total_amount", "deadlines"]:
+                        lines.append(f"   • {k.replace('_', ' ').capitalize()}: {v}")
+            else:
+                lines.append(f"   • {fin}")
+            lines.append("")
+
+        # Riski un brīdinājumi
+        risks = analysis.get("risks_warnings", [])
+        if risks:
+            lines.append("⚠️ JURIDISKIE RISKI & BRĪDINĀJUMI:")
+            if isinstance(risks, list):
+                for r in risks:
+                    lines.append(f"   🚩 {r}")
+            else:
+                lines.append(f"   🚩 {risks}")
+            lines.append("")
+
+        lines.append("-" * 65)
+        lines.append(f"💾 Word kopsavilkums saglabāts:\n   {docx_path}\n\n")
+        return "\n".join(lines)
+
     def select_and_process(self):
         path = filedialog.askopenfilename(
             filetypes=[("Dokumenti", "*.pdf *.docx *.pptx *.txt"), ("Visi faili", "*.*")]
@@ -282,13 +342,12 @@ class DocDigestFrame(ctk.CTkFrame):
                 self.btn_select.configure(state="normal")
                 if analysis:
                     self.lbl_status.configure(text="✅ Apstrāde pabeigta!")
-                    self.txt_output.insert("end", f"\n=== {p.name} ===\n")
-                    self.txt_output.insert("end", json.dumps(analysis, ensure_ascii=False, indent=2))
-                    self.txt_output.insert("end", f"\n\n📁 Word kopsavilkums saglabāts: {res_msg}\n")
+                    clean_report = self._format_clean_report(p.name, analysis, res_msg)
+                    self.txt_output.insert("end", clean_report)
                     self.txt_output.see("end")
                 else:
                     self.lbl_status.configure(text="⚠️ Kļūda!")
-                    self.txt_output.insert("end", f"\n❌ Kļūda failam {p.name}: {res_msg}\n")
+                    self.txt_output.insert("end", f"\n❌ Kļūda failam {p.name}: {res_msg}\n\n")
             self.after(0, _done)
 
         threading.Thread(target=_worker, daemon=True).start()

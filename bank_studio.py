@@ -255,36 +255,62 @@ class BankStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=api_key)
-            
-            # Augšupielādējam PDF Gemini modelim
-            pdf_file = genai.upload_file(file_path)
 
-            prompt = """Nolasi šo rēķinu un atgriez TIKAI tīru JSON objektu ar šādiem laukiem:
-            {
-                "vendor_name": "Piegādātāja nosaukums",
-                "reg_nr": "Reģistrācijas numurs (tikai cipari/burti)",
-                "iban": "Bankas konta IBAN numurs",
-                "invoice_no": "Rēķina numurs",
-                "amount": 0.00,
-                "due_date": "YYYY-MM-DD"
-            }
-            Nekādu papildu tekstu vai markdown formatting bloku, tikai derīgs JSON."""
+            # 1. Vispirms mēģinām iegūt tekstu no PDF lokāli
+            extracted_text = ""
+            try:
+                import pypdf
+                reader = pypdf.PdfReader(file_path)
+                for page in reader.pages:
+                    extracted_text += (page.extract_text() or "") + "\n"
+            except Exception:
+                extracted_text = ""
 
             model = genai.GenerativeModel("gemini-2.5-flash")
-            response = model.generate_content([pdf_file, prompt])
 
-            raw_json = response.text.strip()
-            # Noņemam iespējamos markdown koda blokus
-            raw_json = re.sub(r'^```json\s*', '', raw_json)
-            raw_json = re.sub(r'\s*```$', '', raw_json)
+            prompt = """Tu esi finanšu un rēķinu grāmatvedības eksperts.
+Izanalizē pievienoto rēķinu un atgriez TIKAI derīgu JSON objektu bez jebkādiem ievada vai nobeiguma tekstiem.
+Struktūra:
+{
+    "vendor_name": "Piegādātāja nosaukums",
+    "reg_nr": "Reģistrācijas numurs",
+    "iban": "IBAN bankas konts",
+    "invoice_no": "Rēķina numurs",
+    "amount": 0.00,
+    "due_date": "YYYY-MM-DD"
+}"""
 
-            data = json.loads(raw_json)
+            # Ja teksts ir atrasts, nododam to tieši; ja nē (skenēts PDF), nododam baitu struktūru
+            if len(extracted_text.strip()) > 30:
+                full_prompt = f"{prompt}\n\nRĒĶINA SATURS:\n{extracted_text}"
+                response = model.generate_content(full_prompt)
+            else:
+                with open(file_path, "rb") as f:
+                    pdf_bytes = f.read()
+                pdf_blob = {"mime_type": "application/pdf", "data": pdf_bytes}
+                response = model.generate_content([prompt, pdf_blob])
+
+            raw_text = response.text.strip() if response and response.text else ""
+
+            # Droša JSON izgūšana no atbildes (atrod pirmo { un pēdējo })
+            match = re.search(r'\{.*\}', raw_text, re.DOTALL)
+            if not match:
+                raise ValueError(f"Modelis neatgrieza derīgu JSON: {raw_text[:120]}")
+
+            clean_json = match.group(0)
+            data = json.loads(clean_json)
+
             if isinstance(data, list) and len(data) > 0:
                 data = data[0]
+
             self.current_invoice = data
 
             # Drošības pārbaude ("Kvarka Drošinātājs")
-            status_code, msg = verify_vendor_security(data.get("reg_nr"), data.get("iban"), data.get("vendor_name"))
+            status_code, msg = verify_vendor_security(
+                data.get("reg_nr"),
+                data.get("iban"),
+                data.get("vendor_name")
+            )
 
             color_map = {
                 "trusted": "#22c55e",
@@ -292,7 +318,9 @@ class BankStudioFrame(ctk.CTkFrame):
                 "mismatch": "#ef4444"
             }
 
-            self.after(0, lambda: self._render_invoice_data(data, msg, color_map.get(status_code, "#94a3b8"), status_code))
+            self.after(0, lambda: self._render_invoice_data(
+                data, msg, color_map.get(status_code, "#94a3b8"), status_code
+            ))
 
         except Exception as e:
             self._update_status_ui(f"⚠️ Kļūda nolasot rēķinu: {e}", "#ef4444")
@@ -300,12 +328,20 @@ class BankStudioFrame(ctk.CTkFrame):
     def _render_invoice_data(self, data, status_msg, color, status_code):
         self.lbl_status.configure(text=status_msg, text_color=color)
 
+        # 1. Droši aprēķinām summu pirms teksta veidošanas
+        raw_amt = data.get("amount")
+        try:
+            amt_val = float(raw_amt) if raw_amt is not None else 0.0
+        except (ValueError, TypeError):
+            amt_val = 0.0
+
+        # 2. Sagatavojam kopsavilkuma tekstu
         summary_text = (
-            f"Piegādātājs:   {data.get('vendor_name')}\n"
+            f"Piegādātājs:       {data.get('vendor_name')}\n"
             f"Reģistrācijas Nr: {data.get('reg_nr')}\n"
-            f"Konta IBAN:     {data.get('iban')}\n"
-            f"Rēķina Numurs:  {data.get('invoice_no')}\n"
-            f"Summa apmaksai: {float(data.get('amount', 0)):.2f} EUR\n"
+            f"Konta IBAN:       {data.get('iban')}\n"
+            f"Rēķina Numurs:    {data.get('invoice_no')}\n"
+            f"Summa apmaksai:   {amt_val:.2f} EUR\n"
             f"Apmaksas termiņš: {data.get('due_date')}\n"
         )
 

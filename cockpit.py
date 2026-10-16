@@ -9,6 +9,7 @@ from doc_digest import DocDigestFrame
 from offer_studio import OfferStudioFrame
 from warranty_hub import WarrantyHubFrame
 from bank_studio import BankStudioFrame
+from investor_studio import InvestorStudioFrame
 
 UI_TEXTS = {
     "LV": {
@@ -20,6 +21,7 @@ UI_TEXTS = {
         "tab_settings": "⚙️ AQ Iestatījumi",
         "tab_warranty": "🛡️ Garantija",
         "tab_bank": "🏦 Bank Studio",
+        "tab_invest": "📈 Investor Studio",
         "lbl_bank_header": "🏦 Bankas Rekvizīti (Citadele / ISO 20022):",
         "lbl_my_iban": "Maksātāja IBAN konts:",
         "lbl_my_name": "Maksātāja Uzņēmums / Vārds:",
@@ -38,6 +40,7 @@ UI_TEXTS = {
         "tab_settings": "⚙️ AQ Settings",
         "tab_warranty": "🛡️ Warranty",
         "tab_bank": "🏦 Bank Studio",
+        "tab_invest": "📈 Investor Studio",
         "lbl_bank_header": "🏦 Banking Details (Citadele / ISO 20022):",
         "lbl_my_iban": "Payer IBAN Account:",
         "lbl_my_name": "Payer Company / Name:",
@@ -50,15 +53,19 @@ UI_TEXTS = {
 }
 
 def get_gemini_api_key():
-    key = os.environ.get("GEMINI_API_KEY") or os.environ.get("AQ_AI_API_KEY", "")
-    if not key and os.path.exists("config.json"):
+    # 1. Vispirms skatāmies lokālajā config.json
+    if os.path.exists("config.json"):
         try:
             with open("config.json", "r", encoding="utf-8") as f:
                 cfg = json.load(f)
-                key = cfg.get("gemini_api_key", "")
+                key = cfg.get("gemini_api_key") or cfg.get("aq_ai_api_key")
+                if key:
+                    return key
         except Exception:
             pass
-    return key
+            
+    # 2. Tikai tad, ja failā nav, skatāmies sistēmas mainīgajos
+    return os.environ.get("GEMINI_API_KEY") or os.environ.get("AQ_AI_API_KEY", "")
 
 def get_initial_language():
     if os.path.exists("config.json"):
@@ -138,6 +145,15 @@ class CockpitWindow(ctk.CTkToplevel):
 
         self.docs_module = DocDigestFrame(self.tab_docs, get_gemini_key_fn=get_gemini_api_key)
         self.docs_module.pack(fill="both", expand=True)
+
+        # <--- JAUNAIS INVEST MODULIS ŠEIT!
+
+        # Izveidojam cilni
+        self.tab_invest = self.tabview.add(t.get("tab_invest", "📈 Investor Studio"))
+
+        # Piesaistām moduli
+        self.invest_module = InvestorStudioFrame(self.tab_invest, get_gemini_key_fn=get_gemini_api_key)
+        self.invest_module.pack(fill="both", expand=True)
 
         # Jaunais Garantijas modulis ar piesaisti Piedāvājumiem
         self.warranty_module = WarrantyHubFrame(
