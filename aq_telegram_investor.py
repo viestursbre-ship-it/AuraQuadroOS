@@ -286,12 +286,96 @@ def main_menu_keyboard():
     return markup
 
 # --- TELEGRAM HANDLERI ---
+
+# Jauna komanda /boss un /kvarks
+@bot.message_handler(commands=['boss', 'kvarks'])
+def send_boss_status(message):
+    boss_message = (
+        "🐾 *KOMANDANTS KVARKS & GALVENAIS ANALĪTIĶIS LĀCIS ziņo:*\n"
+        "──────────────────────────\n"
+        "Liepājas garnizons ir pilnībā nocietināts un operatīvā gatavībā! "
+        "Visas konservu fondu noliktavas tiek pastāvīgi uzraudzītas, "
+        "nodrošinot kritisko resursu drošību. Portfelis ir stabilā stāvoklī "
+        "un tiek rūpīgi pārvaldīts. "
+        "Miers un drošība ir prioritāte. Turpinām darbu!"
+    )
+    bot.send_message(message.chat.id, boss_message, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
+# Komanda /help
+@bot.message_handler(commands=['help'])
+def send_help_message(message):
+    help_text = (
+        "⚡ *AuraQuadroOS Komandu Saraksts* ⚡\n"
+        "──────────────────────────\n"
+        "*/start* vai */menu* — Atver galveno izvēlni.\n"
+        "*/help* — Parāda šo komandu sarakstu.\n"
+        "*/boss* vai */kvarks* — Saņem ziņojumu no Komandanta Kvarka un Galvenā analītiķa Lāča.\n"
+        "*/portfolio* — Parāda portfeļa kopsavilkumu.\n"
+        "*/dividends* — Parāda dividenžu pārskatu.\n"
+        "*/sentiment* — Parāda tirgus noskaņojumu un globālo likviditāti.\n"
+        "*/intel* — Parāda Finnhub insaideru datus un jaunākās ziņas.\n"
+        "*/audit* — Iesniedz pieprasījumu Komandanta Kvarka auditam (ar AI).\n"
+        "*/manage* — Atver tikeru pārvaldības saskarni.\n"
+        "*/refresh* — Atjauno galveno izvēlni.\n\n"
+        "Pārvaldības komandas čatā:\n"
+        "`+ TIKER` — Pievienot tikeru (piem., `+ NVDA`)\n"
+        "`- TIKER` — Izņemt tikeru (piem., `- DAL`)\n"
+        "`set TIKER1, TIKER2` — Iestatīt jaunu portfeļa sarakstu (piem., `set AAPL, MSFT, GOOGL`)"
+    )
+    bot.send_message(message.chat.id, help_text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
+# Tiešās komandas pogu funkcionalitātei
+@bot.message_handler(commands=['portfolio'])
+def command_portfolio(message):
+    text = build_portfolio_summary()
+    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
+@bot.message_handler(commands=['dividends'])
+def command_dividends(message):
+    text = build_dividend_summary()
+    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
+@bot.message_handler(commands=['sentiment'])
+def command_sentiment(message):
+    text = get_market_sentiment()
+    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
+@bot.message_handler(commands=['intel'])
+def command_intel(message):
+    text = get_finnhub_intel()
+    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
+@bot.message_handler(commands=['audit'])
+def command_audit(message):
+    bot.send_message(message.chat.id, "🐾 *Kvarks pieslēdzas analīzei...*", parse_mode="Markdown")
+    text = run_quark_audit()
+    bot.send_message(message.chat.id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
+@bot.message_handler(commands=['manage'])
+def command_manage(message):
+    tickers = get_portfolio_tickers()
+    help_text = (
+        "⚙️ *Portfeļa Tikeru Pārvaldība*\n"
+        "──────────────────────────\n"
+        f"Pašreizējie aktīvi:\n`{', '.join(tickers)}`\n\n"
+        "Lai mainītu saturu, vienkārši ieraksti čatā:\n"
+        "• `+ NVDA` — pievienot tikeru\n"
+        "• `- USO` — izņemt tikeru\n"
+        "• `set AAPL, NVDA, VOO` — pārrakstīt visu sarakstu"
+    )
+    bot.send_message(message.chat.id, help_text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+    
+@bot.message_handler(commands=['refresh'])
+def command_refresh(message):
+    bot.send_message(message.chat.id, "🔄 Izvēlne atjaunota:", reply_markup=main_menu_keyboard())
+
+
 @bot.message_handler(commands=['start', 'menu'])
 def send_welcome(message):
     welcome_text = (
         "⚡ *AuraQuadroOS Investor Studio (Mobilā Līnija)* ⚡\n\n"
         "Sveiks, Komandant! Sistēma ir gatava operatīvai uzraudzībai tieši no viedtālruņa.\n"
-        "Izvēlies darbību:"
+        "Izvēlies darbību vai ieraksti */help*, lai redzētu komandu sarakstu:"
     )
     bot.send_message(message.chat.id, welcome_text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
@@ -390,5 +474,5 @@ def handle_ticker_text_commands(message):
 
 if __name__ == "__main__":
     print("🚀 AQ Telegram Investor Bot veiksmīgi palaists!")
-    print("Atver Telegram savā telefonā un nosūti savam botam /start")
+    print("Atver Telegram savā telefonā un nosūti savam botam /start vai /help")
     bot.infinity_polling()
