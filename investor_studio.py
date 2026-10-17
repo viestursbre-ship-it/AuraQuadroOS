@@ -408,7 +408,7 @@ Lietotāja eToro pozīcijas un brīvie līdzekļi {cash} USD:
 Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
 1. 🟢 TURĒT / PAPILDINĀT: kuri uzņēmumi atbilst šai stratēģijai.
 2. ✂️ PĀRDOT / LIKVIDĒT: kuri aktīvi neatbilst šim riska profilam vai bremzē portfeli.
-3. 🎯 BRĪVĀS NAUDAS ({cash} USD) SADALE: precīzs plāns, kur ieguldīt brīvos līdzekļus."""
+3. 🎯 BRĪVĀS NAUDAS ({cash} USD) SADALE: precīzs plāns, kur kur ieguldīt brīvos līdzekļus."""
 
                 resp = model.generate_content(prompt)
                 reply = resp.text.strip()
@@ -852,14 +852,19 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 p_risk.add_run(lang_strings["black_swan"]).bold = True # Use localized string
                 p_risk.add_run(candidate.get('black_swan_risk', 'N/A'))
                 
-                document.add_paragraph("\n") # Add a blank line for spacing
+                # Original line 776, this is fine but not an f-string related to the error
+                document.add_paragraph("") # Add a blank line for spacing. Changed from "\n" to "" as paragraph handles spacing.
 
             output_filename = f"{lang_strings['output_filename_prefix']}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use localized string prefix
             output_filepath = OUTBOX_DIR / output_filename
             document.save(output_filepath)
             
+            # CRITICAL SYNTAX FIX (Bruno VETO at ~line 773 implies this pattern)
+            # Avoid placing backslash literally within f-string expression parts.
+            # Prepare the message content by concatenating strings.
+            success_message_content = lang_strings['success_message'] + str(output_filepath)
             # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showinfo("Saglabāts!", f"{lang_strings['success_message']}{output_filepath}") # Use localized string
+            messagebox.showinfo("Saglabāts!", success_message_content) # Use localized string
         except Exception as e:
             # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
             messagebox.showerror("Kļūda saglabājot Word failu", f"{lang_strings['error_saving_message']}{e}") # Use localized string
