@@ -27,12 +27,15 @@ except ImportError:
 
 # Import i18n functions (NEW)
 try:
-    from i18n import get_current_language, get_llm_language_instruction
+    import i18n # Import the i18n module directly
+    from i18n import get_llm_language_instruction
     HAS_I18N = True
 except ImportError:
     HAS_I18N = False
     # Define dummy functions if i18n is not available to prevent crashes
-    def get_current_language(): return "lv" # Default to Latvian, as current UI is Latvian
+    class DummyI18nModule: # Create a dummy class to emulate the module
+        def get_ui_language(self): return "lv" # Default to Latvian
+    i18n = DummyI18nModule() # Instantiate the dummy module
     def get_llm_language_instruction(): return "Respond in Latvian." # Default instruction for Latvian
 
 BASE_DIR = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
@@ -55,7 +58,8 @@ TRANSLATIONS = {
 # Helper function for localization (NEW)
 def t(key):
     # Default to Latvian if i18n not available or for fallback
-    current_lang = get_current_language() if HAS_I18N else "lv"
+    # Normalize language code to lowercase (Task 1)
+    current_lang = str(i18n.get_ui_language()).lower().strip() if HAS_I18N else "lv"
     # Return translation for the current language, or fallback to 'lv' if current_lang not found, or key itself if not found
     return TRANSLATIONS.get(key, {}).get(current_lang, TRANSLATIONS.get(key, {}).get("lv", key))
 
@@ -150,7 +154,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.btn_analyze.configure(state="disabled", text=f"⏳ {t('btn_rentgens')}...") # Modified for progress
         self.stats_box.configure(state="normal")
         self.stats_box.delete("1.0", "end")
-        self.stats_box.insert("1.0", f"Nolasa tirgus datus par {t_ticker_analysis}...\n")
+        self.stats_box.insert("1.0", f"Nolasa tirgus datus par {t_ticker_analysis}...\n") # This string was not specified for localization.
         self.stats_box.configure(state="disabled")
 
         self.analysis_box.configure(state="normal")
@@ -424,7 +428,7 @@ Lietotājs ir izvēlējies šādu riska režīmu:
 Lietotāja eToro pozīcijas un brīvie līdzekļi {cash} USD:
 {json.dumps(audit_summary, ensure_ascii=False, indent=2)}
 
-Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
+Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
 1. 🟢 TURĒT / PAPILDINĀT: kuri uzņēmumi atbilst šai stratēģijai.
 2. ✂️ PĀRDOT / LIKVIDĒT: kuri aktīvi neatbilst šim riska profilam vai bremzē portfeli.
 3. 🎯 BRĪVĀS NAUDAS ({cash} USD) SADALE: precīzs plāns, kur kur ieguldīt brīvos līdzekļus.""" # This prompt is sent to LLM for localized response
@@ -786,7 +790,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             return
 
         # NEW: Localized strings for Word export (Task 2)
-        current_lang = get_current_language() # Uses the actual current language from i18n or the 'lv' fallback
+        current_lang = str(i18n.get_ui_language()).lower().strip() if HAS_I18N else "lv" # Use normalized current language
 
         localized_strings = {
             "lv": {
@@ -1055,7 +1059,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 Šeit ir lietotāja portfeļa dividenču dati:
 {json.dumps(div_data, ensure_ascii=False, indent=2)}
 
-Sagatavo latviešu valodā strukturētu analīzi:
+Sagatavo strukturētu analīzi:
 1. 💵 PASĪVĀS NAUDAS ČEMPIONI: Kuri no šiem uzņēmumiem nodrošina stabilāko un drošāko dividenču atdevi.
 2. ⚠️ ILGTSPĒJAS RISKI: Vai kādam uzņēmumam dividende nav mākslīgi uzpūsta vai apdraudēta (piemēram, naftas vai cikliskajos sektoros).
 3. 🔄 REINVESTĒŠANAS STRATĒĢIJA: Kā visefektīvāk izmantot ienākošās dividendes, lai portfelis augtu eksponenciāli.""" # This prompt is sent to LLM for localized response
@@ -1339,7 +1343,7 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
 
                 prompt = f"""Tu esi stingrs, profesionāls investīciju analītiķis un Komandants Kvarks.
 {current_lang_instruction}
-Sniedz kodolīgu, praktisku analīzi latviešu valodā par šo uzņēmumu/fondu, pamatojoties uz šādiem rādītājiem:
+Sniedz kodolīgu, praktisku analīzi par šo uzņēmumu/fondu, pamatojoties uz šādiem rādītājiem:
 {json.dumps(summary_payload, ensure_ascii=False, indent=2)}
 
 Strukturē atbildi precīzi šādās 3 sadaļās:
