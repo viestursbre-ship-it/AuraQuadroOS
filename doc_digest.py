@@ -137,7 +137,7 @@ class DocDigestService:
 
 Īpaša uzmanība jāpievērš:
 -   **Līgumu tipiem**: Īres līgumiem (īpaši Itālijas 'contratto di locazione' ar terminiem kā 'deposito cauzionale', 'spese condominiali', 'cedolare secca'), pakalpojumu un biznesa līgumiem. Sniedziet šo specifisko terminu īsu skaidrojumu, ja tie ir konstatēti.
--   **"Zemūdens akmeņiem"**: Automātiskiem pagarinājumiem, slēptajām izmaksām, sankcijām, līguma laušanas termiņiem un kārtībai. Aprakstiet tos vienkāršā, cilvēcīgā valodā.
+-   **"Zemūdens akmeņiem"**: Automātiskiem pagarinājumiem, slēptajām izmaksām, sankcijām, līguma laušanas termiņiem un kārtību. Aprakstiet tos vienkāršā, cilvēcīgā valodā.
 -   **Juridiskajiem un gramatiskajiem aspektiem**: Pārbaudiet visus datumus (brīdiniet par pagātnes datumiem, neloģiskiem termiņiem kā "beigas pirms sākuma"). Pārbaudiet gramatiku, pārrakstīšanās kļūdas, kā arī pušu rekvizītu vai vārdu neatbilstības tekstā.
 
 Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, ievērojot šādu struktūru:
@@ -180,10 +180,23 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
 """
 
         try:
-            model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash", # Corrected model name
-                generation_config={"response_mime_type": "application/json", "temperature": 0.2}
-            )
+            model_name_to_use = "gemini-2.5-flash" # Primary model requested
+            try:
+                model = genai.GenerativeModel(
+                    model_name=model_name_to_use,
+                    generation_config={"response_mime_type": "application/json", "temperature": 0.2}
+                )
+            except Exception as e_primary:
+                print(f"⚠️ Brīdinājums: Neizdevās ielādēt primāro modeli '{model_name_to_use}'. Mēģinu rezerves modeli 'gemini-2.0-flash'. Kļūda: {e_primary}")
+                model_name_to_use = "gemini-2.0-flash" # Fallback model
+                try:
+                    model = genai.GenerativeModel(
+                        model_name=model_name_to_use,
+                        generation_config={"response_mime_type": "application/json", "temperature": 0.2}
+                    )
+                except Exception as e_fallback:
+                    print(f"❌ Kļūda: Neizdevās ielādēt arī rezerves modeli '{model_name_to_use}'. Atgriežu kļūdu. Kļūda: {e_fallback}")
+                    return {"error": f"Nav iespējams ielādēt nevienu no norādītajiem Gemini modeļiem. Pēdējā kļūda: {e_fallback}"}
             
             if file_type == "pdf":
                 with open(str(content_payload), "rb") as f:
