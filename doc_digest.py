@@ -38,7 +38,7 @@ def safe_archive_file(source_path: Path, target_dir: Path) -> Path:
 
 def append_to_excel_registry(file_name: str, analysis: dict, status: str = "Apstrādāts"):
     headers = ["Ieraksta Datums", "Fails", "Dokumenta tips", "Dokumenta Nr.", 
-               "Dokumenta Datums", "Puses", "Summa", "Termiņš", "Statuss"]
+               "Dokumenta Datums", "Puses", "Summa", "Termiņš", "Statuss", "Riska Līmenis"] # Added Riska Līmenis
     try:
         if not EXCEL_REGISTRY_PATH.exists():
             wb = openpyxl.Workbook()
@@ -61,6 +61,8 @@ def append_to_excel_registry(file_name: str, analysis: dict, status: str = "Apst
         fin = analysis.get("financial_terms", {})
         sum_val = fin.get("total_amount", "N/A") if isinstance(fin, dict) else "N/A"
         term_val = fin.get("deadlines", "N/A") if isinstance(fin, dict) else "N/A"
+        
+        risk_level = analysis.get("legal_analysis", {}).get("risk_level", "N/A") # Get risk level
 
         row = [
             datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -71,7 +73,8 @@ def append_to_excel_registry(file_name: str, analysis: dict, status: str = "Apst
             parties_str,
             str(sum_val),
             str(term_val),
-            status
+            status,
+            risk_level # Added risk level to row
         ]
         ws.append(row)
         for col in ws.columns:
@@ -128,32 +131,67 @@ class DocDigestService:
             return {"error": "Nav norādīta Gemini API atslēga."}
 
         genai.configure(api_key=api_key)
-        prompt_text = """Analizējiet šo dokumentu un sagatavojiet precīzu JSON objektu:
+        
+        # Updated prompt text for Universal Legal Radar and Corrector
+        prompt_text = """Analizējiet šo dokumentu rūpīgi. Jūsu uzdevums ir veikt "Universālo Juridisko Radaru un Korektoru" analīzi, identificējot "zemūdens akmeņus", juridiskos un gramatiskos trūkumus, kā arī sniegt skaidru, strukturētu atskaiti JSON formātā. Atbalstītās valodas analīzei ir latviešu, angļu un itāļu.
+
+Īpaša uzmanība jāpievērš:
+-   **Līgumu tipiem**: Īres līgumiem (īpaši Itālijas 'contratto di locazione' ar terminiem kā 'deposito cauzionale', 'spese condominiali', 'cedolare secca'), pakalpojumu un biznesa līgumiem. Sniedziet šo specifisko terminu īsu skaidrojumu, ja tie ir konstatēti.
+-   **"Zemūdens akmeņiem"**: Automātiskiem pagarinājumiem, slēptajām izmaksām, sankcijām, līguma laušanas termiņiem un kārtībai. Aprakstiet tos vienkāršā, cilvēcīgā valodā.
+-   **Juridiskajiem un gramatiskajiem aspektiem**: Pārbaudiet visus datumus (brīdiniet par pagātnes datumiem, neloģiskiem termiņiem kā "beigas pirms sākuma"). Pārbaudiet gramatiku, pārrakstīšanās kļūdas, kā arī pušu rekvizītu vai vārdu neatbilstības tekstā.
+
+Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, ievērojot šādu struktūru:
+
 {
   "document_type": "Līgums / Rēķins / Akts / Specifikācija / Cits",
   "document_number": "Numurs vai N/A",
-  "document_date": "Datums vai N/A",
-  "parties": [{"name": "Puses nosaukums", "role": "Izīrētājs/Īrnieks/Pasūtītājs/Piegādātājs"}],
-  "subject": "Darījuma priekšmets",
-  "financial_terms": {"total_amount": "Summa ar PVN", "deadlines": "Apmaksas/Izpildes termiņi"},
-  "risks_warnings": ["Konstatētie riski vai brīdinājumi"]
+  "document_date": "Dokumenta galvenais datums YYYY-MM-DD vai N/A",
+  "parties": [{"name": "Puses nosaukums", "role": "Izīrētājs/Īrnieks/Pasūtītājs/Piegādātājs/Cits"}],
+  "subject": "Darījuma priekšmets (īss apraksts)",
+  "financial_terms": {
+    "total_amount": "Kopsumma ar valūtu vai N/A",
+    "deadlines": "Būtiskākie apmaksas/izpildes termiņi vai N/A",
+    "hidden_costs": [], // Saraksts ar slēptajām izmaksām vai negaidītiem maksājumiem, ja atrasti
+    "penalties": []     // Saraksts ar soda sankcijām vai līgumsodiem, ja atrasti
+  },
+  "legal_analysis": {
+    "risk_level": "Zaļš/Dzeltens/Sarkans", // Vispārējais riska līmenis, pamatojoties uz analīzi
+    "critical_points": [], // Saraksts ar identificētiem kritiskiem punktiem vai "zemūdens akmeņiem"
+    "automatic_extensions": [], // Saraksts ar automātiskajām pagarinājuma klauzulām
+    "termination_clauses": [], // Saraksts ar līguma laušanas termiņiem un kārtību
+    "italian_lease_specifics": { // Specifiski Itālijas īres līguma termini, ja attiecināms
+      "deposito_cauzionale": "Paskaidrojums un summa, ja atrasts",
+      "spese_condominiali": "Paskaidrojums un maksājumu kārtība, ja atrasts",
+      "cedolare_secca": "Paskaidrojums, ja atrasts",
+      "other_specifics": [] // Citi specifiski termini
+    },
+    "date_audit": {
+      "all_dates_found": [], // Visi datumformāti, kas atrasti dokumentā
+      "past_dates_warnings": [], // Brīdinājumi par pagātnes datumiem, kas varētu būt problemātiski
+      "illogical_date_ranges": [] // Brīdinājumi par neloģiskiem datumu diapazoniem (piem., beigas pirms sākuma)
+    },
+    "grammatical_corrections": [], // Saraksts ar ieteiktajiem gramatikas/pārrakstīšanās labojumiem
+    "party_name_inconsistencies": [] // Saraksts ar neatbilstībām pušu nosaukumos/rekvizītos
+  },
+  "suggested_corrections": [], // Kopējais saraksts ar ieteiktajiem labojumiem vai uzlabojumiem dokumentā
+  "summary": "Īss un skaidrs kopsavilkums par dokumenta būtību un galvenajiem secinājumiem, cilvēcīgā valodā.",
+  "risks_warnings": ["Šī sadaļa ir apkopojums, kas var pārklāties ar 'critical_points' un 'legal_analysis'. Tā kalpo kā ātra apkopojums par galvenajiem riskiem."]
 }
-Atgrieziet TIKAI derīgu JSON bez markdown blokiem."""
+"""
 
         try:
             model = genai.GenerativeModel(
-                model_name="gemini-2.5-flash",
+                model_name="gemini-1.5-flash", # Corrected model name
                 generation_config={"response_mime_type": "application/json", "temperature": 0.2}
             )
             
             if file_type == "pdf":
-                # Nolasām tieši baitos, neizsaucot novecojušo upload_file
                 with open(str(content_payload), "rb") as f:
                     pdf_bytes = f.read()
                 pdf_blob = {"mime_type": "application/pdf", "data": pdf_bytes}
                 response = model.generate_content([prompt_text, pdf_blob])
             else:
-                response = model.generate_content(f"{prompt_text}\n\nDokumenta saturs:\n{content_payload[:25000]}")
+                response = model.generate_content(f"{prompt_text}\n\nDokumenta saturs:\n{content_payload[:25000]}") # Limiting content for large files
 
             if response and response.text:
                 return json.loads(response.text.strip())
@@ -166,25 +204,97 @@ Atgrieziet TIKAI derīgu JSON bez markdown blokiem."""
         doc.add_heading(f"Kopsavilkums: {original_filename}", level=1)
         doc.add_paragraph(f"Izveidots: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
-        def add_sec(title, val):
-            doc.add_heading(title, level=2)
+        def add_sec(title, val, level=2):
+            doc.add_heading(title, level=level)
             if isinstance(val, dict):
+                if not val or all(not v for v in val.values()): # Check if dict is empty or all values are empty
+                    doc.add_paragraph("N/A")
+                    return
                 for k, v in val.items():
-                    doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}: {v}")
+                    if isinstance(v, list):
+                        if v:
+                            doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}:")
+                            for item in v:
+                                doc.add_paragraph(f"  - {item}")
+                        else:
+                            doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}: N/A")
+                    elif isinstance(v, dict):
+                        if v:
+                            doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}:")
+                            for sub_k, sub_v in v.items():
+                                if sub_v:
+                                    doc.add_paragraph(f"  - {sub_k.replace('_', ' ').capitalize()}: {sub_v}")
+                                else:
+                                    doc.add_paragraph(f"  - {sub_k.replace('_', ' ').capitalize()}: N/A")
+                        else:
+                            doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}: N/A")
+                    else:
+                        doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}: {v if v else 'N/A'}")
             elif isinstance(val, list):
-                for item in val:
-                    doc.add_paragraph(f"• {item}")
+                if val and any(item for item in val if item and str(item).strip() != "N/A"): # Check if list is not empty and has meaningful content
+                    for item in val:
+                        doc.add_paragraph(f"• {item}")
+                else:
+                    doc.add_paragraph("N/A")
             else:
-                doc.add_paragraph(str(val or "N/A"))
-
+                doc.add_paragraph(str(val if val else "N/A"))
+        
+        # General Info
         add_sec("Vispārīgā informācija", {
             "Tips": data.get("document_type", "N/A"),
             "Numurs": data.get("document_number", "N/A"),
             "Datums": data.get("document_date", "N/A"),
             "Priekšmets": data.get("subject", "N/A")
         })
-        add_sec("Finanšu noteikumi", data.get("financial_terms", {}))
-        add_sec("Riski un brīdinājumi", data.get("risks_warnings", []))
+
+        # Parties
+        parties_data = data.get("parties", [])
+        if parties_data:
+            doc.add_heading("Līguma Puses", level=2)
+            for p in parties_data:
+                doc.add_paragraph(f"• {p.get('name', 'N/A')} ({p.get('role', 'N/A')})")
+        else:
+            add_sec("Līguma Puses", "N/A")
+
+        # Financial Terms
+        fin_terms = data.get("financial_terms", {})
+        add_sec("Finanšu noteikumi", {
+            "Kopsumma": fin_terms.get("total_amount", "N/A"),
+            "Termiņi": fin_terms.get("deadlines", "N/A")
+        })
+        add_sec("Slēptās izmaksas", fin_terms.get("hidden_costs", []))
+        add_sec("Soda sankcijas", fin_terms.get("penalties", []))
+
+        # Legal Analysis
+        legal_analysis = data.get("legal_analysis", {})
+        if legal_analysis and any(legal_analysis.values()):
+            doc.add_heading("Juridiskā Analīze & Korektors", level=2)
+            
+            add_sec("Riska Līmenis", legal_analysis.get("risk_level", "N/A"), level=3)
+            add_sec("Kritiskie Punkti", legal_analysis.get("critical_points", []), level=3)
+            add_sec("Automātiskie pagarinājumi", legal_analysis.get("automatic_extensions", []), level=3)
+            add_sec("Līguma laušanas noteikumi", legal_analysis.get("termination_clauses", []), level=3)
+
+            italian_specs = legal_analysis.get("italian_lease_specifics", {})
+            if italian_specs and any(v for v in italian_specs.values() if v):
+                 add_sec("Itālijas Īres Līguma Specifika", italian_specs, level=3)
+            
+            date_audit = legal_analysis.get("date_audit", {})
+            if date_audit and any(v for v in date_audit.values() if v):
+                doc.add_heading("Datumu Audits", level=3)
+                add_sec("Atrastie Datumi", date_audit.get("all_dates_found", []), level=4)
+                add_sec("Brīdinājumi par pagātnes datumiem", date_audit.get("past_dates_warnings", []), level=4)
+                add_sec("Neloģiski datumu diapazoni", date_audit.get("illogical_date_ranges", []), level=4)
+
+            add_sec("Gramatikas labojumi", legal_analysis.get("grammatical_corrections", []), level=3)
+            add_sec("Pušu nosaukumu neatbilstības", legal_analysis.get("party_name_inconsistencies", []), level=3)
+
+        add_sec("Ieteiktie labojumi", data.get("suggested_corrections", []))
+        add_sec("Kopsavilkums (cilvēcīgā valodā)", data.get("summary", "N/A"))
+
+        # Existing risks_warnings (keeping for general summary of risks)
+        add_sec("Vispārējie riski un brīdinājumi", data.get("risks_warnings", []))
+
         doc.save(output_path)
 
     def process_file(self, file_path: Path):
@@ -271,10 +381,11 @@ class DocDigestFrame(ctk.CTkFrame):
     def _format_clean_report(self, filename: str, analysis: dict, docx_path: str) -> str:
         """Pārvērš JSON datus glītā, lasāmā cilvēka formātā."""
         lines = []
-        lines.append("=" * 65)
-        lines.append(f"📄 DOKUMENTA KOPSAVILKUMS: {filename}")
-        lines.append("=" * 65)
+        lines.append("=" * 70)
+        lines.append(f"⚡ AURAQUADROOS DOKUMENTA KOPSAVILKUMS: {filename}")
+        lines.append("=" * 70)
 
+        # General Info
         doc_type = analysis.get("document_type", "Dokuments")
         doc_nr = analysis.get("document_number", "Nav norādīts")
         doc_date = analysis.get("document_date", "Nav norādīts")
@@ -283,7 +394,7 @@ class DocDigestFrame(ctk.CTkFrame):
         subject = analysis.get("subject", "Nav norādīts")
         lines.append(f"🎯 Priekšmets: {subject}\n")
 
-        # Puses
+        # Parties
         parties = analysis.get("parties", [])
         if parties and isinstance(parties, list):
             lines.append("👥 LĪGUMA PUSES:")
@@ -294,34 +405,124 @@ class DocDigestFrame(ctk.CTkFrame):
                     lines.append(f"   • {p}")
             lines.append("")
 
-        # Finanšu nosacījumi
+        # Financial Terms
         fin = analysis.get("financial_terms", {})
-        if fin:
+        if fin and any(v for v in fin.values() if v and (isinstance(v, list) and v or not isinstance(v, list))):
             lines.append("💵 FINANŠU NOSACĪJUMI & TERMIŅI:")
             if isinstance(fin, dict):
-                if "total_amount" in fin:
-                    lines.append(f"   • Summa / Maksa: {fin.get('total_amount')}")
-                if "deadlines" in fin:
-                    lines.append(f"   • Termiņi: {fin.get('deadlines')}")
-                for k, v in fin.items():
-                    if k not in ["total_amount", "deadlines"]:
-                        lines.append(f"   • {k.replace('_', ' ').capitalize()}: {v}")
-            else:
-                lines.append(f"   • {fin}")
+                if "total_amount" in fin and fin.get('total_amount'):
+                    lines.append(f"   • Summa / Maksa: {fin.get('total_amount', 'N/A')}")
+                if "deadlines" in fin and fin.get('deadlines'):
+                    lines.append(f"   • Termiņi: {fin.get('deadlines', 'N/A')}")
+                hidden_costs = fin.get("hidden_costs", [])
+                if hidden_costs and any(hc.strip() != "N/A" for hc in hidden_costs):
+                    lines.append("   ⚠️ Slēptās izmaksas:")
+                    for cost in hidden_costs:
+                        lines.append(f"     - {cost}")
+                penalties = fin.get("penalties", [])
+                if penalties and any(p.strip() != "N/A" for p in penalties):
+                    lines.append("   🚫 Soda sankcijas:")
+                    for penalty in penalties:
+                        lines.append(f"     - {penalty}")
             lines.append("")
 
-        # Riski un brīdinājumi
+        # Legal Analysis
+        legal_analysis = analysis.get("legal_analysis", {})
+        if legal_analysis and any(v for v in legal_analysis.values() if v and (isinstance(v, dict) and any(sub_v for sub_v in v.values() if sub_v) or isinstance(v, list) and v or not isinstance(v, (dict, list)))):
+            lines.append("🏛️ JURIDISKĀ ANALĪZE & KOREKTORS:")
+            risk_level = legal_analysis.get("risk_level", "N/A").upper()
+            if risk_level == "SARKANS":
+                lines.append(f"   🔴 RISKA LĪMENIS: {risk_level} - Steidzama uzmanība!")
+            elif risk_level == "DZELTENS":
+                lines.append(f"   🟡 RISKA LĪMENIS: {risk_level} - Nepieciešama pārskatīšana.")
+            elif risk_level == "ZAĻŠ":
+                lines.append(f"   🟢 RISKA LĪMENIS: {risk_level} - Zems risks.")
+            else:
+                lines.append(f"   Riska līmenis: {risk_level}")
+
+            critical_points = legal_analysis.get("critical_points", [])
+            if critical_points and any(cp.strip() != "N/A" for cp in critical_points):
+                lines.append("   🚨 Kritiskie Punkti & 'Zemūdens Akmeņi':")
+                for cp in critical_points:
+                    lines.append(f"     - {cp}")
+
+            automatic_extensions = legal_analysis.get("automatic_extensions", [])
+            if automatic_extensions and any(ae.strip() != "N/A" for ae in automatic_extensions):
+                lines.append("   🔄 Automātiskie Pagarinājumi:")
+                for ae in automatic_extensions:
+                    lines.append(f"     - {ae}")
+
+            termination_clauses = legal_analysis.get("termination_clauses", [])
+            if termination_clauses and any(tc.strip() != "N/A" for tc in termination_clauses):
+                lines.append("   ✂️ Līguma Laušanas Noteikumi:")
+                for tc in termination_clauses:
+                    lines.append(f"     - {tc}")
+
+            italian_specs = legal_analysis.get("italian_lease_specifics", {})
+            if italian_specs and any(v for v in italian_specs.values() if v):
+                lines.append("   🇮🇹 Itālijas Īres Līguma Specifika:")
+                for k, v in italian_specs.items():
+                    if v and str(v).strip() != "N/A": lines.append(f"     • {k.replace('_', ' ').capitalize()}: {v}")
+
+            date_audit = legal_analysis.get("date_audit", {})
+            if date_audit and any(v for v in date_audit.values() if v):
+                lines.append("   🗓️ Datumu Audits:")
+                all_dates = date_audit.get("all_dates_found", [])
+                if all_dates and any(d.strip() != "N/A" for d in all_dates):
+                    lines.append(f"     • Atrastie datumi: {', '.join(all_dates)}")
+                past_warnings = date_audit.get("past_dates_warnings", [])
+                if past_warnings and any(w.strip() != "N/A" for w in past_warnings):
+                    lines.append("     ❗ Pagātnes datumu brīdinājumi:")
+                    for w in past_warnings:
+                        lines.append(f"       - {w}")
+                illogical_ranges = date_audit.get("illogical_date_ranges", [])
+                if illogical_ranges and any(ir.strip() != "N/A" for ir in illogical_ranges):
+                    lines.append("     ❌ Neloģiski datumu diapazoni:")
+                    for ir in illogical_ranges:
+                        lines.append(f"       - {ir}")
+
+            gram_corrections = legal_analysis.get("grammatical_corrections", [])
+            if gram_corrections and any(gc.strip() != "N/A" for gc in gram_corrections):
+                lines.append("   📝 Gramatikas & Pārrakstīšanās Labojumi:")
+                for gc in gram_corrections:
+                    lines.append(f"     - {gc}")
+
+            party_inconsistencies = legal_analysis.get("party_name_inconsistencies", [])
+            if party_inconsistencies and any(pi.strip() != "N/A" for pi in party_inconsistencies):
+                lines.append("   👤 Pušu Nosaukumu Neatbilstības:")
+                for pi in party_inconsistencies:
+                    lines.append(f"     - {pi}")
+            lines.append("")
+
+        # Suggested Corrections
+        suggested_corrections = analysis.get("suggested_corrections", [])
+        if suggested_corrections and any(sc.strip() != "N/A" for sc in suggested_corrections):
+            lines.append("💡 IETEIKTIE LABOJUMI:")
+            for sc in suggested_corrections:
+                lines.append(f"   • {sc}")
+            lines.append("")
+
+        # Summary
+        summary = analysis.get("summary", "Nav pieejams.")
+        if summary.strip() != "N/A" and summary.strip() != "":
+            lines.append("💬 KOPSAVILKUMS (cilvēcīgā valodā):")
+            lines.append(f"   {summary}\n")
+
+        # Existing risks_warnings (keeping for now, potentially can be deprecated if critical_points is sufficient)
         risks = analysis.get("risks_warnings", [])
-        if risks:
-            lines.append("⚠️ JURIDISKIE RISKI & BRĪDINĀJUMI:")
+        if risks and any(r for r in risks if r and r.strip() != "N/A" and r.strip() != ""): # Filter out "N/A"
+            lines.append("⚠️ VISPĀRĒJI RISKI & BRĪDINĀJUMI:")
             if isinstance(risks, list):
                 for r in risks:
-                    lines.append(f"   🚩 {r}")
+                    if r and r.strip() != "N/A" and r.strip() != "":
+                        lines.append(f"   🚩 {r}")
             else:
-                lines.append(f"   🚩 {risks}")
+                if risks and risks.strip() != "N/A" and risks.strip() != "":
+                    lines.append(f"   🚩 {risks}")
             lines.append("")
 
-        lines.append("-" * 65)
+
+        lines.append("-" * 70)
         lines.append(f"💾 Word kopsavilkums saglabāts:\n   {docx_path}\n\n")
         return "\n".join(lines)
 
