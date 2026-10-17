@@ -839,7 +839,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 "black_swan": "Cigno Nero (rischio): ",
                 "output_filename_prefix": "Quark_Caccia_Unicorni_",
                 "success_message": "Rapporto salvato in:\n",
-                "error_saving_message": "Si è verificato un errore durante il salvataggio del file Word: "
+                "error_saving_message": "Error saving Word file: "
             },
             "en": { # Default English fallback
                 "report_title": "🚀 Commander Quark's Unicorn Hunt Report",
@@ -1353,5 +1353,7 @@ Strukturē atbildi precīzi šādās 3 sadaļās:
                 resp = model.generate_content(prompt)
                 return resp.text.strip()
             except Exception as e:
-                return f"⚠️ Gemini analīzes kļūda: {e}" # This string was not specified for localization.
+                # Fix: Changed f-string to concatenation to prevent potential "unterminated string literal"
+                # if the exception message `e` contained an unescaped quote matching f-string's delimiter.
+                return "⚠️ Gemini analīzes kļūda: " + str(e) # This string was not specified for localization.
         return stats_fallback
