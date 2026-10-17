@@ -8,6 +8,9 @@ import customtkinter as ctk
 import yfinance as yf
 from datetime import datetime, timedelta
 
+# Import for messagebox (FIX 1)
+from tkinter import messagebox
+
 try:
     import google.generativeai as genai
     HAS_GENAI = True
@@ -42,6 +45,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def __init__(self, master, get_gemini_key_fn=None, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.get_gemini_key = get_gemini_key_fn
+
+        # Initialize attribute for sector concentration warning (FIXED for Point 1, 3)
+        self.last_sector_concentration_warning = ""
 
         # Augšējā ciļņu josla moduļa iekšienē
         self.tabview = ctk.CTkTabview(self, fg_color="#0f172a", segmented_button_fg_color="#1e293b")
@@ -158,7 +164,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
         ctk.CTkLabel(left, text="💼 MANAS ETORO AKCIJAS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 4))
-        ctk.CTkLabel(left, text="Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", font=ctk.CTkFont(size=11), text_color="#94a3b8", justify="left").pack(anchor="w", padx=15, pady=(0, 6))
+        ctk.CTkLabel(left, text="Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", font=ctk.CTkFont(size=13), text_color="#94a3b8", justify="left").pack(anchor="w", padx=15, pady=(0, 6))
 
         self.txt_my_portfolio = ctk.CTkTextbox(left, fg_color="#0b1329", font=ctk.CTkFont(size=12), height=140)
         self.txt_my_portfolio.pack(fill="x", padx=15, pady=(0, 10))
@@ -421,7 +427,9 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
         ctk.CTkLabel(left, text="🚀 POTENCIĀLA RADARS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
-        ctk.CTkLabel(left, text="Perspektīvi izaugsmes uzņēmumi (AI, čipi, aizsardzība):", font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(0, 10))
+        # Updated description to reflect broader sector search (Point 3)
+        ctk.CTkLabel(left, text="Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", 
+                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(0, 10))
 
         # Dynamic list of growth candidates (initially from GROWTH_WATCHLIST, then from AI)
         self.growth_candidates_container = ctk.CTkScrollableFrame(left, fg_color="#0b1329", height=240)
@@ -544,7 +552,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         if api_key and HAS_GENAI and growth_data:
             try:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-2.5-flash") # gemini-1.5-pro supports response_mime_type
+                model = genai.GenerativeModel("gemini-2.5-flash")
 
                 kvark_criteria_prompt = """
                 Komandanta Kvarka 4 zelta kritēriji Jauno Vienradžu medībām:
@@ -554,9 +562,20 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
                 4.  **Founder-led (Dibinātāja vadīts)**: Vēlams, ka uzņēmumu joprojām vada tā dibinātājs vai spēcīga, ilgtermiņā domājoša vadošā komanda ar skaidru vīziju. Novērtēt pēc "summary" (var būt netieši).
                 """
 
+                # MODIFIED PROMPT for Points 2, 3, 4
                 prompt = f"""Tu esi agresīvs izaugsmes investīciju eksperts un Komandants Kvarks.
-Tavs uzdevums ir atrast "Jaunos Vienradžus" - uzņēmumus ar 10x-100x izaugsmes potenciālu.
-Lūk, dati par strauji augošiem uzņēmumiem nākotnes tehnoloģijās, katram ir pievienots arī kopsavilkums (summary):
+Tavs uzdevums ir atrast tieši 10 "Jaunos Vienradžus" - uzņēmumus ar 10x-100x izaugsmes potenciālu.
+Meklē jaunākos, spēcīgākos un atbilstošākos pretendentus, kas nav vienkārši esošie tirgus līderi, bet gan nākamie revolucionāri.
+OBLIGĀTI iekļauj dažādas nākotnes nozares, lai nodrošinātu portfeļa diversifikāciju un novērstu pārmērīgu koncentrāciju tikai uz AI/čipiem.
+
+Stratēģiski svarīgās nākotnes nozares, kurās meklēt vienradžus:
+- Mākslīgais intelekts (AI) & Čipi (semiconductors)
+- Kiberdrošība & Datu infrastruktūra
+- Biotehnoloģijas & Genomika / Modernā medicīna (piem., CRSP, VRTX, RXRX, BIIB, ISRG u.tml.)
+- Nākotnes enerģija & jaunie materiāli (piem., tīrā enerģija, kodolsintēze, ūdeņraža tehnoloģijas, progresīvas bateriju tehnoloģijas, retzemju metālu alternatīvas)
+- Kosmoss un autonomās sistēmas (piem., satelīti, raķešu tehnoloģijas, droni, robotika, kosmosa tūrisms, resursu ieguve kosmosā)
+
+Lūk, dati par strauji augošiem uzņēmumiem nākotnes tehnoloģijās (tie nav obligāti gala kandidāti, bet izejas informācija analīzei), katram ir pievienots arī kopsavilkums (summary):
 {json.dumps(growth_data, ensure_ascii=False, indent=2)}
 
 {kvark_criteria_prompt}
@@ -567,15 +586,12 @@ JSON atbildē ir jābūt diviem laukiem:
     - `ticker`: Uzņēmuma tikers.
     - `name`: Uzņēmuma nosaukums.
     - `niche`: "Slepenais ierocis" (īss 1-2 teikumu nišas apraksts, kas dod konkurences priekšrocības).
-    - `why_10x_100x`: "Kāpēc 10x-100x" (ass 2 teikumu pamatojums par milzīgo izaugsmes potenciālu, balstoties uz Kvarka kritērijiem).
+    - `why_10x_100x`: "Kāpēc 10x-100x" (ass 2 teikumu pamatojums par milzīgo izaugsmes potenciālu, balstoties uz Kvarka kritērijiem un nozares perspektīvām).
     - `black_swan_risk`: "Melnais Gulbis" (objektīvs 1-2 teikumu riska faktors, kas var apturēt izaugsmi).
-2. `sector_concentration_warning`: "Sarkano Karogu" brīdinājums par pārmērīgu sektora koncentrāciju, ja Kvarks to pamana starp atlasītajiem kandidātiem, vai tukša stringa, ja brīdinājuma nav.
+    UZMANĪBU: Pārliecinies, ka sarakstā ir tieši 10 unikāli kandidāti, kas atbilst dažādām nozarēm, ja iespējams.
+2. `sector_concentration_warning`: "Sarkano Karogu" brīdinājums par pārmērīgu sektora koncentrāciju, ja Kvarks to pamana (piemēram, vairāk nekā 50% kandidātu ir no vienas nozares), vai tukša stringa, ja brīdinājuma nav.
 
 Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."""
-                
-                # Using generation_config to ensure JSON output if model supports it
-                # For gemini-2.5-flash, direct response_mime_type in generate_content might not be available
-                # or require a specific client version. Stick to cleaning for robustness.
                 
                 resp = model.generate_content(prompt)
                 json_response_str = resp.text.strip()
@@ -591,18 +607,22 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                     parsed_response = json.loads(json_response_str)
                     unicorn_candidates = parsed_response.get("unicorn_candidates", [])
                     sector_concentration_warning = parsed_response.get("sector_concentration_warning", "")
+                    self.last_sector_concentration_warning = sector_concentration_warning # Store for copy/export (FIXED for Point 1, 3)
                     reply_fallback = "" # If successful, clear fallback
                 except json.JSONDecodeError as jde:
                     reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {jde}. Daļa: {json_response_str[:500]}..."
                     unicorn_candidates = []
                     sector_concentration_warning = "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API."
+                    self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
 
             except Exception as e:
                 reply_fallback = f"⚠️ Kļūda sazinoties ar Gemini: {e}"
                 sector_concentration_warning = f"⚠️ Kļūda sazinoties ar Gemini: {e}"
+                self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
         else:
             reply_fallback = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
             sector_concentration_warning = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
+            self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
 
         self.growth_current_candidates_data = unicorn_candidates # Store for copy/export
 
@@ -618,10 +638,10 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 widget.destroy()
 
             # Populate left pane with AI candidates
-            self._populate_growth_watchlist(unicorn_candidates) # Use AI-selected candidates for left pane
+            self._populate_growth_watchlist(unicorn_candidates) # Use AI-selected candidates for left pane (Point 2)
 
-            if sector_concentration_warning:
-                warning_label = ctk.CTkLabel(self.growth_results_container, text=f"🚩 Sarkanais Karogs: {sector_concentration_warning}", 
+            if self.last_sector_concentration_warning: # Check the instance variable (FIXED for Point 1, 3)
+                warning_label = ctk.CTkLabel(self.growth_results_container, text=f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}", 
                                              font=ctk.CTkFont(size=12, weight="bold"), text_color="#dc2626", wraplength=400)
                 warning_label.pack(fill="x", padx=10, pady=5)
             
@@ -664,8 +684,10 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
         text_to_copy_parts = []
         if hasattr(self, 'growth_current_candidates_data') and self.growth_current_candidates_data:
             text_to_copy_parts.append("🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀\n")
-            if self.growth_current_candidates_data and self.growth_current_candidates_data[0].get("sector_concentration_warning"):
-                 text_to_copy_parts.append(f"🚩 Sarkanais Karogs: {self.growth_current_candidates_data[0].get('sector_concentration_warning')}\n")
+            
+            # Use the stored instance variable for warning (FIXED for Point 1, 3)
+            if hasattr(self, 'last_sector_concentration_warning') and self.last_sector_concentration_warning:
+                 text_to_copy_parts.append(f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}\n")
 
             for idx, candidate in enumerate(self.growth_current_candidates_data):
                 text_to_copy_parts.append(f"--- Kandidāts {idx+1}: {candidate.get('ticker', 'N/A')} - {candidate.get('name', 'N/A')} ---\n")
@@ -676,11 +698,15 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             text_to_copy_parts.append("----------------------------------------\n")
             text_to_copy_parts.append("⚡ Ģenerēts ar AQ-OS Investor Studio")
         else:
-            text_to_copy_parts.append(self.growth_results_container.winfo_children()[0].cget("text")) # Fallback to initial message
+            if self.growth_results_container.winfo_children():
+                text_to_copy_parts.append(self.growth_results_container.winfo_children()[0].cget("text")) 
+            else:
+                text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.")
+
 
         text_to_copy = "\n".join(text_to_copy_parts).strip()
 
-        if not text_to_copy or "Izvēlieties uzņēmumu" in text_to_copy:
+        if not text_to_copy or "Izvēlieties uzņēmumu" in text_to_copy or "Nav atrasta neviena analīze" in text_to_copy:
             return
 
         try:
@@ -698,11 +724,13 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 
     def export_growth_to_word(self):
         if not HAS_DOCX:
-            ctk.CTkMessagebox.show_warning("Kļūda", "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.")
+            # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
+            messagebox.showwarning("Kļūda", "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.")
             return
 
         if not hasattr(self, 'growth_current_candidates_data') or not self.growth_current_candidates_data:
-            ctk.CTkMessagebox.show_info("Info", "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.")
+            # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
+            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.")
             return
 
         try:
@@ -711,25 +739,38 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             document.add_paragraph(f"Ģenerēts: {datetime.now().strftime('%d.%m.%Y %H:%M')}")
             document.add_paragraph("Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.")
 
-            if self.growth_current_candidates_data and self.growth_current_candidates_data[0].get("sector_concentration_warning"):
-                 document.add_paragraph(f"🚩 Sarkanais Karogs: {self.growth_current_candidates_data[0].get('sector_concentration_warning')}").add_run().bold = True
+            # Use the stored instance variable for warning (FIXED for Point 1, 3)
+            if hasattr(self, 'last_sector_concentration_warning') and self.last_sector_concentration_warning:
+                 document.add_paragraph(f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}").add_run().bold = True
 
 
             for idx, candidate in enumerate(self.growth_current_candidates_data):
                 document.add_heading(f"{idx+1}. {candidate.get('name', 'N/A')} ({candidate.get('ticker', 'N/A')})", level=2)
                 
-                document.add_paragraph("Slepenais ierocis (Niša): ").add_run(candidate.get('niche', 'N/A')).bold = True
-                document.add_paragraph("Kāpēc 10x-100x: ").add_run(candidate.get('why_10x_100x', 'N/A')).bold = True
-                document.add_paragraph("Melnais Gulbis (risks): ").add_run(candidate.get('black_swan_risk', 'N/A')).bold = True
+                # Using add_run and bold property for inline bolding
+                p_niche = document.add_paragraph()
+                p_niche.add_run("Slepenais ierocis (Niša): ").bold = True
+                p_niche.add_run(candidate.get('niche', 'N/A'))
+
+                p_why = document.add_paragraph()
+                p_why.add_run("Kāpēc 10x-100x: ").bold = True
+                p_why.add_run(candidate.get('why_10x_100x', 'N/A'))
+                
+                p_risk = document.add_paragraph()
+                p_risk.add_run("Melnais Gulbis (risks): ").bold = True
+                p_risk.add_run(candidate.get('black_swan_risk', 'N/A'))
+                
                 document.add_paragraph("\n") # Add a blank line for spacing
 
             output_filename = f"Kvarka_Vienradzu_Medibas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
             output_filepath = OUTBOX_DIR / output_filename
             document.save(output_filepath)
             
-            ctk.CTkMessagebox.show_info("Saglabāts!", f"Atskaite saglabāta:\n{output_filepath}")
+            # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
+            messagebox.showinfo("Saglabāts!", f"Atskaite saglabāta:\n{output_filepath}")
         except Exception as e:
-            ctk.CTkMessagebox.show_error("Kļūda saglabājot Word failu", f"Radās kļūda: {e}")
+            # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
+            messagebox.showerror("Kļūda saglabājot Word failu", f"Radās kļūda: {e}")
 
     # ==========================================
     # 4. CILNE: DIVIDENDES & NAUDAS PLŪSMA
