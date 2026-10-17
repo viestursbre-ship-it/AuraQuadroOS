@@ -83,6 +83,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
         # Initialize attribute for sector concentration warning (FIXED for Point 1, 3)
         self.last_sector_concentration_warning = ""
 
+        # NEW: Initialize selected data source
+        self.selected_source = "Yahoo Finance"
+
         # Augšējā ciļņu josla moduļa iekšienē
         self.tabview = ctk.CTkTabview(self, fg_color="#0f172a", segmented_button_fg_color="#1e293b")
         self.tabview.pack(fill="both", expand=True, padx=10, pady=10)
@@ -116,6 +119,19 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         ctk.CTkLabel(left, text=t("lbl_ticker_analysis"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
 
+        # NEW: Data Source Selection Segmented Button
+        self.source_selector = ctk.CTkSegmentedButton(
+            left,
+            values=["Yahoo Finance", "Alpha Vantage", "FMP", "⚔️ Cross-Check"],
+            command=self._on_source_change,
+            selected_color="#0284c7",
+            selected_hover_color="#0369a1",
+            height=30,
+            font=ctk.CTkFont(size=11, weight="bold")
+        )
+        self.source_selector.set(self.selected_source) # Set default value
+        self.source_selector.pack(fill="x", padx=15, pady=(0, 10))
+
         in_row = ctk.CTkFrame(left, fg_color="transparent")
         in_row.pack(fill="x", padx=15, pady=(0, 10))
 
@@ -142,6 +158,14 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.analysis_box.insert("1.0", t("txt_waiting"))
         self.analysis_box.configure(state="disabled")
 
+    def _on_source_change(self, val):
+        """Callback method for the data source segmented button."""
+        self.selected_source = val
+        self.stats_box.configure(state="normal")
+        self.stats_box.delete("1.0", "end")
+        self.stats_box.insert("1.0", f"Avota kanāls pārslēgts uz: {self.selected_source}. Gaidu jaunu signālu 'Rentgens'!") # Tactical message
+        self.stats_box.configure(state="disabled")
+
     def _quick_set(self, t_ticker_btn):
         self.entry_ticker.delete(0, "end")
         self.entry_ticker.insert(0, t_ticker_btn)
@@ -154,7 +178,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.btn_analyze.configure(state="disabled", text=f"⏳ {t('btn_rentgens')}...") # Modified for progress
         self.stats_box.configure(state="normal")
         self.stats_box.delete("1.0", "end")
-        self.stats_box.insert("1.0", f"Nolasa tirgus datus par {t_ticker_analysis}...\n") # This string was not specified for localization.
+        self.stats_box.insert("1.0", f"Nolasa tirgus datus par {t_ticker_analysis} no {self.selected_source}...\n") # Added source to message
         self.stats_box.configure(state="disabled")
 
         self.analysis_box.configure(state="normal")
@@ -1297,7 +1321,9 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
             div_yield = info.get("dividendYield")
             div_str = f"{round(div_yield * 100, 2)}%" if div_yield else "0.0%"
             
+            # ADDED: Source to stats_text
             stats_text = (
+                f"Avots: {self.selected_source}\n" + # Pievienots lauks "source" stats_text pirmajā rindiņā
                 f"=== {short_name} ({ticker}) ===\n" # This string was not specified for localization.
                 f"Cena:             {curr_price} {currency}\n" # This string was not specified for localization.
                 f"52 ned. diapazons:{low52} - {high52} {currency}\n" # This string was not specified for localization.
@@ -1324,11 +1350,13 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
                 "dividend_yield": div_str,
                 "sector": info.get("sector", "Nezināms"), # This string was not specified for localization.
                 "industry": info.get("industry", "Nezināms"), # Added industry for more specific analysis # This string was not specified for localization.
-                "summary": info.get("longBusinessSummary", "")
+                "summary": info.get("longBusinessSummary", ""),
+                "source": self.selected_source # Pievienots lauks "source" atgrieztajā vārdnīcā
             }
         except Exception as e:
-            stats_text = f"⚠️ Kļūda nolasot {ticker}: {e}" # This string was not specified for localization.
-            payload = {"ticker": ticker, "name": ticker, "error": str(e)} # Minimal payload to avoid breaking if fetch fails
+            # Also update error message with source
+            stats_text = f"Avots: {self.selected_source}\n" + f"⚠️ Kļūda nolasot {ticker}: {e}" # This string was not specified for localization.
+            payload = {"ticker": ticker, "name": ticker, "error": str(e), "source": self.selected_source} # Minimal payload to avoid breaking if fetch fails, include source
 
         return stats_text, payload
 
@@ -1351,9 +1379,16 @@ Strukturē atbildi precīzi šādās 3 sadaļās:
 2. 🚩 Sarkanie karogi un riski (vai nav pārvērtēts burbulis).
 3. ⚖️ Komandanta Kvarka rezolūcija (konkrēts kopsavilkums ilgtermiņa ieguldītājam: Turēt / Pārdot / Nogaidīt).""" # This prompt is sent to LLM for localized response
                 resp = model.generate_content(prompt)
-                return resp.text.strip()
+                
+                # Pievienota atruna (disclaimer)
+                disclaimer = f"\n\n---\n📌 Datu avots: {self.selected_source}. Informatīvs analīzes kopsavilkums."
+                return resp.text.strip() + disclaimer
             except Exception as e:
                 # Fix: Changed f-string to concatenation to prevent potential "unterminated string literal"
                 # if the exception message `e` contained an unescaped quote matching f-string's delimiter.
-                return "⚠️ Gemini analīzes kļūda: " + str(e) # This string was not specified for localization.
-        return stats_fallback
+                # Pievienota atruna (disclaimer) arī kļūdas gadījumā
+                disclaimer_on_error = f"\n\n---\n📌 Datu avots: {self.selected_source}. Informatīvs analīzes kopsavilkums."
+                return "⚠️ Gemini analīzes kļūda: " + str(e) + disclaimer_on_error
+        # Pievienota atruna (disclaimer) arī fallback gadījumā
+        disclaimer_fallback = f"\n\n---\n📌 Datu avots: {self.selected_source}. Informatīvs analīzes kopsavilkums."
+        return stats_fallback + disclaimer_fallback
