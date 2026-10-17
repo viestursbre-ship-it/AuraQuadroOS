@@ -7,15 +7,22 @@ from datetime import datetime, timedelta
 import yfinance as yf
 import google.generativeai as genai
 import requests
-from pathlib import Path # Izmantojam Path failu ceļu manipulācijām
+from pathlib import Path
+
+# Import for Word document generation
+from docx import Document
+from docx.shared import Inches, Pt # Inches not strictly needed, Pt for font size if desired
+from docx.enum.text import WD_ALIGN_PARAGRAPH # For paragraph alignment if needed
 
 # --- IELĀDĒJAM CONFIG UN ATSLĒGAS ---
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
 PORTFOLIO_PATH = os.path.join(os.path.dirname(__file__), "portfolio.json")
 INBOX_DIR = Path(os.path.dirname(__file__)) / "storage" / "inbox" # Definējam iesūtnes mapi
+OUTBOX_DIR = Path(os.path.dirname(__file__)) / "storage" / "outbox" # Definējam izejošo failu mapi
 
-# Pārliecināmies, ka INBOX_DIR eksistē
+# Pārliecināmies, ka INBOX_DIR un OUTBOX_DIR eksistē
 INBOX_DIR.mkdir(parents=True, exist_ok=True)
+OUTBOX_DIR.mkdir(parents=True, exist_ok=True)
 
 def load_config():
     if os.path.exists(CONFIG_PATH):
@@ -262,20 +269,79 @@ Maksimums 4-6 teikumi, skaidrā latviešu valodā ar enerģisku toni."""
     except Exception as e:
         return f"⚠️ Kvarka audita kļūda: {e}"
 
+def generate_word_report(original_file_name: str, report_data: dict) -> Path:
+    """
+    Generates a Word (.docx) report from the analysis data.
+    Saves it to the OUTBOX_DIR and returns the path.
+    """
+    document = Document()
+    
+    # Title
+    document.add_heading(f"AQ-OS Juridiskais Audits: {original_file_name}", level=1)
+    
+    # Risk Level
+    document.add_heading("Riska Līmenis:", level=2)
+    document.add_paragraph(report_data.get('risk_level', 'Nav definēts'))
+    
+    # Contract Subject and Parties
+    document.add_heading("Līguma Priekšmets un Puses:", level=2)
+    document.add_paragraph(report_data.get('contract_subject_parties', 'Nav definēts'))
+    
+    # Main Risks and Pitfalls
+    document.add_heading("Galvenie Riski un Zemūdens Akmeņi:", level=2)
+    if report_data.get('main_risks_pitfalls'):
+        for risk in report_data['main_risks_pitfalls']:
+            document.add_paragraph(risk, style='List Bullet')
+    else:
+        document.add_paragraph("Nav būtisku risku fiksēts.")
+        
+    # Date Warnings
+    document.add_heading("Datumu Brīdinājumi:", level=2)
+    if report_data.get('date_warnings'):
+        for warning in report_data['date_warnings']:
+            document.add_paragraph(warning, style='List Bullet')
+    else:
+        document.add_paragraph("Nav datumu brīdinājumu fiksēts.")
+        
+    # Summary
+    document.add_heading("Kopsavilkums:", level=2)
+    document.add_paragraph(report_data.get('summary', 'Nav kopsavilkuma pieejams.'))
+    
+    # Footer
+    document.add_paragraph("\n──────────────────────────")
+    document.add_paragraph(f"Auditu veikusi AuraQuadroOS Juridiskā Analīzes Sistēma, vadībā Komandants Kvarks. Izveidots: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # Save the document
+    # Get the base name without extension for a clean report filename
+    base_name = Path(original_file_name).stem
+    report_filename = f"DIGEST_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{base_name}.docx"
+    output_path = OUTBOX_DIR / report_filename
+    document.save(output_path)
+    return output_path
+
 def doc_digest_analysis(file_path: Path):
     """
-    Simulē dokumenta analīzi, izmantojot Gemini AI.
+    Simulē dokumenta analīzi, izmantojot Gemini AI un ģenerē Word failu ar rezultātiem.
     Reālā situācijā te būtu jāielādē un jāekstrahē teksts no PDF/DOCX faila.
     Šī funkcija šobrīd izmanto simulētu saturu.
+    Atgriež analīzes rezultātus kā dict un ģenerētā Word faila ceļu.
     """
+    docx_file_path = None # Initialize as None
+    
     if not GEMINI_KEY:
-        return {
+        error_results = {
             "risk_level": "⚠️ Kritiskas Kļūda",
             "contract_subject_parties": "Nav definēts bez AI.",
             "main_risks_pitfalls": ["Gemini API atslēga nav konfigurēta."],
             "date_warnings": [],
             "summary": "Nevar veikt dokumenta analīzi bez API atslēgas. Lūdzu, konfigurējiet to."
         }
+        # Even on error, we should try to generate a Word file if possible
+        try:
+            docx_file_path = generate_word_report(file_path.name, error_results)
+        except Exception as e:
+            print(f"Kļūda ģenerējot Word atskaiti pie API kļūdas: {e}")
+        return error_results, docx_file_path
     
     try:
         genai.configure(api_key=GEMINI_KEY)
@@ -354,10 +420,10 @@ Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 t
                 current_section = None 
             elif line.startswith("- ") and current_section in ["main_risks_pitfalls", "date_warnings"]:
                 parsed_response[current_section].append(line[2:].strip())
-            # Fallback for summary if it somehow spills over or is the only text
-            elif parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi." and current_section is None:
+            elif parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi." and current_section is None and not line.startswith('-'):
+                # Fallback for summary if it's the first unparsed text and summary is default
                 parsed_response["summary"] = line
-
+        
         # Pamata pārbaudes, ja riska līmenis nav skaidri definēts
         if parsed_response["risk_level"] == "Neskaidrs":
             if parsed_response["main_risks_pitfalls"] or parsed_response["date_warnings"]:
@@ -365,16 +431,28 @@ Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 t
             else:
                 parsed_response["risk_level"] = "Zems" # Ja nav, tad zems
 
-        return parsed_response
+        # Generate the Word document
+        try:
+            docx_file_path = generate_word_report(file_path.name, parsed_response)
+        except Exception as e:
+            print(f"Kļūda ģenerējot Word atskaiti: {e}")
+        
+        return parsed_response, docx_file_path
     
     except Exception as e:
-        return {
+        error_results = {
             "risk_level": "⚠️ Kritiskas Kļūda",
             "contract_subject_parties": "Nav definēts kļūdas dēļ.",
             "main_risks_pitfalls": [f"Gemini analīzes kļūda: {e}"],
             "date_warnings": [],
             "summary": "Neizdevās veikt dokumenta analīzi. Sazinieties ar Komandantu."
         }
+        # Attempt to generate a Word file even with error results
+        try:
+            docx_file_path = generate_word_report(file_path.name, error_results)
+        except Exception as e_docx:
+            print(f"Kļūda ģenerējot Word atskaiti pie analīzes kļūdas: {e_docx}")
+        return error_results, docx_file_path
 
 # --- TIKERU SAGLABĀŠANA UN PĀRVALDĪBA ---
 def save_portfolio_tickers(tickers):
@@ -607,6 +685,9 @@ def handle_ticker_text_commands(message):
 def handle_docs(message):
     chat_id = message.chat.id
     
+    # Initialize docx_file_path to None, so we know if it was successfully generated
+    docx_file_path = None
+
     try:
         if not message.document:
             bot.send_message(chat_id, "⚠️ Kļūda: Fails netika atrasts ziņojumā.")
@@ -636,7 +717,7 @@ def handle_docs(message):
         bot.send_message(chat_id, f"✅ Dokuments `{file_name}` saglabāts, sāku analīzi.")
 
         # Izsaucam doc_digest analīzes moduli šim failam
-        report_data = doc_digest_analysis(save_path) # Padodam Path objektu
+        report_data, docx_file_path = doc_digest_analysis(save_path) # Tagad atgriež divas vērtības
         
         # Map risk level to color emoji for presentation
         risk_map = {
@@ -650,7 +731,28 @@ def handle_docs(message):
         
         display_risk = risk_map.get(report_data['risk_level'], f"⚪ {report_data['risk_level']}")
 
-        # Build report parts
+        # Build report caption for Telegram message (short summary)
+        caption_text = (
+            f"📄 *Juridiskais Audits* (DIGEST)\n"
+            f"──────────────────────────\n"
+            f"🚦 Riska līmenis: *{display_risk}*\n"
+            f"📝 Kopsavilkums: {report_data['summary']}\n"
+            f"──────────────────────────\n"
+            f"Pilnu slēdzienu skatīt pievienotajā Word failā."
+        )
+
+        # Send the generated Word document
+        if docx_file_path and docx_file_path.exists():
+            with open(docx_file_path, 'rb') as doc_file:
+                bot.send_document(chat_id, doc_file, caption=caption_text, parse_mode="Markdown")
+            bot.send_message(chat_id, "✅ Word slēdziens nosūtīts!")
+            # Optionally delete the generated docx file from outbox after sending
+            # docx_file_path.unlink(missing_ok=True)
+        else:
+            bot.send_message(chat_id, "⚠️ Kļūda: Neizdevās ģenerēt vai atrast Word slēdziena failu. Sazinieties ar Komandantu.", parse_mode="Markdown")
+
+
+        # Send the on-screen textual report.
         report_parts = []
         report_parts.append("📄 *DOKUMENTA JURIDISKAIS AUDITS (AQ-OS)*")
         report_parts.append("──────────────────────────")
@@ -671,15 +773,11 @@ def handle_docs(message):
         report_parts.append("──────────────────────────")
         report_parts.append("Status: Audits pabeigts. Komandants Kvarks gaida turpmākās instrukcijas.")
         
-        final_report = '\n\n'.join(report_parts) # Use double newline for better readability between sections
+        final_report = '\n\n'.join(report_parts) 
 
-        # Message splitting logic for Telegram's 4096 character limit
         MAX_TELEGRAM_MESSAGE_LENGTH = 4096
         
         if len(final_report) > MAX_TELEGRAM_MESSAGE_LENGTH:
-            # Strategy: Send critical info first, then detailed risks/warnings
-            
-            # Part 1: Header, Risk Level, Contract Subject/Parties, Summary
             part1_sections = [
                 "📄 *DOKUMENTA JURIDISKAIS AUDITS (AQ-OS)*",
                 "──────────────────────────",
@@ -690,9 +788,8 @@ def handle_docs(message):
                 "Status: Audits pabeigts. (1/2)"
             ]
             part1 = '\n\n'.join(part1_sections)
-            bot.send_message(chat_id, part1, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+            bot.send_message(chat_id, part1, parse_mode="Markdown") # Removed reply_markup here
             
-            # Part 2: Main Risks, Date Warnings (if any), continuation status
             part2_sections = []
             if main_risks_text:
                 part2_sections.append(f"⚠️ Galvenie riski un 'zemūdens akmeņi':\n{main_risks_text}")
@@ -705,15 +802,13 @@ def handle_docs(message):
                 part2_sections.append("Komandants Kvarks gaida turpmākās instrukcijas.")
                 part2 = '\n\n'.join(part2_sections)
                 
-                # Double-check if part2 itself is too long
                 if len(part2) > MAX_TELEGRAM_MESSAGE_LENGTH:
-                    # If even the second part is too long, truncate it or send a warning
                     bot.send_message(chat_id, "⚠️ Papildu detaļas ir pārāk garas, lai nosūtītu visu. Sazinieties ar Komandanta štābu.", parse_mode="Markdown", reply_markup=main_menu_keyboard())
                 else:
-                    bot.send_message(chat_id, part2, parse_mode="Markdown", reply_markup=main_menu_keyboard())
-            # If no risks/warnings, part1 already sent the full status.
+                    bot.send_message(chat_id, part2, parse_mode="Markdown", reply_markup=main_menu_keyboard()) # Add keyboard to the final part
+            else:
+                bot.send_message(chat_id, "ℹ️ Nav sīkāku risku vai brīdinājumu, lai turpinātu ziņojumu. Pilns slēdziens Word formātā nosūtīts.", parse_mode="Markdown", reply_markup=main_menu_keyboard())
         else:
-            # Send as a single message
             bot.send_message(chat_id, final_report, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
         # Pēc apstrādes varam izdzēst failu no inbox mapes, ja tas vairs nav nepieciešams
