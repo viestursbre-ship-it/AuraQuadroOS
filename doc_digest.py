@@ -130,7 +130,7 @@ class DocDigestService:
         genai.configure(api_key=api_key)
         
         # Updated prompt text for Universal Legal Radar and Corrector
-        prompt_text = """Analizējiet šo dokumentu rūpīgi. Jūsu uzdevums ir veikt "Universālo Juridisko Radaru un Korektoru" analīzi, identificējot "zemūdens akmeņus", juridiskos un gramatiskos trūkumus, kā arī sniegt skaidru, strukturētu atskaiti JSON formātā. Atbalstītās valodas analīzei ir latviešu, angļu un itāļu.
+        prompt_text = """Analizējiet šo dokumentu rūpīgi. Jūsu uzdevums ir veikt "Universālo Juridisko Radaru un Korektoru" analīzi, identificējot "zemūdens akmeņus", juridiskos un gramatiskos trūkumus, kā arī sniegt skaidru, strukturētu atskaiti JSON formātā. Atbalstītās valodas analīzei ir latviešu, angļu, itāļu, ukraiņu un krievu.
 
 Īpaša uzmanība jāpievērš:
 -   **Līgumu tipiem**: Īres līgumiem (īpaši Itālijas 'contratto di locazione' ar terminiem kā 'deposito cauzionale', 'spese condominiali', 'cedolare secca'), pakalpojumu un biznesa līgumiem. Sniedziet šo specifisko terminu īsu skaidrojumu, ja tie ir konstatēti.
@@ -156,11 +156,11 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
     "critical_points": [], // Saraksts ar identificētiem kritiskiem punktiem vai "zemūdens akmeņiem"
     "automatic_extensions": [], // Saraksts ar automātiskajām pagarinājuma klauzulām
     "termination_clauses": [], // Saraksts ar līguma laušanas termiņiem un kārtību
-    "italian_lease_specifics": { // Specifiski Itālijas īres līguma termini, ja attiecināms
-      "deposito_cauzionale": "Paskaidrojums un summa, ja atrasts",
-      "spese_condominiali": "Paskaidrojums un maksājumu kārtība, ja atrasts",
-      "cedolare_secca": "Paskaidrojums, ja atrasts",
-      "other_specifics": [] // Citi specifiski termini
+    "italian_lease_specifics": { // This section should ONLY be populated if the document is explicitly identified as an Italian property lease. Otherwise, leave all its fields as 'N/A' or empty strings.
+      "deposito_cauzionale": "Paskaidrojums un summa, ja atrasts (N/A ja nav attiecināms)",
+      "spese_condominiali": "Paskaidrojums un maksājumu kārtība, ja atrasts (N/A ja nav attiecināms)",
+      "cedolare_secca": "Paskaidrojums, ja atrasts (N/A ja nav attiecināms)",
+      "other_specifics": [] // Citi specifiski termini (atstāt tukšu, ja nav attiecināms)
     },
     "date_audit": {
       "all_dates_found": [], // Visi datumformāti, kas atrasti dokumentā
@@ -217,37 +217,43 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
         def add_sec(title, val, level=2):
             doc.add_heading(title, level=level)
             if isinstance(val, dict):
-                if not val or all(not v for v in val.values()): # Check if dict is empty or all values are empty
+                # Check if dict is empty or all values are empty/N/A
+                if not val or all(
+                    (isinstance(v, (list, dict)) and not v) or
+                    (isinstance(v, str) and v.strip().upper() == "N/A") or
+                    (v is None) for v in val.values()
+                ):
                     doc.add_paragraph("N/A")
                     return
                 for k, v in val.items():
                     if isinstance(v, list):
-                        if v:
+                        if v and any(item for item in v if item and str(item).strip().upper() != "N/A"):
                             doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}:")
                             for item in v:
-                                doc.add_paragraph(f"  - {item}")
+                                if item and str(item).strip().upper() != "N/A":
+                                    doc.add_paragraph(f"  - {item}")
                         else:
                             doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}: N/A")
                     elif isinstance(v, dict):
-                        if v:
+                        if v and any(sub_v for sub_v in v.values() if sub_v and str(sub_v).strip().upper() != "N/A"):
                             doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}:")
                             for sub_k, sub_v in v.items():
-                                if sub_v:
+                                if sub_v and str(sub_v).strip().upper() != "N/A":
                                     doc.add_paragraph(f"  - {sub_k.replace('_', ' ').capitalize()}: {sub_v}")
                                 else:
                                     doc.add_paragraph(f"  - {sub_k.replace('_', ' ').capitalize()}: N/A")
                         else:
                             doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}: N/A")
                     else:
-                        doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}: {v if v else 'N/A'}")
+                        doc.add_paragraph(f"• {k.replace('_', ' ').capitalize()}: {v if v and str(v).strip().upper() != 'N/A' else 'N/A'}")
             elif isinstance(val, list):
-                if val and any(item for item in val if item and str(item).strip() != "N/A"): # Check if list is not empty and has meaningful content
+                if val and any(item for item in val if item and str(item).strip().upper() != "N/A"): # Check if list is not empty and has meaningful content
                     for item in val:
                         doc.add_paragraph(f"• {item}")
                 else:
                     doc.add_paragraph("N/A")
             else:
-                doc.add_paragraph(str(val if val else "N/A"))
+                doc.add_paragraph(str(val if val and str(val).strip().upper() != "N/A" else "N/A"))
         
         # General Info
         add_sec("Vispārīgā informācija", {
@@ -277,7 +283,12 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
 
         # Legal Analysis
         legal_analysis = data.get("legal_analysis", {})
-        if legal_analysis and any(legal_analysis.values()):
+        if legal_analysis and any(
+            (isinstance(v, (list, dict)) and v and any(sub_v for sub_v in (v.values() if isinstance(v, dict) else v) if sub_v and str(sub_v).strip().upper() != "N/A")) or
+            (isinstance(v, str) and v.strip().upper() != "N/A") or
+            (v is not None and not isinstance(v, (list, dict)))
+            for v in legal_analysis.values()
+        ):
             doc.add_heading("Juridiskā Analīze & Korektors", level=2)
             
             add_sec("Riska Līmenis", legal_analysis.get("risk_level", "N/A"), level=3)
@@ -286,11 +297,12 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
             add_sec("Līguma laušanas noteikumi", legal_analysis.get("termination_clauses", []), level=3)
 
             italian_specs = legal_analysis.get("italian_lease_specifics", {})
-            if italian_specs and any(v for v in italian_specs.values() if v):
+            # Only display if Italian_lease_specifics contains meaningful data (not just N/A or empty)
+            if italian_specs and any(v for v in italian_specs.values() if v and str(v).strip().upper() != "N/A"):
                  add_sec("Itālijas Īres Līguma Specifika", italian_specs, level=3)
             
             date_audit = legal_analysis.get("date_audit", {})
-            if date_audit and any(v for v in date_audit.values() if v):
+            if date_audit and any(v for v in date_audit.values() if v and (isinstance(v, list) and v or not isinstance(v, list))):
                 doc.add_heading("Datumu Audits", level=3)
                 add_sec("Atrastie Datumi", date_audit.get("all_dates_found", []), level=4)
                 add_sec("Brīdinājumi par pagātnes datumiem", date_audit.get("past_dates_warnings", []), level=4)
@@ -480,17 +492,17 @@ class DocDigestFrame(ctk.CTkFrame):
         if fin and any(v for v in fin.values() if v and (isinstance(v, list) and v or not isinstance(v, list))):
             lines.append("💵 FINANŠU NOSACĪJUMI & TERMIŅI:")
             if isinstance(fin, dict):
-                if "total_amount" in fin and fin.get('total_amount'):
+                if "total_amount" in fin and fin.get('total_amount') and str(fin.get('total_amount')).strip().upper() != "N/A":
                     lines.append(f"   • Summa / Maksa: {fin.get('total_amount', 'N/A')}")
-                if "deadlines" in fin and fin.get('deadlines'):
+                if "deadlines" in fin and fin.get('deadlines') and str(fin.get('deadlines')).strip().upper() != "N/A":
                     lines.append(f"   • Termiņi: {fin.get('deadlines', 'N/A')}")
                 hidden_costs = fin.get("hidden_costs", [])
-                if hidden_costs and any(hc.strip() != "N/A" for hc in hidden_costs):
+                if hidden_costs and any(hc.strip().upper() != "N/A" for hc in hidden_costs):
                     lines.append("   ⚠️ Slēptās izmaksas:")
                     for cost in hidden_costs:
                         lines.append(f"     - {cost}")
                 penalties = fin.get("penalties", [])
-                if penalties and any(p_item.strip() != "N/A" for p_item in penalties):
+                if penalties and any(p_item.strip().upper() != "N/A" for p_item in penalties):
                     lines.append("   🚫 Soda sankcijas:")
                     for penalty in penalties:
                         lines.append(f"     - {penalty}")
@@ -498,7 +510,7 @@ class DocDigestFrame(ctk.CTkFrame):
 
         # Legal Analysis
         legal_analysis = analysis.get("legal_analysis", {})
-        if legal_analysis and any(v for v in legal_analysis.values() if v and (isinstance(v, dict) and any(sub_v for sub_v in v.values() if sub_v) or isinstance(v, list) and v or not isinstance(v, (dict, list)))):
+        if legal_analysis and any(v for v in legal_analysis.values() if v and (isinstance(v, dict) and any(sub_v for sub_v in v.values() if sub_v and str(sub_v).strip().upper() != "N/A") or isinstance(v, list) and v and any(item.strip().upper() != "N/A" for item in v) or (isinstance(v, str) and v.strip().upper() != "N/A"))):
             lines.append("🏛️ JURIDISKĀ ANALĪZE & KOREKTORS:")
             risk_level = legal_analysis.get("risk_level", "N/A").upper()
             if risk_level == "SARKANS":
@@ -511,54 +523,55 @@ class DocDigestFrame(ctk.CTkFrame):
                 lines.append(f"   Riska līmenis: {risk_level}")
 
             critical_points = legal_analysis.get("critical_points", [])
-            if critical_points and any(cp.strip() != "N/A" for cp in critical_points):
+            if critical_points and any(cp.strip().upper() != "N/A" for cp in critical_points):
                 lines.append("   🚨 Kritiskie Punkti & 'Zemūdens Akmeņi':")
                 for cp in critical_points:
                     lines.append(f"     - {cp}")
 
             automatic_extensions = legal_analysis.get("automatic_extensions", [])
-            if automatic_extensions and any(ae.strip() != "N/A" for ae in automatic_extensions):
+            if automatic_extensions and any(ae.strip().upper() != "N/A" for ae in automatic_extensions):
                 lines.append("   🔄 Automātiskie Pagarinājumi:")
                 for ae in automatic_extensions:
                     lines.append(f"     - {ae}")
 
             termination_clauses = legal_analysis.get("termination_clauses", [])
-            if termination_clauses and any(tc.strip() != "N/A" for tc in termination_clauses):
+            if termination_clauses and any(tc.strip().upper() != "N/A" for tc in termination_clauses):
                 lines.append("   ✂️ Līguma Laušanas Noteikumi:")
                 for tc in termination_clauses:
                     lines.append(f"     - {tc}")
 
             italian_specs = legal_analysis.get("italian_lease_specifics", {})
-            if italian_specs and any(v for v in italian_specs.values() if v):
+            # Only display if Italian_lease_specifics contains meaningful data (not just N/A or empty)
+            if italian_specs and any(v for v in italian_specs.values() if v and str(v).strip().upper() != "N/A"):
                 lines.append("   🇮🇹 Itālijas Īres Līguma Specifika:")
                 for k, v in italian_specs.items():
-                    if v and str(v).strip() != "N/A": lines.append(f"     • {k.replace('_', ' ').capitalize()}: {v}")
+                    if v and str(v).strip().upper() != "N/A": lines.append(f"     • {k.replace('_', ' ').capitalize()}: {v}")
 
             date_audit = legal_analysis.get("date_audit", {})
-            if date_audit and any(v for v in date_audit.values() if v):
+            if date_audit and any(v for v in date_audit.values() if v and (isinstance(v, list) and v and any(item.strip().upper() != "N/A" for item in v) or (isinstance(v, str) and v.strip().upper() != "N/A"))):
                 lines.append("   🗓️ Datumu Audits:")
                 all_dates = date_audit.get("all_dates_found", [])
-                if all_dates and any(d.strip() != "N/A" for d in all_dates):
+                if all_dates and any(d.strip().upper() != "N/A" for d in all_dates):
                     lines.append(f"     • Atrastie datumi: {', '.join(all_dates)}")
                 past_warnings = date_audit.get("past_dates_warnings", [])
-                if past_warnings and any(w.strip() != "N/A" for w in past_warnings):
+                if past_warnings and any(w.strip().upper() != "N/A" for w in past_warnings):
                     lines.append("     ❗ Pagātnes datumu brīdinājumi:")
                     for w in past_warnings:
                         lines.append(f"       - {w}")
                 illogical_ranges = date_audit.get("illogical_date_ranges", [])
-                if illogical_ranges and any(ir.strip() != "N/A" for ir in illogical_ranges):
+                if illogical_ranges and any(ir.strip().upper() != "N/A" for ir in illogical_ranges):
                     lines.append("     ❌ Neloģiski datumu diapazoni:")
                     for ir in illogical_ranges:
                         lines.append(f"       - {ir}")
 
             gram_corrections = legal_analysis.get("grammatical_corrections", [])
-            if gram_corrections and any(gc.strip() != "N/A" for gc in gram_corrections):
+            if gram_corrections and any(gc.strip().upper() != "N/A" for gc in gram_corrections):
                 lines.append("   📝 Gramatikas & Pārrakstīšanās Labojumi:")
                 for gc in gram_corrections:
                     lines.append(f"     - {gc}")
 
             party_inconsistencies = legal_analysis.get("party_name_inconsistencies", [])
-            if party_inconsistencies and any(pi.strip() != "N/A" for pi in party_inconsistencies):
+            if party_inconsistencies and any(pi.strip().upper() != "N/A" for pi in party_inconsistencies):
                 lines.append("   👤 Pušu Nosaukumu Neatbilstības:")
                 for pi in party_inconsistencies:
                     lines.append(f"     - {pi}")
@@ -566,7 +579,7 @@ class DocDigestFrame(ctk.CTkFrame):
 
         # Suggested Corrections
         suggested_corrections = analysis.get("suggested_corrections", [])
-        if suggested_corrections and any(sc.strip() != "N/A" for sc in suggested_corrections):
+        if suggested_corrections and any(sc.strip().upper() != "N/A" for sc in suggested_corrections):
             lines.append("💡 IETEIKTIE LABOJUMI:")
             for sc in suggested_corrections:
                 lines.append(f"   • {sc}")
@@ -574,20 +587,20 @@ class DocDigestFrame(ctk.CTkFrame):
 
         # Summary
         summary = analysis.get("summary", "Nav pieejams.")
-        if summary.strip() != "N/A" and summary.strip() != "":
+        if summary.strip().upper() != "N/A" and summary.strip() != "":
             lines.append("💬 KOPSAVILKUMS (cilvēcīgā valodā):")
             lines.append(f"   {summary}\n")
 
         # Existing risks_warnings (keeping for now, potentially can be deprecated if critical_points is sufficient)
         risks = analysis.get("risks_warnings", [])
-        if risks and any(r_item for r_item in risks if r_item and r_item.strip() != "N/A" and r_item.strip() != ""):
+        if risks and any(r_item for r_item in risks if r_item and r_item.strip().upper() != "N/A" and r_item.strip() != ""):
             lines.append("⚠️ VISPĀRĒJI RISKI & BRĪDINĀJUMI:")
             if isinstance(risks, list):
                 for r_item in risks:
-                    if r_item and r_item.strip() != "N/A" and r_item.strip() != "":
+                    if r_item and r_item.strip().upper() != "N/A" and r_item.strip() != "":
                         lines.append(f"   🚩 {r_item}")
             else:
-                if risks and risks.strip() != "N/A" and risks.strip() != "":
+                if risks and risks.strip().upper() != "N/A" and risks.strip() != "":
                     lines.append(f"   🚩 {risks}")
             lines.append("")
 
