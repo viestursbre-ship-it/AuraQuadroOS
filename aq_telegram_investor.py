@@ -271,8 +271,9 @@ def doc_digest_analysis(file_path: Path):
     if not GEMINI_KEY:
         return {
             "risk_level": "⚠️ Kritiskas Kļūda",
-            "critical_points": ["Gemini API atslēga nav konfigurēta."],
-            "warnings": [],
+            "contract_subject_parties": "Nav definēts bez AI.",
+            "main_risks_pitfalls": ["Gemini API atslēga nav konfigurēta."],
+            "date_warnings": [],
             "summary": "Nevar veikt dokumenta analīzi bez API atslēgas. Lūdzu, konfigurējiet to."
         }
     
@@ -288,13 +289,16 @@ def doc_digest_analysis(file_path: Path):
         
         # Simulētais saturs dokumenta analīzei
         # Reālajā scenārijā te būtu koda, kas izvelk tekstu no PDF (PyPDF2) vai DOCX (python-docx).
-        simulated_content = f"""Šis ir testa juridiskais dokuments '{file_path.name}'. Tas ietver noteikumus par ieguldījumu mehānismu, peļņas sadali, riska atrunu un atbildību. Ir pieminēta iespējama arbitrāža strīdu gadījumā un ieguldījuma atgūšanas termiņi. Dokumentā ir vairākas dzelžainas klauzulas par datu aizsardzību un konfidencialitāti, taču trūkst skaidru sodu par noteikumu pārkāpumiem. Ieguldītājs piekrīt noteikumiem, kas var tikt mainīti ar 30 dienu brīdinājuma periodu. Ja fails ir 'risk_contract.pdf', tad riska līmenis ir augsts."""
+        simulated_content = f"""Šis ir testa juridiskais dokuments '{file_path.name}'. Līguma priekšmets ir vispārīga sadarbība starp Piegādātāju un Klientu. Tas ietver noteikumus par pakalpojumu sniegšanu, samaksu un atbildību. Ir pieminēta iespējama arbitrāža strīdu gadījumā un līguma izbeigšanas termiņi. Dokumentā ir vairākas dzelžainas klauzulas par datu aizsardzību un konfidencialitāti, taču trūkst skaidru sodu par noteikumu pārkāpumiem. Līgums stājas spēkā ar 2024-01-01 un beidzas 2024-12-31.
+"""
         
         # Pielāgojam simulēto saturu, lai variētu AI atbildes
         if "risk_contract" in file_path.name.lower():
-            simulated_content = f"""Šis ir 'risk_contract.pdf' dokuments. Tas detalizēti apraksta augsta riska ieguldījumus, kas paredz būtisku kapitāla zuduma iespējamību. Ir īpaši izceltas klauzulas par ierobežotu investoru aizsardzību un atteikšanos no juridiskām pretenzijām pret emitentu. Peļņas potenciāls ir augsts, bet kopsavilkums brīdina par "kritisku tirgus nestabilitātes faktoru". Nekavējoties jāpievērš uzmanība 7. sadaļai par "Nepārvaramas varas" apstākļiem."""
+            simulated_content = f"""Šis ir 'risk_contract.pdf' dokuments. Līguma priekšmets ir augsta riska derivātu tirdzniecība starp Investoru Alfa un Risku Banku Omega. Tas detalizēti apraksta augsta riska ieguldījumus, kas paredz būtisku kapitāla zuduma iespējamību. Ir īpaši izceltas klauzulas par ierobežotu investoru aizsardzību un atteikšanos no juridiskām pretenzijām pret emitentu. Līgums automātiski pagarināsies katru gadu, ja vien 90 dienas pirms termiņa beigām netiks iesniegts rakstisks paziņojums. Peļņas potenciāls ir augsts, bet kopsavilkums brīdina par "kritisku tirgus nestabilitātes faktoru". Nekavējoties jāpievērš uzmanība 7. sadaļai par "Nepārvaramas varas" apstākļiem. Līguma sākuma datums ir 2022-01-01, bet izbeigšanas datums norādīts kā 2021-12-31, kas ir acīmredzama kļūda.
+"""
         elif "safe_agreement" in file_path.name.lower():
-             simulated_content = f"""Šis ir 'safe_agreement.docx' dokuments. Tas ir standarta investīciju līgums ar zemu risku. Nodrošināta augsta investoru aizsardzība, skaidri definēti peļņas sadales nosacījumi un robustas strīdu risināšanas procedūras. Tomēr iekļauta viena piezīme par to, ka ikgadējā atskaite var aizkavēties par līdz 7 dienām."""
+             simulated_content = f"""Šis ir 'safe_agreement.docx' dokuments. Līguma priekšmets ir standarta investīciju līgums par stabilu nekustamā īpašuma ieguldījumu starp SIA "Zaļās Investīcijas" un Privāto Ieguldītāju. Nodrošināta augsta investoru aizsardzība, skaidri definēti peļņas sadales nosacījumi un robustas strīdu risināšanas procedūras. Tomēr iekļauta viena piezīme par to, ka ikgadējā atskaite var aizkavēties par līdz 7 dienām. Nav automātisku pagarinājumu. Visi datumi ir loģiski un aktuāli, līgums stājas spēkā ar 2024-06-01.
+"""
         
         prompt = f"""Tu esi "AQ-OS Juridiskais Analītiķis", Komandanta Kvarka labā roka dokumentu auditā.
 Analizē šo dokumentu ({file_path.name}) saturu:
@@ -302,15 +306,18 @@ Analizē šo dokumentu ({file_path.name}) saturu:
 {simulated_content}
 ---
 
-Nodrošini strukturētu atskaiti šādā formātā, stingri ievērojot latviešu valodu un militāri-taktisku toni. Atskaitei jābūt īsai un precīzai.
+Nodrošini strukturētu, militāri precīzu un kodolīgu atskaiti latviešu valodā. Izcel galvenos punktus un riskus.
+Formāts, kas JĀIEVĒRO Dzelžaini:
 Riska Līmenis: [Zems/Vidējs/Augsts/Kritisks]
-Kritiskie Punkti:
-- [Īss punkts 1]
-- [Īss punkts 2]
-Brīdinājumi:
-- [Īss brīdinājums 1]
-- [Īss brīdinājums 2]
-Kopsavilkums: [Cilvēcīgā valodā, ne vairāk kā 3 teikumi]
+Līguma Priekšmets un Puses: [Īss apraksts, piem., "Investīciju līgums starp X un Y"]
+Galvenie Riski un Zemūdens Akmeņi:
+- [Specifisks risks, piem., "Automātiska pagarināšana"]
+- [Specifisks risks, piem., "Slēptās izmaksas"]
+- [Specifisks risks, piem., "Sankciju klauzulas"]
+Datumu Brīdinājumi:
+- [Datums un problēma, piem., "Termiņš pagājis: 2023-01-01"]
+- [Datums un problēma, piem., "Neloģisks termiņš: sākums pēc beigām"]
+Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 teikumi.]
 """
         
         response = model.generate_content(prompt)
@@ -318,15 +325,15 @@ Kopsavilkums: [Cilvēcīgā valodā, ne vairāk kā 3 teikumi]
         
         parsed_response = {
             "risk_level": "Neskaidrs",
-            "critical_points": [],
-            "warnings": [],
+            "contract_subject_parties": "Nav definēts.",
+            "main_risks_pitfalls": [],
+            "date_warnings": [],
             "summary": "Neizdevās analizēt Gemini atbildi."
         }
         
         lines = response_text.split('\n')
         current_section = None
-        temp_summary_lines = [] # Pagaidu saraksts kopsavilkuma rindām
-
+        
         for line in lines:
             line = line.strip()
             if not line:
@@ -335,32 +342,25 @@ Kopsavilkums: [Cilvēcīgā valodā, ne vairāk kā 3 teikumi]
             if line.startswith("Riska Līmenis:"):
                 parsed_response["risk_level"] = line.replace("Riska Līmenis:", "").strip()
                 current_section = None
-            elif line.startswith("Kritiskie Punkti:"):
-                current_section = "critical_points"
-            elif line.startswith("Brīdinājumi:"):
-                current_section = "warnings"
+            elif line.startswith("Līguma Priekšmets un Puses:"):
+                parsed_response["contract_subject_parties"] = line.replace("Līguma Priekšmets un Puses:", "").strip()
+                current_section = None
+            elif line.startswith("Galvenie Riski un Zemūdens Akmeņi:"):
+                current_section = "main_risks_pitfalls"
+            elif line.startswith("Datumu Brīdinājumi:"):
+                current_section = "date_warnings"
             elif line.startswith("Kopsavilkums:"):
-                # Sākam vākt kopsavilkuma rindas
                 parsed_response["summary"] = line.replace("Kopsavilkums:", "").strip()
-                current_section = "summary_collect"
-            elif line.startswith("- ") and current_section in ["critical_points", "warnings"]:
+                current_section = None 
+            elif line.startswith("- ") and current_section in ["main_risks_pitfalls", "date_warnings"]:
                 parsed_response[current_section].append(line[2:].strip())
-            elif current_section == "summary_collect":
-                temp_summary_lines.append(line)
-            # Rezerves gadījums, ja Gemini atgriež tikai vienkāršu tekstu
+            # Fallback for summary if it somehow spills over or is the only text
             elif parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi." and current_section is None:
                 parsed_response["summary"] = line
 
-        # Ja kopsavilkums tika savākts vairākās rindās
-        if temp_summary_lines:
-            # Pievienojam jau sākumā atrasto kopsavilkuma daļu
-            if parsed_response["summary"] != "Neizdevās analizēt Gemini atbildi.":
-                temp_summary_lines.insert(0, parsed_response["summary"])
-            parsed_response["summary"] = ' '.join(temp_summary_lines)
-
         # Pamata pārbaudes, ja riska līmenis nav skaidri definēts
         if parsed_response["risk_level"] == "Neskaidrs":
-            if parsed_response["critical_points"] or parsed_response["warnings"]:
+            if parsed_response["main_risks_pitfalls"] or parsed_response["date_warnings"]:
                 parsed_response["risk_level"] = "Vidējs" # Ja ir punkti/brīdinājumi, tad vismaz vidējs
             else:
                 parsed_response["risk_level"] = "Zems" # Ja nav, tad zems
@@ -370,8 +370,9 @@ Kopsavilkums: [Cilvēcīgā valodā, ne vairāk kā 3 teikumi]
     except Exception as e:
         return {
             "risk_level": "⚠️ Kritiskas Kļūda",
-            "critical_points": [f"Gemini analīzes kļūda: {e}"],
-            "warnings": [],
+            "contract_subject_parties": "Nav definēts kļūdas dēļ.",
+            "main_risks_pitfalls": [f"Gemini analīzes kļūda: {e}"],
+            "date_warnings": [],
             "summary": "Neizdevās veikt dokumenta analīzi. Sazinieties ar Komandantu."
         }
 
@@ -637,43 +638,83 @@ def handle_docs(message):
         # Izsaucam doc_digest analīzes moduli šim failam
         report_data = doc_digest_analysis(save_path) # Padodam Path objektu
         
-        # Pēc apstrādes nosūtām čatā strukturētu atskaiti
-        risk_level_line = f"Riska Līmenis: *{report_data['risk_level']}*"
+        # Map risk level to color emoji for presentation
+        risk_map = {
+            "Zems": "🟢 Zaļš",
+            "Vidējs": "🟡 Dzeltens",
+            "Augsts": "🟠 Oranžs", 
+            "Kritisks": "🔴 Sarkans",
+            "Neskaidrs": "⚪ Nezināms",
+            "⚠️ Kritiskas Kļūda": "🔴 Kļūda"
+        }
         
-        critical_points_lines = []
-        if report_data['critical_points']:
-            critical_points_lines.append("*Kritiskie Punkti:*")
-            critical_points_lines.extend([f"- {cp}" for cp in report_data['critical_points']])
-        
-        warnings_lines = []
-        if report_data['warnings']:
-            warnings_lines.append("*Brīdinājumi:*")
-            warnings_lines.extend([f"- {w}" for w in report_data['warnings']])
-            
-        summary_line = f"*Kopsavilkums:* {report_data['summary']}"
-        
-        # Asamblejam galīgo ziņojumu, ievērojot Bruno noteikumus par f-string slīpsvītrām
+        display_risk = risk_map.get(report_data['risk_level'], f"⚪ {report_data['risk_level']}")
+
+        # Build report parts
         report_parts = []
         report_parts.append("📄 *DOKUMENTA JURIDISKAIS AUDITS (AQ-OS)*")
         report_parts.append("──────────────────────────")
-        report_parts.append(risk_level_line)
+        report_parts.append(f"🚦 Riska līmenis: *{display_risk}*")
+        report_parts.append(f"📌 Līguma priekšmets un Puses: `{report_data['contract_subject_parties']}`")
         
-        if critical_points_lines:
-            report_parts.append("") # Tukša rinda atstarpei
-            report_parts.append('\n'.join(critical_points_lines))
+        main_risks_text = ""
+        if report_data['main_risks_pitfalls']:
+            main_risks_text = "\n".join([f"- {cp}" for cp in report_data['main_risks_pitfalls']])
+            report_parts.append(f"⚠️ Galvenie riski un 'zemūdens akmeņi':\n{main_risks_text}")
         
-        if warnings_lines:
-            report_parts.append("") # Tukša rinda atstarpei
-            report_parts.append('\n'.join(warnings_lines))
-        
-        report_parts.append("") # Tukša rinda atstarpei
-        report_parts.append(summary_line)
+        date_warnings_text = ""
+        if report_data['date_warnings']:
+            date_warnings_text = "\n".join([f"- {dw}" for dw in report_data['date_warnings']])
+            report_parts.append(f"📅 Datumu brīdinājumi:\n{date_warnings_text}")
+            
+        report_parts.append(f"📝 Kopsavilkums: {report_data['summary']}")
         report_parts.append("──────────────────────────")
         report_parts.append("Status: Audits pabeigts. Komandants Kvarks gaida turpmākās instrukcijas.")
         
-        final_report = '\n'.join(report_parts)
+        final_report = '\n\n'.join(report_parts) # Use double newline for better readability between sections
+
+        # Message splitting logic for Telegram's 4096 character limit
+        MAX_TELEGRAM_MESSAGE_LENGTH = 4096
         
-        bot.send_message(chat_id, final_report, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+        if len(final_report) > MAX_TELEGRAM_MESSAGE_LENGTH:
+            # Strategy: Send critical info first, then detailed risks/warnings
+            
+            # Part 1: Header, Risk Level, Contract Subject/Parties, Summary
+            part1_sections = [
+                "📄 *DOKUMENTA JURIDISKAIS AUDITS (AQ-OS)*",
+                "──────────────────────────",
+                f"🚦 Riska līmenis: *{display_risk}*",
+                f"📌 Līguma priekšmets un Puses: `{report_data['contract_subject_parties']}`",
+                f"📝 Kopsavilkums: {report_data['summary']}",
+                "──────────────────────────",
+                "Status: Audits pabeigts. (1/2)"
+            ]
+            part1 = '\n\n'.join(part1_sections)
+            bot.send_message(chat_id, part1, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+            
+            # Part 2: Main Risks, Date Warnings (if any), continuation status
+            part2_sections = []
+            if main_risks_text:
+                part2_sections.append(f"⚠️ Galvenie riski un 'zemūdens akmeņi':\n{main_risks_text}")
+            if date_warnings_text:
+                part2_sections.append(f"📅 Datumu brīdinājumi:\n{date_warnings_text}")
+            
+            if part2_sections:
+                part2_sections.insert(0, "📄 *AUDITA TURPINĀJUMS (2/2)*")
+                part2_sections.append("──────────────────────────")
+                part2_sections.append("Komandants Kvarks gaida turpmākās instrukcijas.")
+                part2 = '\n\n'.join(part2_sections)
+                
+                # Double-check if part2 itself is too long
+                if len(part2) > MAX_TELEGRAM_MESSAGE_LENGTH:
+                    # If even the second part is too long, truncate it or send a warning
+                    bot.send_message(chat_id, "⚠️ Papildu detaļas ir pārāk garas, lai nosūtītu visu. Sazinieties ar Komandanta štābu.", parse_mode="Markdown", reply_markup=main_menu_keyboard())
+                else:
+                    bot.send_message(chat_id, part2, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+            # If no risks/warnings, part1 already sent the full status.
+        else:
+            # Send as a single message
+            bot.send_message(chat_id, final_report, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
         # Pēc apstrādes varam izdzēst failu no inbox mapes, ja tas vairs nav nepieciešams
         # save_path.unlink(missing_ok=True) # Jāizlemj, vai dzēst. Drošības pēc atstājam iesūtnē.
