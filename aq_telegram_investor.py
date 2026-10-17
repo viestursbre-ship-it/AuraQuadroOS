@@ -256,7 +256,7 @@ Maksimums 4-6 teikumi, skaidrā latviešu valodā ar enerģisku toni."""
 
     try:
         genai.configure(api_key=GEMINI_KEY)
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash") # Šis modelis jau ir korekts
         res = model.generate_content(prompt)
         return f"🐾 *KOMANDANTA KVARKA AUDITS:*\n──────────────────────────\n{res.text}"
     except Exception as e:
@@ -278,7 +278,13 @@ def doc_digest_analysis(file_path: Path):
     
     try:
         genai.configure(api_key=GEMINI_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash") # Izmantojam flash modeli dokumentu analīzei
+        
+        # Mēģinām izmantot gemini-2.5-flash, ar atkritienu uz gemini-2.0-flash
+        try:
+            model = genai.GenerativeModel("gemini-2.5-flash")
+        except Exception:
+            print("WARNING: gemini-2.5-flash nav pieejams, izmantoju gemini-2.0-flash.")
+            model = genai.GenerativeModel("gemini-2.0-flash") # Atkritiens uz stabilu modeli
         
         # Simulētais saturs dokumenta analīzei
         # Reālajā scenārijā te būtu koda, kas izvelk tekstu no PDF (PyPDF2) vai DOCX (python-docx).
@@ -389,12 +395,13 @@ def main_menu_keyboard():
     b3 = types.InlineKeyboardButton("🌡️ Tirgus Klimats", callback_data="btn_sentiment")
     b4 = types.InlineKeyboardButton("🕵️ Insaideri & Ziņas", callback_data="btn_intel")
     b5 = types.InlineKeyboardButton("🐾 Kvarka Audits", callback_data="btn_audit")
-    b6 = types.InlineKeyboardButton("⚙️ Pārvaldīt Tikerus", callback_data="btn_manage")
-    b7 = types.InlineKeyboardButton("🔄 Atjaunot", callback_data="btn_refresh")
+    b6 = types.InlineKeyboardButton("📑 Līgumu Audits", callback_data="btn_contract_audit") # JAUNA POGA
+    b7 = types.InlineKeyboardButton("⚙️ Pārvaldīt Tikerus", callback_data="btn_manage")
+    b8 = types.InlineKeyboardButton("🔄 Atjaunot", callback_data="btn_refresh")
     markup.add(b1, b2)
     markup.add(b3, b4)
-    markup.add(b5)
-    markup.add(b6, b7)
+    markup.add(b5, b6) # Pievienojam jauno pogu esošajā rindā
+    markup.add(b7, b8)
     return markup
 
 # --- TELEGRAM HANDLERI ---
@@ -521,6 +528,15 @@ def handle_callbacks(call):
         bot.send_message(chat_id, "🐾 *Kvarks pieslēdzas analīzei...*", parse_mode="Markdown")
         text = run_quark_audit()
         bot.send_message(chat_id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+    
+    # JAUNS HANDLERIS LĪGUMU AUDITA POGAI
+    elif call.data == "btn_contract_audit":
+        bot.answer_callback_query(call.id, "Komandants Kvarks gaida dokumentu skenēšanai...")
+        instruction_message = (
+            "📎 Lai veiktu līguma auditu, piespiediet saspraudes ikonu apakšā un nosūtiet "
+            "`.pdf` vai `.docx` dokumentu. Komandants Kvarks to nekavējoties izskatīs!"
+        )
+        bot.send_message(chat_id, instruction_message, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
     elif call.data == "btn_refresh":
         bot.answer_callback_query(call.id, "Atjaunots!")
