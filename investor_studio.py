@@ -6,7 +6,7 @@ import threading
 from pathlib import Path
 import customtkinter as ctk
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timedelta
 
 try:
     import google.generativeai as genai
@@ -14,9 +14,19 @@ try:
 except ImportError:
     HAS_GENAI = False
 
+try:
+    from docx import Document
+    from docx.shared import Inches
+    HAS_DOCX = True
+except ImportError:
+    HAS_DOCX = False
+
 BASE_DIR = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 PORTFOLIO_FILE = BASE_DIR / "portfolio.json"
+OUTBOX_DIR = BASE_DIR / "storage" / "outbox"
+OUTBOX_DIR.mkdir(parents=True, exist_ok=True) # Ensure outbox directory exists
 
+# Existing GROWTH_WATCHLIST - will be used as initial suggestions for AI
 GROWTH_WATCHLIST = [
     {"ticker": "PLTR", "name": "Palantir (Enterprise AI / Defense)"},
     {"ticker": "ARM", "name": "ARM Holdings (AI & Mobile Chips)"},
@@ -413,28 +423,79 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         ctk.CTkLabel(left, text="🚀 POTENCIĀLA RADARS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
         ctk.CTkLabel(left, text="Perspektīvi izaugsmes uzņēmumi (AI, čipi, aizsardzība):", font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(0, 10))
 
-        scroll = ctk.CTkScrollableFrame(left, fg_color="#0b1329", height=240)
-        scroll.pack(fill="both", expand=True, padx=15, pady=(0, 10))
+        # Dynamic list of growth candidates (initially from GROWTH_WATCHLIST, then from AI)
+        self.growth_candidates_container = ctk.CTkScrollableFrame(left, fg_color="#0b1329", height=240)
+        self.growth_candidates_container.pack(fill="both", expand=True, padx=15, pady=(0, 10))
+        self._populate_growth_watchlist(GROWTH_WATCHLIST) # Initial population
 
-        for item in GROWTH_WATCHLIST:
-            card = ctk.CTkFrame(scroll, fg_color="#131b2e", corner_radius=6)
-            card.pack(fill="x", pady=4, padx=2)
-            ctk.CTkLabel(card, text=item["ticker"], font=ctk.CTkFont(size=12, weight="bold"), text_color="#38bdf8").pack(side="left", padx=8, pady=4)
-            ctk.CTkLabel(card, text=item["name"], font=ctk.CTkFont(size=10), text_color="#cbd5e1").pack(side="left", padx=4)
-            ctk.CTkButton(card, text="Pārbaudīt", width=65, height=22, fg_color="#0284c7", font=ctk.CTkFont(size=10), command=lambda t=item["ticker"]: self._inspect_growth(t)).pack(side="right", padx=6)
+        # Progress bar and status label for Growth Hunter
+        self.growth_status_label = ctk.CTkLabel(left, text="Gaidu Komandanta Kvarka rīkojumus...", font=ctk.CTkFont(size=11), text_color="#94a3b8")
+        self.growth_status_label.pack(anchor="w", padx=15, pady=(5, 0))
+        self.growth_progress_bar = ctk.CTkProgressBar(left, mode="determinate", height=10, corner_radius=5)
+        self.growth_progress_bar.set(0)
+        self.growth_progress_bar.pack(fill="x", padx=15, pady=(0, 10))
+        self.growth_progress_bar.configure(determinate_speed=0.5) # Make it visually active even with fast updates
+        self.growth_progress_bar.pack_forget() # Hide initially
 
         # RENAMED BUTTON
         self.btn_scan_all_growth = ctk.CTkButton(left, text="🚀 Medīt Jaunos Vienradžus", height=34, fg_color="#d97706", hover_color="#b45309", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_growth_hunter)
         self.btn_scan_all_growth.pack(fill="x", padx=15, pady=(0, 15))
 
-        # Replaced Textbox with ScrollableFrame for dynamic cards
+        # Right pane: AI Growth Resolution
         ctk.CTkLabel(right, text="🎯 IZAUGSMES REZOLŪCIJA & RISKA NOVĒRTĒJUMS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6))
+        
+        # Action buttons for right pane results
+        growth_action_buttons_frame = ctk.CTkFrame(right, fg_color="transparent")
+        growth_action_buttons_frame.pack(fill="x", padx=15, pady=(0, 6))
+
+        self.btn_copy_growth = ctk.CTkButton(
+            growth_action_buttons_frame,
+            text="📋 Kopēt analīzi",
+            width=130,
+            height=28,
+            fg_color="#334155",
+            hover_color="#475569",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            command=self.copy_growth_analysis
+        )
+        self.btn_copy_growth.pack(side="left", padx=(0, 8))
+
+        self.btn_export_word = ctk.CTkButton(
+            growth_action_buttons_frame,
+            text="📄 Saglabāt Word (.docx)",
+            width=180,
+            height=28,
+            fg_color="#334155",
+            hover_color="#475569",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            command=self.export_growth_to_word
+        )
+        self.btn_export_word.pack(side="left")
+
         self.growth_results_container = ctk.CTkScrollableFrame(right, fg_color="#0b1329", corner_radius=8)
         self.growth_results_container.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
         initial_label = ctk.CTkLabel(self.growth_results_container, text="Izvēlieties uzņēmumu vai nospiediet '🚀 Medīt Jaunos Vienradžus', lai Kvarks atlasa nākamo lielo lēcienu...",
                                      font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400)
         initial_label.pack(fill="x", padx=10, pady=10)
+
+        self.growth_current_candidates_data = [] # To store the AI generated candidates for copy/export
+
+    def _populate_growth_watchlist(self, items):
+        """Populates the left growth candidates container with buttons."""
+        for widget in self.growth_candidates_container.winfo_children():
+            widget.destroy()
+
+        if not items:
+            ctk.CTkLabel(self.growth_candidates_container, text="Nav atlasīti vienradžu kandidāti.", font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5)
+            return
+
+        for item in items:
+            card = ctk.CTkFrame(self.growth_candidates_container, fg_color="#131b2e", corner_radius=6)
+            card.pack(fill="x", pady=4, padx=2)
+            ctk.CTkLabel(card, text=item.get("ticker", "N/A"), font=ctk.CTkFont(size=12, weight="bold"), text_color="#38bdf8").pack(side="left", padx=8, pady=4)
+            ctk.CTkLabel(card, text=item.get("name", "N/A"), font=ctk.CTkFont(size=10), text_color="#cbd5e1").pack(side="left", padx=4)
+            ctk.CTkButton(card, text="Pārbaudīt", width=65, height=22, fg_color="#0284c7", font=ctk.CTkFont(size=10), command=lambda t=item.get("ticker"): self._inspect_growth(t)).pack(side="right", padx=6)
 
 
     def _inspect_growth(self, ticker):
@@ -448,19 +509,31 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         for widget in self.growth_results_container.winfo_children():
             widget.destroy()
         
-        loading_label = ctk.CTkLabel(self.growth_results_container, text="Kvarks apkopo datus par visiem izaugsmes kandidātiem un meklē vienradžus...\n",
-                                     font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400)
-        loading_label.pack(fill="x", padx=10, pady=10)
+        # Clear left candidate list for new ones
+        for widget in self.growth_candidates_container.winfo_children():
+            widget.destroy()
+        ctk.CTkLabel(self.growth_candidates_container, text="🔍 Kvarks skenē... Gaidiet jaunus kandidātus!", 
+                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5)
+
+
+        self.growth_progress_bar.set(0)
+        self.growth_progress_bar.pack(fill="x", padx=15, pady=(0, 10))
+        self.growth_status_label.configure(text="🔍 Kvarks skenē tirgu un vāc datus par vienradžiem...")
 
         threading.Thread(target=self._growth_worker, daemon=True).start()
 
     def _growth_worker(self):
+        self.after(0, lambda: self.growth_progress_bar.set(0.1))
+
         growth_data = []
         for g in GROWTH_WATCHLIST:
-            # Fetch richer data for growth analysis, including summary for qualitative aspects
             _, payload = self._fetch_stock_data(g["ticker"])
-            if payload:
+            if payload and "error" not in payload:
                 growth_data.append(payload)
+            self.after(0, lambda: self.growth_progress_bar.set(self.growth_progress_bar.get() + 0.8 / len(GROWTH_WATCHLIST)))
+        
+        self.after(0, lambda: self.growth_status_label.configure(text="📊 Atlasa jaunos vienradžus ar AI analīzi..."))
+        self.after(0, lambda: self.growth_progress_bar.set(0.9))
 
         api_key = self.get_gemini_key() if self.get_gemini_key else os.environ.get("GEMINI_API_KEY", "")
         
@@ -471,9 +544,8 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         if api_key and HAS_GENAI and growth_data:
             try:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-2.5-flash")
-                
-                # Kvarks's 4 golden criteria
+                model = genai.GenerativeModel("gemini-2.5-flash") # gemini-1.5-pro supports response_mime_type
+
                 kvark_criteria_prompt = """
                 Komandanta Kvarka 4 zelta kritēriji Jauno Vienradžu medībām:
                 1.  **Revenue Growth > 30-50%**: Spēcīga ieņēmumu izaugsme (vismaz virs 30%, ideāli virs 50%). Novērtēt pēc "summary" vai vispārējās tirgus izpratnes.
@@ -501,17 +573,27 @@ JSON atbildē ir jābūt diviem laukiem:
 
 Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."""
                 
+                # Using generation_config to ensure JSON output if model supports it
+                # For gemini-2.5-flash, direct response_mime_type in generate_content might not be available
+                # or require a specific client version. Stick to cleaning for robustness.
+                
                 resp = model.generate_content(prompt)
                 json_response_str = resp.text.strip()
                 
-                # Attempt to parse JSON
+                # CRITICAL FIX: Clean the response from markdown blocks
+                if json_response_str.startswith("```json"):
+                    json_response_str = json_response_str[len("```json"):].strip()
+                if json_response_str.endswith("```"):
+                    json_response_str = json_response_str[:-len("```")].strip()
+
+                # Ensure safe JSON parsing
                 try:
                     parsed_response = json.loads(json_response_str)
                     unicorn_candidates = parsed_response.get("unicorn_candidates", [])
                     sector_concentration_warning = parsed_response.get("sector_concentration_warning", "")
                     reply_fallback = "" # If successful, clear fallback
-                except json.JSONDecodeError:
-                    reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi, nevis JSON. Daļa: {json_response_str[:500]}..."
+                except json.JSONDecodeError as jde:
+                    reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {jde}. Daļa: {json_response_str[:500]}..."
                     unicorn_candidates = []
                     sector_concentration_warning = "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API."
 
@@ -522,13 +604,22 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             reply_fallback = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
             sector_concentration_warning = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
 
+        self.growth_current_candidates_data = unicorn_candidates # Store for copy/export
+
         def _ui():
             self.btn_scan_all_growth.configure(state="normal", text="🚀 Medīt Jaunos Vienradžus")
-            
-            # Clear all widgets in the container
+            self.growth_progress_bar.set(1.0)
+            self.growth_progress_bar.pack_forget() # Hide progress bar
+            self.growth_status_label.configure(text="✅ Analīze pabeigta!")
+            self.after(3000, lambda: self.growth_status_label.configure(text="Gaidu Komandanta Kvarka rīkojumus..."))
+
+            # Clear all widgets in the right container
             for widget in self.growth_results_container.winfo_children():
                 widget.destroy()
-            
+
+            # Populate left pane with AI candidates
+            self._populate_growth_watchlist(unicorn_candidates) # Use AI-selected candidates for left pane
+
             if sector_concentration_warning:
                 warning_label = ctk.CTkLabel(self.growth_results_container, text=f"🚩 Sarkanais Karogs: {sector_concentration_warning}", 
                                              font=ctk.CTkFont(size=12, weight="bold"), text_color="#dc2626", wraplength=400)
@@ -568,6 +659,77 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 fallback_label.pack(fill="x", padx=10, pady=10)
 
         self.after(0, _ui)
+
+    def copy_growth_analysis(self):
+        text_to_copy_parts = []
+        if hasattr(self, 'growth_current_candidates_data') and self.growth_current_candidates_data:
+            text_to_copy_parts.append("🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀\n")
+            if self.growth_current_candidates_data and self.growth_current_candidates_data[0].get("sector_concentration_warning"):
+                 text_to_copy_parts.append(f"🚩 Sarkanais Karogs: {self.growth_current_candidates_data[0].get('sector_concentration_warning')}\n")
+
+            for idx, candidate in enumerate(self.growth_current_candidates_data):
+                text_to_copy_parts.append(f"--- Kandidāts {idx+1}: {candidate.get('ticker', 'N/A')} - {candidate.get('name', 'N/A')} ---\n")
+                text_to_copy_parts.append(f"   Slepenais ierocis (Niša): {candidate.get('niche', 'N/A')}\n")
+                text_to_copy_parts.append(f"   Kāpēc 10x-100x: {candidate.get('why_10x_100x', 'N/A')}\n")
+                text_to_copy_parts.append(f"   Melnais Gulbis (risks): {candidate.get('black_swan_risk', 'N/A')}\n")
+                text_to_copy_parts.append("\n")
+            text_to_copy_parts.append("----------------------------------------\n")
+            text_to_copy_parts.append("⚡ Ģenerēts ar AQ-OS Investor Studio")
+        else:
+            text_to_copy_parts.append(self.growth_results_container.winfo_children()[0].cget("text")) # Fallback to initial message
+
+        text_to_copy = "\n".join(text_to_copy_parts).strip()
+
+        if not text_to_copy or "Izvēlieties uzņēmumu" in text_to_copy:
+            return
+
+        try:
+            self.clipboard_clear()
+            self.clipboard_append(text_to_copy)
+            self.update()
+
+            orig_text = self.btn_copy_growth.cget("text")
+            orig_color = self.btn_copy_growth.cget("fg_color")
+            self.btn_copy_growth.configure(text="✅ Nokopēts!", fg_color="#10b981")
+
+            self.after(2000, lambda: self.btn_copy_growth.configure(text=orig_text, fg_color=orig_color))
+        except Exception as e:
+            print(f"⚠️ Kļūda kopējot: {e}")
+
+    def export_growth_to_word(self):
+        if not HAS_DOCX:
+            ctk.CTkMessagebox.show_warning("Kļūda", "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.")
+            return
+
+        if not hasattr(self, 'growth_current_candidates_data') or not self.growth_current_candidates_data:
+            ctk.CTkMessagebox.show_info("Info", "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.")
+            return
+
+        try:
+            document = Document()
+            document.add_heading("🚀 Komandanta Kvarka Vienradžu Medību Atskaite", level=1)
+            document.add_paragraph(f"Ģenerēts: {datetime.now().strftime('%d.%m.%Y %H:%M')}")
+            document.add_paragraph("Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.")
+
+            if self.growth_current_candidates_data and self.growth_current_candidates_data[0].get("sector_concentration_warning"):
+                 document.add_paragraph(f"🚩 Sarkanais Karogs: {self.growth_current_candidates_data[0].get('sector_concentration_warning')}").add_run().bold = True
+
+
+            for idx, candidate in enumerate(self.growth_current_candidates_data):
+                document.add_heading(f"{idx+1}. {candidate.get('name', 'N/A')} ({candidate.get('ticker', 'N/A')})", level=2)
+                
+                document.add_paragraph("Slepenais ierocis (Niša): ").add_run(candidate.get('niche', 'N/A')).bold = True
+                document.add_paragraph("Kāpēc 10x-100x: ").add_run(candidate.get('why_10x_100x', 'N/A')).bold = True
+                document.add_paragraph("Melnais Gulbis (risks): ").add_run(candidate.get('black_swan_risk', 'N/A')).bold = True
+                document.add_paragraph("\n") # Add a blank line for spacing
+
+            output_filename = f"Kvarka_Vienradzu_Medibas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+            output_filepath = OUTBOX_DIR / output_filename
+            document.save(output_filepath)
+            
+            ctk.CTkMessagebox.show_info("Saglabāts!", f"Atskaite saglabāta:\n{output_filepath}")
+        except Exception as e:
+            ctk.CTkMessagebox.show_error("Kļūda saglabājot Word failu", f"Radās kļūda: {e}")
 
     # ==========================================
     # 4. CILNE: DIVIDENDES & NAUDAS PLŪSMA
@@ -660,8 +822,6 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
         threading.Thread(target=self._dividend_worker, args=(tickers,), daemon=True).start()
 
     def _dividend_worker(self, tickers):
-        from datetime import datetime
-
         div_data = []
         summary_lines = ["=== DIVIDENŽU PĀRSKATS ==="]
 
@@ -677,18 +837,20 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 ex_date_str = "Nav norādīts"
                 if ex_div:
                     try:
-                        # Ja atsūtīts kā skaitlis (Unix timestamp sekundēs vai milisekundēs)
+                        # If a number (Unix timestamp in seconds or milliseconds)
                         if isinstance(ex_div, (int, float)):
                             ts = ex_div / 1000 if ex_div > 1e11 else ex_div
                             ex_date_str = datetime.fromtimestamp(ts).strftime("%d.%m.%Y")
                         else:
-                            ex_date_str = str(ex_div).split()[0]
+                            # Attempt to parse as date string, take first part if time is included
+                            parsed_date = datetime.strptime(str(ex_div).split("T")[0].split(" ")[0], "%Y-%m-%d")
+                            ex_date_str = parsed_date.strftime("%d.%m.%Y")
                     except Exception:
-                        ex_date_str = str(ex_div)
+                        ex_date_str = str(ex_div) # Fallback to original string
 
                 # 2. Dividenžu ienesīguma un korekciju apstrāde
                 if div_yield and div_yield > 0:
-                    # Ja nāk kā 0.015 (1.5%) vai jau kā 1.5
+                    # If it comes as 0.015 (1.5%) or already as 1.5
                     yield_val = div_yield * 100 if div_yield < 1 else div_yield
                     yield_pct = round(yield_val, 2)
 
@@ -865,7 +1027,6 @@ Sagatavo latviešu valodā strukturētu analīzi:
                     except Exception:
                         insider_lines.append(f"{t:5} | Kļūda datos")
 
-                from datetime import timedelta
                 d_to = datetime.now().strftime("%Y-%m-%d")
                 d_from = (datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d")
                 for t in tickers[:2]:
