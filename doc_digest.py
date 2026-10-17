@@ -9,6 +9,7 @@ import customtkinter as ctk
 from tkinter import filedialog
 import subprocess # Added for cross-platform file opening
 import sys # Added for cross-platform file opening
+import time # Added for sleep in PermissionError retry logic
 
 import docx
 from pptx import Presentation
@@ -29,14 +30,8 @@ for d in [INBOX_DIR, OUTBOX_DIR, ARCHIVE_DIR]:
 # ==========================================
 # PALĪGFUNKCIJAS UN EXCEL REĢISTRS
 # ==========================================
-def safe_archive_file(source_path: Path, target_dir: Path) -> Path:
-    target_dir.mkdir(parents=True, exist_ok=True)
-    destination = target_dir / source_path.name
-    if destination.exists():
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        destination = target_dir / f"{source_path.stem}_{timestamp}{source_path.suffix}"
-    shutil.move(str(source_path), str(destination))
-    return destination
+# safe_archive_file funkcija tika noņemta, jo oriģinālie faili tagad netiek pārvietoti vai dzēsti.
+# Ja tā ir nepieciešama citiem mērķiem, tā ir jāatjauno atsevišķi.
 
 def append_to_excel_registry(file_name: str, analysis: dict, status: str = "Apstrādāts"):
     headers = ["Ieraksta Datums", "Fails", "Dokumenta tips", "Dokumenta Nr.", 
@@ -214,7 +209,7 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
         except Exception as e:
             return {"error": str(e)}
 
-    def _create_digest_docx(self, output_path: Path, data: dict, original_filename: str):
+    def _create_digest_docx(self, output_path_base: Path, data: dict, original_filename: str) -> Path:
         doc = docx.Document()
         doc.add_heading(f"Kopsavilkums: {original_filename}", level=1)
         doc.add_paragraph(f"Izveidots: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -266,8 +261,8 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
         parties_data = data.get("parties", [])
         if parties_data:
             doc.add_heading("Līguma Puses", level=2)
-            for p in parties_data:
-                doc.add_paragraph(f"• {p.get('name', 'N/A')} ({p.get('role', 'N/A')})")
+            for p_item in parties_data:
+                doc.add_paragraph(f"• {p_item.get('name', 'N/A')} ({p_item.get('role', 'N/A')})")
         else:
             add_sec("Līguma Puses", "N/A")
 
@@ -310,34 +305,34 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
         # Existing risks_warnings (keeping for general summary of risks)
         add_sec("Vispārējie riski un brīdinājumi", data.get("risks_warnings", []))
 
-        doc.save(output_path)
+        # --- UNIQUE FILE NAMING AND PERMISSION ERROR HANDLING ---
+        current_output_path = output_path_base
+        attempt_count = 0
+        max_attempts = 10 # Allow several retries for saving
 
-    def process_file(self, file_path: Path):
-        ext = file_path.suffix.lower()
-        if ext == ".docx":
-            payload = self._read_docx(file_path)
-        elif ext == ".txt":
-            payload = self._read_txt(file_path)
-        elif ext == ".pptx":
-            payload = self._read_pptx(file_path)
-        elif ext == ".pdf":
-            payload = file_path
-        else:
-            return None, "Neatbalstīts formāts"
-
-        if not payload:
-            return None, "Neizdevās nolasīt faila saturu"
-
-        analysis = self._analyze_with_gemini(payload, file_type=ext.replace(".", ""))
-        if "error" in analysis:
-            return None, analysis["error"]
-
-        out_name = f"DIGEST_{file_path.stem}.docx"
-        out_path = OUTBOX_DIR / out_name
-        self._create_digest_docx(out_path, analysis, file_path.name)
-        append_to_excel_registry(file_path.name, analysis)
-        safe_archive_file(file_path, ARCHIVE_DIR)
-        return analysis, str(out_path)
+        while attempt_count < max_attempts:
+            try:
+                # 1. Ensure uniqueness if the base name already exists (e.g., re-processing same source file)
+                if current_output_path.exists() and attempt_count == 0:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f") # add microsecond for high uniqueness
+                    current_output_path = output_path_base.parent / f"{output_path_base.stem}_{timestamp}{output_path_base.suffix}"
+                
+                doc.save(str(current_output_path))
+                return current_output_path # Successfully saved, return the actual path
+            except PermissionError:
+                attempt_count += 1
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                # Append '_CONFLICT_TIMESTAMP' to indicate it was a conflict resolution attempt
+                current_output_path = output_path_base.parent / f"{output_path_base.stem}_CONFLICT_{timestamp}{output_path_base.suffix}"
+                print(f"⚠️ Kļūda saglabājot Word kopsavilkumu (PermissionError). Mēģinu vēlreiz ar unikālu nosaukumu: {current_output_path.name}")
+                time.sleep(0.5) # Wait a bit before retrying to release file lock
+            except Exception as e:
+                # Catch any other specific saving errors
+                raise RuntimeError(f"Kļūda saglabājot Word dokumentu '{current_output_path.name}': {e}")
+        
+        # If all attempts fail
+        raise RuntimeError(f"Neizdevās saglabāt Word kopsavilkumu pēc {max_attempts} mēģinājumiem. Fails, iespējams, ir bloķēts vai ir citas sistēmas problēmas.")
+    
 
 # ==========================================
 # DOKUMENTU CILNE (CTkFrame)
@@ -389,21 +384,21 @@ class DocDigestFrame(ctk.CTkFrame):
         )
         self.btn_open_summary.pack(side="left", padx=6, pady=8)
 
-        # Progress bar
+        # Progress bar - Changed to determinate mode and removed initial stop
         self.progress_bar = ctk.CTkProgressBar(
             top_bar,
             orientation="horizontal",
-            mode="indeterminate", # Pulsating mode for background tasks
+            mode="determinate", # Changed to determinate
             width=200,
             height=20,
             fg_color="#475569", # Background color for the bar
             progress_color="#60a5fa" # Color of the moving segment
         )
         self.progress_bar.set(0) # Ensure it's empty initially
-        self.progress_bar.stop() # Ensure it's stopped initially
         self.progress_bar.pack(side="right", padx=(10, 15), pady=8) # Pack to the far right
 
-        self.lbl_status = ctk.CTkLabel(top_bar, text="", font=ctk.CTkFont(size=12), text_color="#38bdf8")
+        # Status label, now integrated with progress percentage and message
+        self.lbl_status = ctk.CTkLabel(top_bar, text="0% - Gaida dokumentu", font=ctk.CTkFont(size=12), text_color="#38bdf8")
         self.lbl_status.pack(side="right", padx=(0, 10), pady=8) # Pack to the left of the progress bar
 
         self.txt_output = ctk.CTkTextbox(
@@ -418,9 +413,18 @@ class DocDigestFrame(ctk.CTkFrame):
 
     def open_registry(self):
         if EXCEL_REGISTRY_PATH.exists():
-            os.startfile(str(EXCEL_REGISTRY_PATH))
+            try:
+                if sys.platform == "win32":
+                    os.startfile(str(EXCEL_REGISTRY_PATH))
+                elif sys.platform == "darwin":  # macOS
+                    subprocess.run(['open', str(EXCEL_REGISTRY_PATH)], check=True)
+                else:  # Linux and other Unix-like systems
+                    subprocess.run(['xdg-open', str(EXCEL_REGISTRY_PATH)], check=True)
+                self._update_gui_progress(1.0, "100% - Reģistrs atvērts.")
+            except Exception as e:
+                self._update_gui_progress(0.0, f"Kļūda atverot reģistru: {e}")
         else:
-            self.lbl_status.configure(text="Reģistrs vēl nav izveidots")
+            self._update_gui_progress(0.0, "0% - Reģistrs vēl nav izveidots.")
 
     def open_summary_docx(self):
         """Opens the last created Word summary document using the default application."""
@@ -432,11 +436,17 @@ class DocDigestFrame(ctk.CTkFrame):
                     subprocess.run(['open', str(self.last_summary_path)], check=True)
                 else:  # Linux and other Unix-like systems
                     subprocess.run(['xdg-open', str(self.last_summary_path)], check=True)
-                self.lbl_status.configure(text="Word kopsavilkums atvērts.")
+                self._update_gui_progress(1.0, "100% - Word kopsavilkums atvērts.")
             except Exception as e:
-                self.lbl_status.configure(text=f"Kļūda atverot Word kopsavilkumu: {e}")
+                self._update_gui_progress(0.0, f"Kļūda atverot Word kopsavilkumu: {e}")
         else:
-            self.lbl_status.configure(text="Nav pieejams pēdējais Word kopsavilkums.")
+            self._update_gui_progress(0.0, "0% - Nav pieejams pēdējais Word kopsavilkums.")
+
+    def _update_gui_progress(self, progress_value: float, message: str):
+        """Updates the progress bar and status label with percentage and message."""
+        percentage = int(progress_value * 100)
+        self.progress_bar.set(progress_value)
+        self.lbl_status.configure(text=f"{percentage}% - {message}")
 
     def _format_clean_report(self, filename: str, analysis: dict, docx_path: str) -> str:
         """Pārvērš JSON datus glītā, lasāmā cilvēka formātā."""
@@ -458,11 +468,11 @@ class DocDigestFrame(ctk.CTkFrame):
         parties = analysis.get("parties", [])
         if parties and isinstance(parties, list):
             lines.append("👥 LĪGUMA PUSES:")
-            for p in parties:
-                if isinstance(p, dict):
-                    lines.append(f"   • {p.get('name', 'Nezināms')} ({p.get('role', 'Puse')})")
+            for p_item in parties:
+                if isinstance(p_item, dict):
+                    lines.append(f"   • {p_item.get('name', 'Nezināms')} ({p_item.get('role', 'Puse')})")
                 else:
-                    lines.append(f"   • {p}")
+                    lines.append(f"   • {p_item}")
             lines.append("")
 
         # Financial Terms
@@ -480,7 +490,7 @@ class DocDigestFrame(ctk.CTkFrame):
                     for cost in hidden_costs:
                         lines.append(f"     - {cost}")
                 penalties = fin.get("penalties", [])
-                if penalties and any(p.strip() != "N/A" for p in penalties):
+                if penalties and any(p_item.strip() != "N/A" for p_item in penalties):
                     lines.append("   🚫 Soda sankcijas:")
                     for penalty in penalties:
                         lines.append(f"     - {penalty}")
@@ -570,12 +580,12 @@ class DocDigestFrame(ctk.CTkFrame):
 
         # Existing risks_warnings (keeping for now, potentially can be deprecated if critical_points is sufficient)
         risks = analysis.get("risks_warnings", [])
-        if risks and any(r for r in risks if r and r.strip() != "N/A" and r.strip() != ""): # Filter out "N/A"
+        if risks and any(r_item for r_item in risks if r_item and r_item.strip() != "N/A" and r_item.strip() != ""):
             lines.append("⚠️ VISPĀRĒJI RISKI & BRĪDINĀJUMI:")
             if isinstance(risks, list):
-                for r in risks:
-                    if r and r.strip() != "N/A" and r.strip() != "":
-                        lines.append(f"   🚩 {r}")
+                for r_item in risks:
+                    if r_item and r_item.strip() != "N/A" and r_item.strip() != "":
+                        lines.append(f"   🚩 {r_item}")
             else:
                 if risks and risks.strip() != "N/A" and risks.strip() != "":
                     lines.append(f"   🚩 {risks}")
@@ -597,32 +607,79 @@ class DocDigestFrame(ctk.CTkFrame):
         self.btn_select.configure(state="disabled")
         self.btn_open_summary.configure(state="disabled") # Disable summary button at start of new process
         
-        # Start progress bar animation and update status label
-        self.progress_bar.set(0) # Reset to empty
-        self.progress_bar.start()
-        self.lbl_status.configure(text=f"Apstrādā {p.name}...")
+        # Initial GUI update
+        self._update_gui_progress(0.0, f"Sāku '{p.name}' apstrādi...")
         self.txt_output.insert("end", f"⚡ Sāku {p.name} apstrādi...\n")
         self.txt_output.see("end")
 
         def _worker():
-            analysis, res_msg = self.service.process_file(p)
+            analysis = None
+            res_msg = ""
+            docx_path_result = None
+            analysis_successful = False
+
+            try:
+                self.after(0, lambda: self._update_gui_progress(0.1, f"Pārbaudu '{p.name}' failu..."))
+                if not p.exists():
+                    raise FileNotFoundError(f"Kļūda: Fails '{p.name}' nav atrasts.")
+
+                ext = p.suffix.lower()
+                payload = None
+                
+                self.after(0, lambda: self._update_gui_progress(0.2, f"Lasu '{p.name}' saturu..."))
+                if ext == ".docx":
+                    payload = self.service._read_docx(p)
+                elif ext == ".txt":
+                    payload = self.service._read_txt(p)
+                elif ext == ".pptx":
+                    payload = self.service._read_pptx(p)
+                elif ext == ".pdf":
+                    # For PDF, payload is the path itself
+                    payload = p 
+                else:
+                    raise ValueError("Kļūda: Neatbalstīts faila formāts.")
+
+                if not payload:
+                    raise ValueError("Kļūda: Neizdevās nolasīt faila saturu.")
+
+                self.after(0, lambda: self._update_gui_progress(0.4, f"Veicu MI analīzi ar Gemini Core..."))
+                analysis = self.service._analyze_with_gemini(payload, file_type=ext.replace(".", ""))
+                if "error" in analysis:
+                    raise RuntimeError(analysis["error"])
+                
+                self.after(0, lambda: self._update_gui_progress(0.8, f"Ģenerēju Word kopsavilkumu un reģistrēju..."))
+                # Original docx file name for digest
+                out_name = f"DIGEST_{p.stem}.docx"
+                out_path_base = OUTBOX_DIR / out_name
+                
+                # _create_digest_docx now handles unique naming and PermissionError internally
+                docx_path_result = self.service._create_digest_docx(out_path_base, analysis, p.name)
+                
+                # The original file is not archived/moved as per requirements. It stays in its original location.
+                append_to_excel_registry(p.name, analysis)
+
+                analysis_successful = True
+                res_msg = str(docx_path_result) # Store the path of the successfully created DOCX
+
+            except Exception as e:
+                analysis_successful = False
+                res_msg = f"Sistēmas kļūda: {e}"
+                # Update GUI immediately on error, resetting progress bar
+                self.after(0, lambda: self._update_gui_progress(0.0, f"Kļūda: {e}"))
+
             def _done():
                 self.btn_select.configure(state="normal")
-                self.progress_bar.stop() # Stop the animation
                 
-                if analysis:
-                    # Update last_summary_path and enable the button
-                    self.last_summary_path = Path(res_msg) # res_msg is the docx_path string
+                if analysis_successful:
+                    self.last_summary_path = Path(docx_path_result) # Use the actual saved path
                     self.btn_open_summary.configure(state="normal")
                     
-                    self.lbl_status.configure(text="✅ Apstrāde pabeigta!")
-                    self.progress_bar.set(1) # Fill the bar visually for completion
-                    clean_report = self._format_clean_report(p.name, analysis, res_msg)
+                    self._update_gui_progress(1.0, "Apstrāde pabeigta!")
+                    clean_report = self._format_clean_report(p.name, analysis, docx_path_result)
                     self.txt_output.insert("end", clean_report)
                     self.txt_output.see("end")
                 else:
-                    self.lbl_status.configure(text="⚠️ Kļūda!")
-                    self.progress_bar.set(0) # Reset to empty on error
+                    # Error state and message already handled by _update_gui_progress in the except block
                     self.txt_output.insert("end", f"\n❌ Kļūda failam {p.name}: {res_msg}\n\n")
                     self.btn_open_summary.configure(state="disabled") # Ensure it stays disabled on error
             self.after(0, _done)
