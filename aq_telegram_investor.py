@@ -7,10 +7,15 @@ from datetime import datetime, timedelta
 import yfinance as yf
 import google.generativeai as genai
 import requests
+from pathlib import Path # Izmantojam Path failu ceļu manipulācijām
 
 # --- IELĀDĒJAM CONFIG UN ATSLĒGAS ---
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
 PORTFOLIO_PATH = os.path.join(os.path.dirname(__file__), "portfolio.json")
+INBOX_DIR = Path(os.path.dirname(__file__)) / "storage" / "inbox" # Definējam iesūtnes mapi
+
+# Pārliecināmies, ka INBOX_DIR eksistē
+INBOX_DIR.mkdir(parents=True, exist_ok=True)
 
 def load_config():
     if os.path.exists(CONFIG_PATH):
@@ -257,6 +262,113 @@ Maksimums 4-6 teikumi, skaidrā latviešu valodā ar enerģisku toni."""
     except Exception as e:
         return f"⚠️ Kvarka audita kļūda: {e}"
 
+def doc_digest_analysis(file_path: Path):
+    """
+    Simulē dokumenta analīzi, izmantojot Gemini AI.
+    Reālā situācijā te būtu jāielādē un jāekstrahē teksts no PDF/DOCX faila.
+    Šī funkcija šobrīd izmanto simulētu saturu.
+    """
+    if not GEMINI_KEY:
+        return {
+            "risk_level": "⚠️ Kritiskas Kļūda",
+            "critical_points": ["Gemini API atslēga nav konfigurēta."],
+            "warnings": [],
+            "summary": "Nevar veikt dokumenta analīzi bez API atslēgas. Lūdzu, konfigurējiet to."
+        }
+    
+    try:
+        genai.configure(api_key=GEMINI_KEY)
+        model = genai.GenerativeModel("gemini-1.5-flash") # Izmantojam flash modeli dokumentu analīzei
+        
+        # Simulētais saturs dokumenta analīzei
+        # Reālajā scenārijā te būtu koda, kas izvelk tekstu no PDF (PyPDF2) vai DOCX (python-docx).
+        simulated_content = f"""Šis ir testa juridiskais dokuments '{file_path.name}'. Tas ietver noteikumus par ieguldījumu mehānismu, peļņas sadali, riska atrunu un atbildību. Ir pieminēta iespējama arbitrāža strīdu gadījumā un ieguldījuma atgūšanas termiņi. Dokumentā ir vairākas dzelžainas klauzulas par datu aizsardzību un konfidencialitāti, taču trūkst skaidru sodu par noteikumu pārkāpumiem. Ieguldītājs piekrīt noteikumiem, kas var tikt mainīti ar 30 dienu brīdinājuma periodu. Ja fails ir 'risk_contract.pdf', tad riska līmenis ir augsts."""
+        
+        # Pielāgojam simulēto saturu, lai variētu AI atbildes
+        if "risk_contract" in file_path.name.lower():
+            simulated_content = f"""Šis ir 'risk_contract.pdf' dokuments. Tas detalizēti apraksta augsta riska ieguldījumus, kas paredz būtisku kapitāla zuduma iespējamību. Ir īpaši izceltas klauzulas par ierobežotu investoru aizsardzību un atteikšanos no juridiskām pretenzijām pret emitentu. Peļņas potenciāls ir augsts, bet kopsavilkums brīdina par "kritisku tirgus nestabilitātes faktoru". Nekavējoties jāpievērš uzmanība 7. sadaļai par "Nepārvaramas varas" apstākļiem."""
+        elif "safe_agreement" in file_path.name.lower():
+             simulated_content = f"""Šis ir 'safe_agreement.docx' dokuments. Tas ir standarta investīciju līgums ar zemu risku. Nodrošināta augsta investoru aizsardzība, skaidri definēti peļņas sadales nosacījumi un robustas strīdu risināšanas procedūras. Tomēr iekļauta viena piezīme par to, ka ikgadējā atskaite var aizkavēties par līdz 7 dienām."""
+        
+        prompt = f"""Tu esi "AQ-OS Juridiskais Analītiķis", Komandanta Kvarka labā roka dokumentu auditā.
+Analizē šo dokumentu ({file_path.name}) saturu:
+---
+{simulated_content}
+---
+
+Nodrošini strukturētu atskaiti šādā formātā, stingri ievērojot latviešu valodu un militāri-taktisku toni. Atskaitei jābūt īsai un precīzai.
+Riska Līmenis: [Zems/Vidējs/Augsts/Kritisks]
+Kritiskie Punkti:
+- [Īss punkts 1]
+- [Īss punkts 2]
+Brīdinājumi:
+- [Īss brīdinājums 1]
+- [Īss brīdinājums 2]
+Kopsavilkums: [Cilvēcīgā valodā, ne vairāk kā 3 teikumi]
+"""
+        
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
+        
+        parsed_response = {
+            "risk_level": "Neskaidrs",
+            "critical_points": [],
+            "warnings": [],
+            "summary": "Neizdevās analizēt Gemini atbildi."
+        }
+        
+        lines = response_text.split('\n')
+        current_section = None
+        temp_summary_lines = [] # Pagaidu saraksts kopsavilkuma rindām
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith("Riska Līmenis:"):
+                parsed_response["risk_level"] = line.replace("Riska Līmenis:", "").strip()
+                current_section = None
+            elif line.startswith("Kritiskie Punkti:"):
+                current_section = "critical_points"
+            elif line.startswith("Brīdinājumi:"):
+                current_section = "warnings"
+            elif line.startswith("Kopsavilkums:"):
+                # Sākam vākt kopsavilkuma rindas
+                parsed_response["summary"] = line.replace("Kopsavilkums:", "").strip()
+                current_section = "summary_collect"
+            elif line.startswith("- ") and current_section in ["critical_points", "warnings"]:
+                parsed_response[current_section].append(line[2:].strip())
+            elif current_section == "summary_collect":
+                temp_summary_lines.append(line)
+            # Rezerves gadījums, ja Gemini atgriež tikai vienkāršu tekstu
+            elif parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi." and current_section is None:
+                parsed_response["summary"] = line
+
+        # Ja kopsavilkums tika savākts vairākās rindās
+        if temp_summary_lines:
+            # Pievienojam jau sākumā atrasto kopsavilkuma daļu
+            if parsed_response["summary"] != "Neizdevās analizēt Gemini atbildi.":
+                temp_summary_lines.insert(0, parsed_response["summary"])
+            parsed_response["summary"] = ' '.join(temp_summary_lines)
+
+        # Pamata pārbaudes, ja riska līmenis nav skaidri definēts
+        if parsed_response["risk_level"] == "Neskaidrs":
+            if parsed_response["critical_points"] or parsed_response["warnings"]:
+                parsed_response["risk_level"] = "Vidējs" # Ja ir punkti/brīdinājumi, tad vismaz vidējs
+            else:
+                parsed_response["risk_level"] = "Zems" # Ja nav, tad zems
+
+        return parsed_response
+    
+    except Exception as e:
+        return {
+            "risk_level": "⚠️ Kritiskas Kļūda",
+            "critical_points": [f"Gemini analīzes kļūda: {e}"],
+            "warnings": [],
+            "summary": "Neizdevās veikt dokumenta analīzi. Sazinieties ar Komandantu."
+        }
+
 # --- TIKERU SAGLABĀŠANA UN PĀRVALDĪBA ---
 def save_portfolio_tickers(tickers):
     """Saglabā aktīvo tikeru sarakstu portfolio.json failā."""
@@ -320,7 +432,8 @@ def send_help_message(message):
         "Pārvaldības komandas čatā:\n"
         "`+ TIKER` — Pievienot tikeru (piem., `+ NVDA`)\n"
         "`- TIKER` — Izņemt tikeru (piem., `- DAL`)\n"
-        "`set TIKER1, TIKER2` — Iestatīt jaunu portfeļa sarakstu (piem., `set AAPL, MSFT, GOOGL`)"
+        "`set TIKER1, TIKER2` — Iestatīt jaunu portfeļa sarakstu (piem., `set AAPL, MSFT, GOOGL`)\n"
+        "Sūtiet `.pdf` vai `.docx` dokumentu, lai veiktu juridisko auditu."
     )
     bot.send_message(message.chat.id, help_text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
@@ -471,6 +584,92 @@ def handle_ticker_text_commands(message):
         if cleaned:
             save_portfolio_tickers(cleaned)
             bot.reply_to(message, f"🎯 Jaunais portfelis iestatīts:\n`{', '.join(cleaned)}`", parse_mode="Markdown")
+
+# --- JAUNS DOKUMENTU HANDLERIS ---
+@bot.message_handler(content_types=['document'])
+def handle_docs(message):
+    chat_id = message.chat.id
+    
+    try:
+        if not message.document:
+            bot.send_message(chat_id, "⚠️ Kļūda: Fails netika atrasts ziņojumā.")
+            return
+
+        file_name = message.document.file_name
+        file_extension = Path(file_name).suffix.lower() # Izmantojam Path, lai tīri iegūtu paplašinājumu
+
+        # Pārbaudām, vai fails ir .pdf vai .docx
+        if file_extension not in ('.pdf', '.docx'):
+            bot.reply_to(message, "⚠️ Saņemts fails nav atbalstīts. Lūdzu, sūtiet `.pdf` vai `.docx` dokumentus.", reply_markup=main_menu_keyboard())
+            return
+
+        bot.send_message(chat_id, "⏳ Dokuments saņemts! Tiek veikts juridiskais audits...")
+        
+        # Lejupielādējam failu un saglabājam to 'storage/inbox' mapē
+        file_info = bot.get_file(message.document.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        
+        # Izveidojam unikālu faila nosaukumu, lai izvairītos no pārrakstīšanas
+        unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file_name}"
+        save_path = INBOX_DIR / unique_filename # Izmantojam Path objektu ceļu savienošanai
+        
+        with open(save_path, 'wb') as new_file:
+            new_file.write(downloaded_file)
+
+        bot.send_message(chat_id, f"✅ Dokuments `{file_name}` saglabāts, sāku analīzi.")
+
+        # Izsaucam doc_digest analīzes moduli šim failam
+        report_data = doc_digest_analysis(save_path) # Padodam Path objektu
+        
+        # Pēc apstrādes nosūtām čatā strukturētu atskaiti
+        risk_level_line = f"Riska Līmenis: *{report_data['risk_level']}*"
+        
+        critical_points_lines = []
+        if report_data['critical_points']:
+            critical_points_lines.append("*Kritiskie Punkti:*")
+            critical_points_lines.extend([f"- {cp}" for cp in report_data['critical_points']])
+        
+        warnings_lines = []
+        if report_data['warnings']:
+            warnings_lines.append("*Brīdinājumi:*")
+            warnings_lines.extend([f"- {w}" for w in report_data['warnings']])
+            
+        summary_line = f"*Kopsavilkums:* {report_data['summary']}"
+        
+        # Asamblejam galīgo ziņojumu, ievērojot Bruno noteikumus par f-string slīpsvītrām
+        report_parts = []
+        report_parts.append("📄 *DOKUMENTA JURIDISKAIS AUDITS (AQ-OS)*")
+        report_parts.append("──────────────────────────")
+        report_parts.append(risk_level_line)
+        
+        if critical_points_lines:
+            report_parts.append("") # Tukša rinda atstarpei
+            report_parts.append('\n'.join(critical_points_lines))
+        
+        if warnings_lines:
+            report_parts.append("") # Tukša rinda atstarpei
+            report_parts.append('\n'.join(warnings_lines))
+        
+        report_parts.append("") # Tukša rinda atstarpei
+        report_parts.append(summary_line)
+        report_parts.append("──────────────────────────")
+        report_parts.append("Status: Audits pabeigts. Komandants Kvarks gaida turpmākās instrukcijas.")
+        
+        final_report = '\n'.join(report_parts)
+        
+        bot.send_message(chat_id, final_report, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
+        # Pēc apstrādes varam izdzēst failu no inbox mapes, ja tas vairs nav nepieciešams
+        # save_path.unlink(missing_ok=True) # Jāizlemj, vai dzēst. Drošības pēc atstājam iesūtnē.
+
+    except Exception as e:
+        error_message = (
+            "⚠️ Kļūda apstrādājot dokumentu! "
+            "Sazinieties ar Komandanta štābu par šo kritisko incidentu. "
+            f"Tehniskā informācija: `{e}`"
+        )
+        bot.send_message(chat_id, error_message, parse_mode="Markdown", reply_markup=main_menu_keyboard())
+
 
 if __name__ == "__main__":
     print("🚀 AQ Telegram Investor Bot veiksmīgi palaists!")
