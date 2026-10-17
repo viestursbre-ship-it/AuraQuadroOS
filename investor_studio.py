@@ -24,6 +24,16 @@ try:
 except ImportError:
     HAS_DOCX = False
 
+# Import i18n functions (NEW)
+try:
+    from i18n import get_current_language, get_llm_language_instruction
+    HAS_I18N = True
+except ImportError:
+    HAS_I18N = False
+    # Define dummy functions if i18n is not available to prevent crashes
+    def get_current_language(): return "lv" # Default to Latvian, as current UI is Latvian
+    def get_llm_language_instruction(): return "Respond in Latvian." # Default instruction for Latvian
+
 BASE_DIR = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 PORTFOLIO_FILE = BASE_DIR / "portfolio.json"
 OUTBOX_DIR = BASE_DIR / "storage" / "outbox"
@@ -368,6 +378,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
 
+                # Get language instruction (NEW)
+                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+
                 if "Venture" in risk_mode:
                     strategy_instruction = """
                     STRATĒĢIJA: VENTURE & GROWTH HUNTER (Agresīvs riska kapitāls).
@@ -384,6 +397,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     """
 
                 prompt = f"""Tu esi Komandants Kvarks un profesionāls finanšu auditors.
+{current_lang_instruction}
 Lietotājs ir izvēlējies šādu riska režīmu:
 {strategy_instruction}
 
@@ -554,6 +568,9 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
 
+                # Get language instruction (NEW)
+                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+
                 kvark_criteria_prompt = """
                 Komandanta Kvarka 4 zelta kritēriji Jauno Vienradžu medībām:
                 1.  **Revenue Growth > 30-50%**: Spēcīga ieņēmumu izaugsme (vismaz virs 30%, ideāli virs 50%). Novērtēt pēc "summary" vai vispārējās tirgus izpratnes.
@@ -564,6 +581,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
 
                 # MODIFIED PROMPT for Points 2, 3, 4
                 prompt = f"""Tu esi agresīvs izaugsmes investīciju eksperts un Komandants Kvarks.
+{current_lang_instruction}
 Tavs uzdevums ir atrast tieši 10 "Jaunos Vienradžus" - uzņēmumus ar 10x-100x izaugsmes potenciālu.
 Meklē jaunākos, spēcīgākos un atbilstošākos pretendentus, kas nav vienkārši esošie tirgus līderi, bet gan nākamie revolucionāri.
 OBLIGĀTI iekļauj dažādas nākotnes nozares, lai nodrošinātu portfeļa diversifikāciju un novērstu pārmērīgu koncentrāciju tikai uz AI/čipiem.
@@ -733,15 +751,74 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             messagebox.showinfo("Info", "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.")
             return
 
+        # NEW: Localized strings for Word export
+        current_lang = get_current_language() # Uses the actual current language from i18n or the 'lv' fallback
+
+        localized_strings = {
+            "lv": {
+                "report_title": "🚀 Komandanta Kvarka Vienradžu Medību Atskaite",
+                "generated_on": "Ģenerēts: ",
+                "analysis_basis": "Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.",
+                "red_flag": "🚩 Sarkanais Karogs: ",
+                "secret_weapon": "Slepenais ierocis (Niša): ",
+                "why_10x_100x": "Kāpēc 10x-100x: ",
+                "black_swan": "Melnais Gulbis (risks): ",
+                "output_filename_prefix": "Kvarka_Vienradzu_Medibas_",
+                "success_message": "Atskaite saglabāta:\n",
+                "error_saving_message": "Radās kļūda saglabājot Word failu: "
+            },
+            "uk": { # Example for Ukrainian
+                "report_title": "🚀 Звіт про Полювання на Єдинорогів Командира Кварка",
+                "generated_on": "Згенеровано: ",
+                "analysis_basis": "Аналіз згенеровано на основі 4 золотих критеріїв Командира Кварка.",
+                "red_flag": "🚩 Червоний Прапор: ",
+                "secret_weapon": "Секретна зброя (Ніша): ",
+                "why_10x_100x": "Чому 10x-100x: ",
+                "black_swan": "Чорний Лебідь (ризик): ",
+                "output_filename_prefix": "Kvar_Yedinorih_Polyuvannya_",
+                "success_message": "Звіт збережено:\n",
+                "error_saving_message": "Виникла помилка під час збереження файлу Word: "
+            },
+            "it": { # Example for Italian
+                "report_title": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark",
+                "generated_on": "Generato il: ",
+                "analysis_basis": "Analisi generata in base ai 4 criteri d'oro del Comandante Quark.",
+                "red_flag": "🚩 Bandiera Rossa: ",
+                "secret_weapon": "Arma Segreta (Nicchia): ",
+                "why_10x_100x": "Perché 10x-100x: ",
+                "black_swan": "Cigno Nero (rischio): ",
+                "output_filename_prefix": "Quark_Caccia_Unicorni_",
+                "success_message": "Rapporto salvato in:\n",
+                "error_saving_message": "Si è verificato un errore durante il salvataggio del file Word: "
+            },
+            "en": { # Default English fallback
+                "report_title": "🚀 Commander Quark's Unicorn Hunt Report",
+                "generated_on": "Generated: ",
+                "analysis_basis": "Analysis generated based on Commander Quark's 4 golden criteria.",
+                "red_flag": "🚩 Red Flag: ",
+                "secret_weapon": "Secret Weapon (Niche): ",
+                "why_10x_100x": "Why 10x-100x: ",
+                "black_swan": "Black Swan (risk): ",
+                "output_filename_prefix": "Quarks_Unicorn_Hunt_",
+                "success_message": "Report saved to:\n",
+                "error_saving_message": "Error saving Word file: "
+            }
+        }
+        
+        # Get strings for current language, fallback to English if current_lang is not found, then Latvian.
+        lang_strings = localized_strings.get(current_lang, localized_strings.get("en", localized_strings["lv"]))
+
         try:
             document = Document()
-            document.add_heading("🚀 Komandanta Kvarka Vienradžu Medību Atskaite", level=1)
-            document.add_paragraph(f"Ģenerēts: {datetime.now().strftime('%d.%m.%Y %H:%M')}")
-            document.add_paragraph("Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.")
+            document.add_heading(lang_strings["report_title"], level=1) # Use localized string
+            document.add_paragraph(f"{lang_strings['generated_on']}{datetime.now().strftime('%d.%m.%Y %H:%M')}") # Use localized string
+            document.add_paragraph(lang_strings["analysis_basis"]) # Use localized string
 
             # Use the stored instance variable for warning (FIXED for Point 1, 3)
             if hasattr(self, 'last_sector_concentration_warning') and self.last_sector_concentration_warning:
-                 document.add_paragraph(f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}").add_run().bold = True
+                 p_warning = document.add_paragraph()
+                 p_warning.add_run(lang_strings["red_flag"]).bold = True # Use localized string
+                 p_warning.add_run(self.last_sector_concentration_warning)
 
 
             for idx, candidate in enumerate(self.growth_current_candidates_data):
@@ -749,28 +826,28 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 
                 # Using add_run and bold property for inline bolding
                 p_niche = document.add_paragraph()
-                p_niche.add_run("Slepenais ierocis (Niša): ").bold = True
+                p_niche.add_run(lang_strings["secret_weapon"]).bold = True # Use localized string
                 p_niche.add_run(candidate.get('niche', 'N/A'))
 
                 p_why = document.add_paragraph()
-                p_why.add_run("Kāpēc 10x-100x: ").bold = True
+                p_why.add_run(lang_strings["why_10x_100x"]).bold = True # Use localized string
                 p_why.add_run(candidate.get('why_10x_100x', 'N/A'))
                 
                 p_risk = document.add_paragraph()
-                p_risk.add_run("Melnais Gulbis (risks): ").bold = True
+                p_risk.add_run(lang_strings["black_swan"]).bold = True # Use localized string
                 p_risk.add_run(candidate.get('black_swan_risk', 'N/A'))
                 
                 document.add_paragraph("\n") # Add a blank line for spacing
 
-            output_filename = f"Kvarka_Vienradzu_Medibas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+            output_filename = f"{lang_strings['output_filename_prefix']}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use localized string prefix
             output_filepath = OUTBOX_DIR / output_filename
             document.save(output_filepath)
             
             # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showinfo("Saglabāts!", f"Atskaite saglabāta:\n{output_filepath}")
+            messagebox.showinfo("Saglabāts!", f"{lang_strings['success_message']}{output_filepath}") # Use localized string
         except Exception as e:
             # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showerror("Kļūda saglabājot Word failu", f"Radās kļūda: {e}")
+            messagebox.showerror("Kļūda saglabājot Word failu", f"{lang_strings['error_saving_message']}{e}") # Use localized string
 
     # ==========================================
     # 4. CILNE: DIVIDENDES & NAUDAS PLŪSMA
@@ -919,7 +996,11 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             try:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
+                # Get language instruction (NEW)
+                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+
                 prompt = f"""Tu esi dividenžu un pasīvās naudas plūsmas eksperts Komandants Kvarks.
+{current_lang_instruction}
 Šeit ir lietotāja portfeļa dividenču dati:
 {json.dumps(div_data, ensure_ascii=False, indent=2)}
 
@@ -1098,7 +1179,11 @@ Sagatavo latviešu valodā strukturētu analīzi:
                 try:
                     genai.configure(api_key=api_key)
                     model = genai.GenerativeModel("gemini-2.5-flash")
+                    # Get language instruction (NEW)
+                    current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+
                     prompt = f"""Tu esi militāri ass investīciju virspavēlnieks Komandants Kvarks (resnais runcis no Liepājas štāba).
+{current_lang_instruction}
 Makro un likviditātes rādītāji: {', '.join(macro_summary)}
 Tirgus baiļu/alkatības noskaņojums: {fng_text}
 Insaideru signāli: {'; '.join(insider_lines[1:])}
@@ -1198,7 +1283,11 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
             try:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
+                # Get language instruction (NEW)
+                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+
                 prompt = f"""Tu esi stingrs, profesionāls investīciju analītiķis un Komandants Kvarks.
+{current_lang_instruction}
 Sniedz kodolīgu, praktisku analīzi latviešu valodā par šo uzņēmumu/fondu, pamatojoties uz šādiem rādītājiem:
 {json.dumps(summary_payload, ensure_ascii=False, indent=2)}
 
