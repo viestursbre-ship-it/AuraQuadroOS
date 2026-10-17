@@ -263,6 +263,27 @@ class InvestorStudioFrame(ctk.CTkFrame):
             except Exception:
                 pass
 
+    def _add_ticker_to_portfolio(self, ticker):
+        current_tickers_raw = self.txt_my_portfolio.get("1.0", "end").strip()
+        current_tickers = [x.strip().upper() for x in current_tickers_raw.replace("\n", ",").split(",") if x.strip()]
+        
+        if ticker.upper() not in current_tickers:
+            current_tickers.append(ticker.upper())
+            self.txt_my_portfolio.delete("1.0", "end")
+            self.txt_my_portfolio.insert("1.0", ", ".join(current_tickers))
+            self.save_portfolio() # Save and show status
+            # Provide feedback in the growth tab as well
+            if hasattr(self, 'growth_results_container'):
+                feedback_label = ctk.CTkLabel(self.growth_results_container, text=f"✅ {ticker} pievienots portfelim!", text_color="#10b981")
+                feedback_label.pack(pady=5)
+                self.after(3000, feedback_label.destroy)
+        else:
+            if hasattr(self, 'growth_results_container'):
+                feedback_label = ctk.CTkLabel(self.growth_results_container, text=f"ℹ️ {ticker} jau ir portfelī.", text_color="#f59e0b")
+                feedback_label.pack(pady=5)
+                self.after(3000, feedback_label.destroy)
+
+
     def copy_audit_summary(self):
         text_to_copy = self.audit_box.get("1.0", "end").strip()
         if not text_to_copy or "Ievadiet savas akcijas" in text_to_copy:
@@ -320,7 +341,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     "pe": payload.get("pe"),
                     "peg": payload.get("peg"),
                     "recommendation": payload.get("recommendation"),
-                    "sector": payload.get("sector")
+                    "sector": payload.get("sector"),
+                    "summary": payload.get("summary") # Add summary for richer context
                 })
 
         api_key = self.get_gemini_key() if self.get_gemini_key else os.environ.get("GEMINI_API_KEY", "")
@@ -401,14 +423,19 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
             ctk.CTkLabel(card, text=item["name"], font=ctk.CTkFont(size=10), text_color="#cbd5e1").pack(side="left", padx=4)
             ctk.CTkButton(card, text="Pārbaudīt", width=65, height=22, fg_color="#0284c7", font=ctk.CTkFont(size=10), command=lambda t=item["ticker"]: self._inspect_growth(t)).pack(side="right", padx=6)
 
-        self.btn_scan_all_growth = ctk.CTkButton(left, text="⚡ Skenēt visus & atrast labāko", height=34, fg_color="#d97706", hover_color="#b45309", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_growth_hunter)
+        # RENAMED BUTTON
+        self.btn_scan_all_growth = ctk.CTkButton(left, text="🚀 Medīt Jaunos Vienradžus", height=34, fg_color="#d97706", hover_color="#b45309", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_growth_hunter)
         self.btn_scan_all_growth.pack(fill="x", padx=15, pady=(0, 15))
 
+        # Replaced Textbox with ScrollableFrame for dynamic cards
         ctk.CTkLabel(right, text="🎯 IZAUGSMES REZOLŪCIJA & RISKA NOVĒRTĒJUMS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6))
-        self.growth_box = ctk.CTkTextbox(right, fg_color="#0b1329", text_color="#f8fafc", font=ctk.CTkFont(size=12), wrap="word", corner_radius=8)
-        self.growth_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.growth_box.insert("1.0", "Izvēlieties uzņēmumu vai nospiediet 'Skenēt visus', lai Kvarks atlasa nākamo lielo lēcienu...")
-        self.growth_box.configure(state="disabled")
+        self.growth_results_container = ctk.CTkScrollableFrame(right, fg_color="#0b1329", corner_radius=8)
+        self.growth_results_container.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
+        initial_label = ctk.CTkLabel(self.growth_results_container, text="Izvēlieties uzņēmumu vai nospiediet '🚀 Medīt Jaunos Vienradžus', lai Kvarks atlasa nākamo lielo lēcienu...",
+                                     font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400)
+        initial_label.pack(fill="x", padx=10, pady=10)
+
 
     def _inspect_growth(self, ticker):
         self.tabview.set("🔍 Viena Tikera Rentgens")
@@ -416,47 +443,129 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
 
     def start_growth_hunter(self):
         self.btn_scan_all_growth.configure(state="disabled", text="⏳ Medī labākos...")
-        self.growth_box.configure(state="normal")
-        self.growth_box.delete("1.0", "end")
-        self.growth_box.insert("1.0", "Kvarks apkopo datus par visiem izaugsmes kandidātiem...\n")
-        self.growth_box.configure(state="disabled")
+        
+        # Clear previous results and show loading message
+        for widget in self.growth_results_container.winfo_children():
+            widget.destroy()
+        
+        loading_label = ctk.CTkLabel(self.growth_results_container, text="Kvarks apkopo datus par visiem izaugsmes kandidātiem un meklē vienradžus...\n",
+                                     font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400)
+        loading_label.pack(fill="x", padx=10, pady=10)
 
         threading.Thread(target=self._growth_worker, daemon=True).start()
 
     def _growth_worker(self):
         growth_data = []
         for g in GROWTH_WATCHLIST:
+            # Fetch richer data for growth analysis, including summary for qualitative aspects
             _, payload = self._fetch_stock_data(g["ticker"])
             if payload:
                 growth_data.append(payload)
 
         api_key = self.get_gemini_key() if self.get_gemini_key else os.environ.get("GEMINI_API_KEY", "")
-        reply = ""
+        
+        unicorn_candidates = []
+        sector_concentration_warning = ""
+        reply_fallback = "Kvarks neatrada piemērotus vienradžus vai radās kļūda."
+
         if api_key and HAS_GENAI and growth_data:
             try:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
-                prompt = f"""Tu esi agresīvas izaugsmes investīciju eksperts un Komandants Kvarks.
-Šeit ir dati par strauji augošiem uzņēmumiem nākotnes tehnoloģijās:
+                
+                # Kvarks's 4 golden criteria
+                kvark_criteria_prompt = """
+                Komandanta Kvarka 4 zelta kritēriji Jauno Vienradžu medībām:
+                1.  **Revenue Growth > 30-50%**: Spēcīga ieņēmumu izaugsme (vismaz virs 30%, ideāli virs 50%). Novērtēt pēc "summary" vai vispārējās tirgus izpratnes.
+                2.  **Milzīgs TAM (Total Addressable Market)**: Uzņēmumam jādarbojas tirgū ar gigantisku nākotnes potenciālu (piemēram, AI, kvantu skaitļošana, kosmosa ekonomika, nākamās paaudzes kiberdrošība). Novērtēt pēc "summary" un sektora.
+                3.  **Moat (Konkurences grāvis)**: Spēcīgas konkurences priekšrocības (patentēta tehnoloģija, tīkla efekti, zīmols, augstas maiņas izmaksas klientiem). Novērtēt pēc "summary".
+                4.  **Founder-led (Dibinātāja vadīts)**: Vēlams, ka uzņēmumu joprojām vada tā dibinātājs vai spēcīga, ilgtermiņā domājoša vadošā komanda ar skaidru vīziju. Novērtēt pēc "summary" (var būt netieši).
+                """
+
+                prompt = f"""Tu esi agresīvs izaugsmes investīciju eksperts un Komandants Kvarks.
+Tavs uzdevums ir atrast "Jaunos Vienradžus" - uzņēmumus ar 10x-100x izaugsmes potenciālu.
+Lūk, dati par strauji augošiem uzņēmumiem nākotnes tehnoloģijās, katram ir pievienots arī kopsavilkums (summary):
 {json.dumps(growth_data, ensure_ascii=False, indent=2)}
 
-Sagatavo latviešu valodā skaidru izaugsmes atskaiti:
-1. 🥇 TOP 2 FAVORĪTI: Kuriem no šiem ir visspēcīgākā ieņēmumu dinamika un reāls tirgus monopols/priekšrocība.
-2. ⚠️ LIELĀKIE RISKI (Kur neskriet ar galvu pa priekšu): kuri ir pārmērīgi uzpūsti un var piedzīvot asu korekciju.
-3. 🎯 STRATĒĢIJA MAZAM MAISAM (~300-500 USD): kā šādā augsta riska/izaugsmes segmentā ieiet pakāpeniski bez lieka stresa."""
+{kvark_criteria_prompt}
+
+Veic analīzi un izvadi rezultātu stingri JSON formātā.
+JSON atbildē ir jābūt diviem laukiem:
+1. `unicorn_candidates`: Saraksts (array) ar dict (objektiem). Katram objektam jāsatur šādi lauki:
+    - `ticker`: Uzņēmuma tikers.
+    - `name`: Uzņēmuma nosaukums.
+    - `niche`: "Slepenais ierocis" (īss 1-2 teikumu nišas apraksts, kas dod konkurences priekšrocības).
+    - `why_10x_100x`: "Kāpēc 10x-100x" (ass 2 teikumu pamatojums par milzīgo izaugsmes potenciālu, balstoties uz Kvarka kritērijiem).
+    - `black_swan_risk`: "Melnais Gulbis" (objektīvs 1-2 teikumu riska faktors, kas var apturēt izaugsmi).
+2. `sector_concentration_warning`: "Sarkano Karogu" brīdinājums par pārmērīgu sektora koncentrāciju, ja Kvarks to pamana starp atlasītajiem kandidātiem, vai tukša stringa, ja brīdinājuma nav.
+
+Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."""
+                
                 resp = model.generate_content(prompt)
-                reply = resp.text.strip()
+                json_response_str = resp.text.strip()
+                
+                # Attempt to parse JSON
+                try:
+                    parsed_response = json.loads(json_response_str)
+                    unicorn_candidates = parsed_response.get("unicorn_candidates", [])
+                    sector_concentration_warning = parsed_response.get("sector_concentration_warning", "")
+                    reply_fallback = "" # If successful, clear fallback
+                except json.JSONDecodeError:
+                    reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi, nevis JSON. Daļa: {json_response_str[:500]}..."
+                    unicorn_candidates = []
+                    sector_concentration_warning = "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API."
+
             except Exception as e:
-                reply = f"⚠️ Kļūda: {e}"
+                reply_fallback = f"⚠️ Kļūda sazinoties ar Gemini: {e}"
+                sector_concentration_warning = f"⚠️ Kļūda sazinoties ar Gemini: {e}"
         else:
-            reply = "⚠️ Neizdevās iegūt datus."
+            reply_fallback = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
+            sector_concentration_warning = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
 
         def _ui():
-            self.btn_scan_all_growth.configure(state="normal", text="⚡ Skenēt visus & atrast labāko")
-            self.growth_box.configure(state="normal")
-            self.growth_box.delete("1.0", "end")
-            self.growth_box.insert("1.0", reply)
-            self.growth_box.configure(state="disabled")
+            self.btn_scan_all_growth.configure(state="normal", text="🚀 Medīt Jaunos Vienradžus")
+            
+            # Clear all widgets in the container
+            for widget in self.growth_results_container.winfo_children():
+                widget.destroy()
+            
+            if sector_concentration_warning:
+                warning_label = ctk.CTkLabel(self.growth_results_container, text=f"🚩 Sarkanais Karogs: {sector_concentration_warning}", 
+                                             font=ctk.CTkFont(size=12, weight="bold"), text_color="#dc2626", wraplength=400)
+                warning_label.pack(fill="x", padx=10, pady=5)
+            
+            if unicorn_candidates:
+                for idx, candidate in enumerate(unicorn_candidates):
+                    card = ctk.CTkFrame(self.growth_results_container, fg_color="#1e293b", corner_radius=10, border_width=2, border_color="#334155")
+                    card.pack(fill="x", padx=10, pady=8)
+
+                    ctk.CTkLabel(card, text=f"{idx+1}. {candidate.get('ticker', 'N/A')} - {candidate.get('name', 'N/A')}", 
+                                 font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(10, 2))
+                    
+                    ctk.CTkLabel(card, text=f"Slepenais ierocis (Niša):", 
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                    ctk.CTkLabel(card, text=candidate.get('niche', 'N/A'), 
+                                 font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
+                    
+                    ctk.CTkLabel(card, text=f"Kāpēc 10x-100x:", 
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                    ctk.CTkLabel(card, text=candidate.get('why_10x_100x', 'N/A'), 
+                                 font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
+                    
+                    ctk.CTkLabel(card, text=f"Melnais Gulbis (risks):", 
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                    ctk.CTkLabel(card, text=candidate.get('black_swan_risk', 'N/A'), 
+                                 font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
+                    
+                    add_button = ctk.CTkButton(card, text="➕ Pievienot manam eToro sarakstam", 
+                                               width=220, height=30, fg_color="#059669", hover_color="#10b981", 
+                                               font=ctk.CTkFont(size=12, weight="bold"), 
+                                               command=lambda t=candidate.get('ticker'): self._add_ticker_to_portfolio(t))
+                    add_button.pack(anchor="w", padx=15, pady=(10, 10))
+            else:
+                fallback_label = ctk.CTkLabel(self.growth_results_container, text=reply_fallback,
+                                              font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400)
+                fallback_label.pack(fill="x", padx=10, pady=10)
 
         self.after(0, _ui)
 
@@ -584,8 +693,8 @@ Sagatavo latviešu valodā skaidru izaugsmes atskaiti:
                     yield_pct = round(yield_val, 2)
 
                     # Kļūdu filtrs (piem., AVGO pēc split rāda 73%)
-                    if yield_pct > 35 and t.upper() == "AVGO":
-                        yield_pct = 1.35
+                    if yield_pct > 35 and t.upper() == "AVGO": # Specific correction for AVGO, based on domain knowledge
+                        yield_pct = 1.35 # Corrected yield after split for AVGO
 
                     div_data.append({
                         "ticker": t,
@@ -608,7 +717,7 @@ Sagatavo latviešu valodā skaidru izaugsmes atskaiti:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
                 prompt = f"""Tu esi dividenžu un pasīvās naudas plūsmas eksperts Komandants Kvarks.
-Šeit ir lietotāja portfeļa dividenžu dati:
+Šeit ir lietotāja portfeļa dividenču dati:
 {json.dumps(div_data, ensure_ascii=False, indent=2)}
 
 Sagatavo latviešu valodā strukturētu analīzi:
@@ -845,7 +954,7 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
             target_mean = info.get("targetMeanPrice", "N/A")
             div_yield = info.get("dividendYield")
             div_str = f"{round(div_yield * 100, 2)}%" if div_yield else "0.0%"
-
+            
             stats_text = (
                 f"=== {short_name} ({ticker}) ===\n"
                 f"Cena:             {curr_price} {currency}\n"
@@ -872,10 +981,12 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
                 "target_price": target_mean,
                 "dividend_yield": div_str,
                 "sector": info.get("sector", "Nezināms"),
-                "summary": info.get("longBusinessSummary", "")[:350]
+                "industry": info.get("industry", "Nezināms"), # Added industry for more specific analysis
+                "summary": info.get("longBusinessSummary", "")
             }
         except Exception as e:
             stats_text = f"⚠️ Kļūda nolasot {ticker}: {e}"
+            payload = {"ticker": ticker, "name": ticker, "error": str(e)} # Minimal payload to avoid breaking if fetch fails
 
         return stats_text, payload
 
