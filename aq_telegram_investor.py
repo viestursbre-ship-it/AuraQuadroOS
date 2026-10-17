@@ -9,7 +9,7 @@ import google.generativeai as genai
 import requests
 from pathlib import Path
 
-# Import for Word document generation
+# Imports for document processing and Word document generation
 from docx import Document
 from docx.shared import Inches, Pt 
 from docx.enum.text import WD_ALIGN_PARAGRAPH 
@@ -66,7 +66,7 @@ FINNHUB_KEY = config.get("finnhub_api_key") or os.environ.get("FINNHUB_API_KEY",
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-# --- PALĪGFUNKCIJAS ---
+# --- PALĪGFUNKCIJAS (IEKĻAUTAS AQ_TELEGRAM_INVESTOR.PY, BET TIEK UZTVERTAS KĀ 'DOC_DIGEST' MODUĻA LOGIKA) ---
 
 def _extract_text_from_docx(docx_path: Path) -> str:
     """Ekstrahē tekstu no .docx faila."""
@@ -88,6 +88,222 @@ def _extract_text_from_pdf(pdf_path: Path) -> str:
     except Exception as e:
         return f"Kļūda, ekstrahējot tekstu no PDF: {e}"
     return text
+
+def generate_word_report(original_file_name: str, report_data: dict, output_dir: Path) -> Path:
+    """
+    Generates a Word (.docx) report from the analysis data.
+    Saves it to the specified output_dir and returns the path.
+    """
+    document = Document()
+    
+    # Title
+    document.add_heading(f"AQ-OS Juridiskais Audits: {original_file_name}", level=1)
+    
+    # Risk Level
+    document.add_heading("Riska Līmenis:", level=2)
+    document.add_paragraph(report_data.get('risk_level', 'Nav definēts'))
+    
+    # Contract Subject and Parties
+    document.add_heading("Līguma Priekšmets un Puses:", level=2)
+    document.add_paragraph(report_data.get('contract_subject_parties', 'Nav definēts'))
+    
+    # Main Risks and Pitfalls
+    document.add_heading("Galvenie Riski un Zemūdens Akmeņi:", level=2)
+    if report_data.get('main_risks_pitfalls'):
+        for risk in report_data['main_risks_pitfalls']:
+            document.add_paragraph(risk, style='List Bullet')
+    else:
+        document.add_paragraph("Nav būtisku risku fiksēts.")
+        
+    # Date Warnings
+    document.add_heading("Datumu Brīdinājumi:", level=2)
+    if report_data.get('date_warnings'):
+        for warning in report_data['date_warnings']:
+            document.add_paragraph(warning, style='List Bullet')
+    else:
+        document.add_paragraph("Nav datumu brīdinājumu fiksēts.")
+        
+    # Summary
+    document.add_heading("Kopsavilkums:", level=2)
+    document.add_paragraph(report_data.get('summary', 'Nav kopsavilkuma pieejams.'))
+    
+    # Footer
+    document.add_paragraph("\n──────────────────────────")
+    document.add_paragraph(f"Auditu veikusi AuraQuadroOS Juridiskā Analīzes Sistēma, vadībā Komandants Kvarks. Izveidots: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    # Save the document
+    base_name = Path(original_file_name).stem
+    report_filename = f"DIGEST_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{base_name}.docx"
+    output_path = output_dir / report_filename # Izmantojam padoto output_dir
+    document.save(output_path)
+    return output_path
+
+def doc_digest_analysis(file_path: Path, gemini_api_key: str, output_dir: Path):
+    """
+    Analizē dokumentu, izmantojot Gemini AI un ģenerē Word failu ar rezultātiem.
+    Ekstrahē tekstu no PDF/DOCX faila.
+    Atgriež analīzes rezultātus kā dict un ģenerētā Word faila ceļu.
+    """
+    docx_file_path = None 
+    document_content = "" 
+
+    if not gemini_api_key:
+        error_results = {
+            "risk_level": "⚠️ Kritiskas Kļūda",
+            "contract_subject_parties": "Nav definēts bez AI.",
+            "main_risks_pitfalls": ["Gemini API atslēga nav konfigurēta."],
+            "date_warnings": [],
+            "summary": "Nevar veikt dokumenta analīzi bez API atslēgas. Lūdzu, konfigurējiet to."
+        }
+        try:
+            docx_file_path = generate_word_report(file_path.name, error_results, output_dir)
+        except Exception as e:
+            print(f"Kļūda ģenerējot Word atskaiti pie API kļūdas: {e}")
+        return error_results, docx_file_path
+    
+    try:
+        genai.configure(api_key=gemini_api_key)
+        
+        try:
+            model = genai.GenerativeModel("gemini-2.5-flash")
+        except Exception:
+            print("WARNING: gemini-2.5-flash nav pieejams, izmantoju gemini-2.0-flash.")
+            model = genai.GenerativeModel("gemini-2.0-flash") 
+        
+        try:
+            if file_path.suffix == '.docx':
+                document_content = _extract_text_from_docx(file_path)
+            elif file_path.suffix == '.pdf':
+                document_content = _extract_text_from_pdf(file_path)
+            else:
+                document_content = f"Neatbalstīts faila formāts ({file_path.suffix}). Nevar ekstrahēt tekstu."
+                print(f"ERROR: {document_content}")
+        except Exception as e:
+            document_content = f"Kļūda, ekstrahējot tekstu no faila '{file_path.name}': {e}. Lūdzu, pārbaudiet failu."
+            print(f"ERROR: {document_content}")
+
+        if not document_content.strip():
+            document_content = f"Dokuments '{file_path.name}' ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI analizēs šo situāciju."
+        
+        prompt = f"""Tu esi "AQ-OS Juridiskais Analītiķis", Komandanta Kvarka labā roka dokumentu auditā.
+Analizē šo dokumentu ({file_path.name}) saturu un struktūru, ņemot vērā tālāk sniegto tekstu.
+Ja teksts ir īss vai tukšs, informē par to kopsavilkumā.
+
+Dokumenta saturs:
+---
+{document_content}
+---
+
+Nodrošini strukturētu, militāri precīzu un kodolīgu atskaiti latviešu valodā. Izcel galvenos punktus un riskus.
+Formāts, kas JĀIEVĒRO Dzelžaini:
+Riska Līmenis: [Zems/Vidējs/Augsts/Kritisks/Nav definēts]
+Līguma Priekšmets un Puses: [Īss apraksts, piem., "Investīciju līgums starp X un Y". Ja nav skaidri definēts, norādi "Nav skaidri definēts."]
+Galvenie Riski un Zemūdens Akmeņi:
+- [Specifisks risks, piem., "Automātiska pagarināšana"]
+- [Specifisks risks, piem., "Slēptās izmaksas"]
+- [Specifisks risks, piem., "Sankciju klauzulas"]
+- [Ja nav būtisku risku, norādi tikai "Nav būtisku risku fiksēts."]
+Datumu Brīdinājumi:
+- [Datums un problēma, piem., "Termiņš pagājis: 2023-01-01"]
+- [Datums un problēma, piem., "Neloģisks termiņš: sākums pēc beigām"]
+- [Ja nav datumu brīdinājumu, norādi tikai "Nav datumu brīdinājumu fiksēts."]
+Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 teikumi. Ja dokuments ir tukšs vai neizdevās ekstrahēt tekstu, norādi to.]
+"""
+        
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
+        
+        parsed_response = {
+            "risk_level": "Neskaidrs",
+            "contract_subject_parties": "Nav definēts.",
+            "main_risks_pitfalls": [],
+            "date_warnings": [],
+            "summary": "Neizdevās analizēt Gemini atbildi."
+        }
+        
+        lines = response_text.split('\n')
+        current_section = None
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith("Riska Līmenis:"):
+                parsed_response["risk_level"] = line.replace("Riska Līmenis:", "").strip()
+                current_section = None
+            elif line.startswith("Līguma Priekšmets un Puses:"):
+                parsed_response["contract_subject_parties"] = line.replace("Līguma Priekšmets un Puses:", "").strip()
+                current_section = None
+            elif line.startswith("Galvenie Riski un Zemūdens Akmeņi:"):
+                current_section = "main_risks_pitfalls"
+            elif line.startswith("Datumu Brīdinājumi:"):
+                current_section = "date_warnings"
+            elif line.startswith("Kopsavilkums:"):
+                parsed_response["summary"] = line.replace("Kopsavilkums:", "").strip()
+                current_section = None 
+            elif line.startswith("- ") and current_section in ["main_risks_pitfalls", "date_warnings"]:
+                item = line[2:].strip()
+                if current_section == "main_risks_pitfalls":
+                    if item.lower() != "nav būtisku risku fiksēts.": 
+                        parsed_response[current_section].append(item)
+                elif current_section == "date_warnings":
+                    if item.lower() != "nav datumu brīdinājumu fiksēts.":
+                        parsed_response[current_section].append(item)
+            # This handles cases where summary might be multiline or not explicitly prefixed
+            elif parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi." and current_section is None and not line.startswith('-'):
+                if not (line.startswith("Riska Līmenis:") or line.startswith("Līguma Priekšmets:")): # Avoid re-parsing sections
+                    parsed_response["summary"] = line # Fallback if summary is not parsed initially
+
+        # Refined summary fallback if still default
+        if parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi." or not parsed_response["summary"]:
+            if "Kļūda, ekstrahējot tekstu" in document_content:
+                parsed_response["summary"] = "Kļūda, ekstrahējot tekstu no dokumenta. Analīze var būt nepilnīga."
+            elif document_content.startswith("Dokuments") and ("tukšs" in document_content or "nevarēja ekstrahēt tekstu" in document_content):
+                parsed_response["summary"] = "Dokuments ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI atbildēja uz šo situāciju."
+            else:
+                parsed_response["summary"] = "Neizdevās iegūt kopsavilkumu no AI atbildes."
+                
+        # Ensure contract_subject_parties is not empty if summary suggests there was content.
+        if parsed_response["contract_subject_parties"] == "Nav definēts." and \
+           parsed_response["summary"] not in ["Dokuments ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI atbildēja uz šo situāciju.", "Kļūda, ekstrahējot tekstu no dokumenta. Analīze var būt nepilnīga."]:
+             parsed_response["contract_subject_parties"] = "Nav skaidri definēts."
+        
+        # Pamata pārbaudes, ja riska līmenis nav skaidri definēts
+        if parsed_response["risk_level"] == "Neskaidrs":
+            if parsed_response["main_risks_pitfalls"] or parsed_response["date_warnings"]:
+                parsed_response["risk_level"] = "Vidējs" 
+            else:
+                parsed_response["risk_level"] = "Zems"
+
+        # Generate the Word document
+        try:
+            docx_file_path = generate_word_report(file_path.name, parsed_response, output_dir)
+        except Exception as e:
+            print(f"Kļūda ģenerējot Word atskaiti: {e}")
+        
+        return parsed_response, docx_file_path
+    
+    except Exception as e:
+        error_summary_msg = f"Neizdevās veikt dokumenta analīzi. Sazinieties ar Komandantu. Detalizēta kļūda: {e}"
+        if "Kļūda, ekstrahējot tekstu" in document_content:
+            error_summary_msg = f"Kļūda, ekstrahējot tekstu no dokumenta, vai citas analīzes kļūdas dēļ: {e}. Sazinieties ar Komandantu."
+        
+        error_results = {
+            "risk_level": "🔴 Kritiskas Kļūda",
+            "contract_subject_parties": "Nav definēts kļūdas dēļ.",
+            "main_risks_pitfalls": [f"Gemini analīzes kļūda: {e}"],
+            "date_warnings": [],
+            "summary": error_summary_msg
+        }
+        # Attempt to generate a Word file even with error results
+        try:
+            docx_file_path = generate_word_report(file_path.name, error_results, output_dir)
+        except Exception as e_docx:
+            print(f"Kļūda ģenerējot Word atskaiti pie analīzes kļūdas: {e_docx}")
+        return error_results, docx_file_path
+
+# --- PĀRĒJĀS PALĪGFUNKCIJAS ---
 
 def get_portfolio_tickers():
     if os.path.exists(PORTFOLIO_PATH):
@@ -129,7 +345,6 @@ def build_dividend_summary():
             tk = yf.Ticker(t)
             info = tk.info
             
-            # Sakārtojam ienesīgumu (precīza normalizācija)
             yield_rate = info.get("dividendYield")
             if yield_rate is not None and yield_rate > 0:
                 if yield_rate > 20.0:
@@ -142,7 +357,6 @@ def build_dividend_summary():
             else:
                 yield_str = "Nav/0.0%"
             
-            # Ex-dividend datums
             ex_div = info.get("exDividendDate")
             if ex_div and isinstance(ex_div, (int, float)):
                 try:
@@ -220,7 +434,7 @@ def get_finnhub_intel():
     if not FINNHUB_KEY:
         return "⚠️ Finnhub atslēga nav pievienota config.json failā (`finnhub_api_key`)!"
         
-    tickers = [t for t in get_portfolio_tickers() if "." not in t][:4] # Paņemam pirmos ASV tikerus
+    tickers = [t for t in get_portfolio_tickers() if "." not in t][:4] 
     text = "🕵️ *Finnhub Tirgus Izlūkdati (Insaideri & Ziņas)*\n"
     text += "──────────────────────────\n"
     
@@ -288,226 +502,11 @@ Maksimums 4-6 teikumi, skaidrā latviešu valodā ar enerģisku toni."""
 
     try:
         genai.configure(api_key=GEMINI_KEY)
-        model = genai.GenerativeModel("gemini-2.5-flash") # Šis modelis jau ir korekts
+        model = genai.GenerativeModel("gemini-2.5-flash") 
         res = model.generate_content(prompt)
         return f"🐾 *KOMANDANTA KVARKA AUDITS:*\n──────────────────────────\n{res.text}"
     except Exception as e:
         return f"⚠️ Kvarka audita kļūda: {e}"
-
-def generate_word_report(original_file_name: str, report_data: dict) -> Path:
-    """
-    Generates a Word (.docx) report from the analysis data.
-    Saves it to the OUTBOX_DIR and returns the path.
-    """
-    document = Document()
-    
-    # Title
-    document.add_heading(f"AQ-OS Juridiskais Audits: {original_file_name}", level=1)
-    
-    # Risk Level
-    document.add_heading("Riska Līmenis:", level=2)
-    document.add_paragraph(report_data.get('risk_level', 'Nav definēts'))
-    
-    # Contract Subject and Parties
-    document.add_heading("Līguma Priekšmets un Puses:", level=2)
-    document.add_paragraph(report_data.get('contract_subject_parties', 'Nav definēts'))
-    
-    # Main Risks and Pitfalls
-    document.add_heading("Galvenie Riski un Zemūdens Akmeņi:", level=2)
-    if report_data.get('main_risks_pitfalls'):
-        for risk in report_data['main_risks_pitfalls']:
-            document.add_paragraph(risk, style='List Bullet')
-    else:
-        document.add_paragraph("Nav būtisku risku fiksēts.")
-        
-    # Date Warnings
-    document.add_heading("Datumu Brīdinājumi:", level=2)
-    if report_data.get('date_warnings'):
-        for warning in report_data['date_warnings']:
-            document.add_paragraph(warning, style='List Bullet')
-    else:
-        document.add_paragraph("Nav datumu brīdinājumu fiksēts.")
-        
-    # Summary
-    document.add_heading("Kopsavilkums:", level=2)
-    document.add_paragraph(report_data.get('summary', 'Nav kopsavilkuma pieejams.'))
-    
-    # Footer
-    document.add_paragraph("\n──────────────────────────")
-    document.add_paragraph(f"Auditu veikusi AuraQuadroOS Juridiskā Analīzes Sistēma, vadībā Komandants Kvarks. Izveidots: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-    # Save the document
-    # Get the base name without extension for a clean report filename
-    base_name = Path(original_file_name).stem
-    report_filename = f"DIGEST_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{base_name}.docx"
-    output_path = OUTBOX_DIR / report_filename
-    document.save(output_path)
-    return output_path
-
-def doc_digest_analysis(file_path: Path):
-    """
-    Analizē dokumentu, izmantojot Gemini AI un ģenerē Word failu ar rezultātiem.
-    Ekstrahē tekstu no PDF/DOCX faila.
-    Atgriež analīzes rezultātus kā dict un ģenerētā Word faila ceļu.
-    """
-    docx_file_path = None # Initialize as None
-    document_content = "" # Initialize document content
-
-    if not GEMINI_KEY:
-        error_results = {
-            "risk_level": "⚠️ Kritiskas Kļūda",
-            "contract_subject_parties": "Nav definēts bez AI.",
-            "main_risks_pitfalls": ["Gemini API atslēga nav konfigurēta."],
-            "date_warnings": [],
-            "summary": "Nevar veikt dokumenta analīzi bez API atslēgas. Lūdzu, konfigurējiet to."
-        }
-        try:
-            docx_file_path = generate_word_report(file_path.name, error_results)
-        except Exception as e:
-            print(f"Kļūda ģenerējot Word atskaiti pie API kļūdas: {e}")
-        return error_results, docx_file_path
-    
-    try:
-        genai.configure(api_key=GEMINI_KEY)
-        
-        # Mēģinām izmantot gemini-2.5-flash, ar atkritienu uz gemini-2.0-flash
-        try:
-            model = genai.GenerativeModel("gemini-2.5-flash")
-        except Exception:
-            print("WARNING: gemini-2.5-flash nav pieejams, izmantoju gemini-2.0-flash.")
-            model = genai.GenerativeModel("gemini-2.0-flash") # Atkritiens uz stabilu modeli
-        
-        # --- Real document text extraction ---
-        try:
-            if file_path.suffix == '.docx':
-                document_content = _extract_text_from_docx(file_path)
-            elif file_path.suffix == '.pdf':
-                document_content = _extract_text_from_pdf(file_path)
-            else:
-                document_content = f"Neatbalstīts faila formāts ({file_path.suffix}). Nevar ekstrahēt tekstu."
-                print(f"ERROR: {document_content}")
-        except Exception as e:
-            document_content = f"Kļūda, ekstrahējot tekstu no faila '{file_path.name}': {e}. Lūdzu, pārbaudiet failu."
-            print(f"ERROR: {document_content}")
-
-        if not document_content.strip():
-            document_content = f"Dokuments '{file_path.name}' ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI analizēs šo situāciju."
-        
-        prompt = f"""Tu esi "AQ-OS Juridiskais Analītiķis", Komandanta Kvarka labā roka dokumentu auditā.
-Analizē šo dokumentu ({file_path.name}) saturu un struktūru, ņemot vērā tālāk sniegto tekstu.
-Ja teksts ir īss vai tukšs, informē par to kopsavilkumā.
-
-Dokumenta saturs:
----
-{document_content}
----
-
-Nodrošini strukturētu, militāri precīzu un kodolīgu atskaiti latviešu valodā. Izcel galvenos punktus un riskus.
-Formāts, kas JĀIEVĒRO Dzelžaini:
-Riska Līmenis: [Zems/Vidējs/Augsts/Kritisks/Nav definēts]
-Līguma Priekšmets un Puses: [Īss apraksts, piem., "Investīciju līgums starp X un Y". Ja nav skaidri definēts, norādi "Nav skaidri definēts."]
-Galvenie Riski un Zemūdens Akmeņi:
-- [Specifisks risks, piem., "Automātiska pagarināšana"]
-- [Specifisks risks, piem., "Slēptās izmaksas"]
-- [Specifisks risks, piem., "Sankciju klauzulas"]
-- [Ja nav būtisku risku, norādi tikai "Nav būtisku risku fiksēts."]
-Datumu Brīdinājumi:
-- [Datums un problēma, piem., "Termiņš pagājis: 2023-01-01"]
-- [Datums un problēma, piem., "Neloģisks termiņš: sākums pēc beigām"]
-- [Ja nav datumu brīdinājumu, norādi tikai "Nav datumu brīdinājumu fiksēts."]
-Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 teikumi. Ja dokuments ir tukšs vai neizdevās ekstrahēt tekstu, norādi to.]
-"""
-        
-        response = model.generate_content(prompt)
-        response_text = response.text.strip()
-        
-        parsed_response = {
-            "risk_level": "Neskaidrs",
-            "contract_subject_parties": "Nav definēts.",
-            "main_risks_pitfalls": [],
-            "date_warnings": [],
-            "summary": "Neizdevās analizēt Gemini atbildi."
-        }
-        
-        lines = response_text.split('\n')
-        current_section = None
-        
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-
-            if line.startswith("Riska Līmenis:"):
-                parsed_response["risk_level"] = line.replace("Riska Līmenis:", "").strip()
-                current_section = None
-            elif line.startswith("Līguma Priekšmets un Puses:"):
-                parsed_response["contract_subject_parties"] = line.replace("Līguma Priekšmets un Puses:", "").strip()
-                current_section = None
-            elif line.startswith("Galvenie Riski un Zemūdens Akmeņi:"):
-                current_section = "main_risks_pitfalls"
-            elif line.startswith("Datumu Brīdinājumi:"):
-                current_section = "date_warnings"
-            elif line.startswith("Kopsavilkums:"):
-                parsed_response["summary"] = line.replace("Kopsavilkums:", "").strip()
-                current_section = None 
-            elif line.startswith("- ") and current_section in ["main_risks_pitfalls", "date_warnings"]:
-                item = line[2:].strip()
-                # Filter out generic 'no risks' messages from actual lists
-                if current_section == "main_risks_pitfalls":
-                    if item.lower() != "nav būtisku risku fiksēts.": 
-                        parsed_response[current_section].append(item)
-                elif current_section == "date_warnings":
-                    if item.lower() != "nav datumu brīdinājumu fiksēts.":
-                        parsed_response[current_section].append(item)
-            elif parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi." and current_section is None and not line.startswith('-'):
-                parsed_response["summary"] = line # Fallback if summary is not parsed initially
-
-        # Refined summary fallback if still default
-        if parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi.":
-            if "Kļūda, ekstrahējot tekstu" in document_content:
-                parsed_response["summary"] = "Kļūda, ekstrahējot tekstu no dokumenta. Analīze var būt nepilnīga."
-            elif document_content.startswith("Dokuments") and ("tukšs" in document_content or "nevarēja ekstrahēt tekstu" in document_content):
-                parsed_response["summary"] = "Dokuments ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI atbildēja uz šo situāciju."
-            else:
-                parsed_response["summary"] = "Neizdevās iegūt kopsavilkumu no AI atbildes."
-
-        # Ensure contract_subject_parties is not empty if summary suggests there was content.
-        if parsed_response["contract_subject_parties"] == "Nav definēts." and parsed_response["summary"] != "Dokuments ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI atbildēja uz šo situāciju.":
-             parsed_response["contract_subject_parties"] = "Nav skaidri definēts."
-        
-        # Pamata pārbaudes, ja riska līmenis nav skaidri definēts
-        if parsed_response["risk_level"] == "Neskaidrs":
-            if parsed_response["main_risks_pitfalls"] or parsed_response["date_warnings"]:
-                parsed_response["risk_level"] = "Vidējs" 
-            else:
-                parsed_response["risk_level"] = "Zems"
-
-        # Generate the Word document
-        try:
-            docx_file_path = generate_word_report(file_path.name, parsed_response)
-        except Exception as e:
-            print(f"Kļūda ģenerējot Word atskaiti: {e}")
-        
-        return parsed_response, docx_file_path
-    
-    except Exception as e:
-        error_summary_msg = f"Neizdevās veikt dokumenta analīzi. Sazinieties ar Komandantu. Detalizēta kļūda: {e}"
-        if "Kļūda, ekstrahējot tekstu" in document_content:
-            error_summary_msg = f"Kļūda, ekstrahējot tekstu no dokumenta, vai citas analīzes kļūdas dēļ: {e}. Sazinieties ar Komandantu."
-        
-        error_results = {
-            "risk_level": "🔴 Kritiskas Kļūda",
-            "contract_subject_parties": "Nav definēts kļūdas dēļ.",
-            "main_risks_pitfalls": [f"Gemini analīzes kļūda: {e}"],
-            "date_warnings": [],
-            "summary": error_summary_msg
-        }
-        # Attempt to generate a Word file even with error results
-        try:
-            docx_file_path = generate_word_report(file_path.name, error_results)
-        except Exception as e_docx:
-            print(f"Kļūda ģenerējot Word atskaiti pie analīzes kļūdas: {e_docx}")
-        return error_results, docx_file_path
 
 # --- TIKERU SAGLABĀŠANA UN PĀRVALDĪBA ---
 def save_portfolio_tickers(tickers):
@@ -529,18 +528,17 @@ def main_menu_keyboard():
     b3 = types.InlineKeyboardButton("🌡️ Tirgus Klimats", callback_data="btn_sentiment")
     b4 = types.InlineKeyboardButton("🕵️ Insaideri & Ziņas", callback_data="btn_intel")
     b5 = types.InlineKeyboardButton("🐾 Kvarka Audits", callback_data="btn_audit")
-    b6 = types.InlineKeyboardButton("📑 Līgumu Audits", callback_data="btn_contract_audit") # JAUNA POGA
+    b6 = types.InlineKeyboardButton("📑 Līgumu Audits", callback_data="btn_contract_audit") 
     b7 = types.InlineKeyboardButton("⚙️ Pārvaldīt Tikerus", callback_data="btn_manage")
     b8 = types.InlineKeyboardButton("🔄 Atjaunot", callback_data="btn_refresh")
     markup.add(b1, b2)
     markup.add(b3, b4)
-    markup.add(b5, b6) # Pievienojam jauno pogu esošajā rindā
+    markup.add(b5, b6) 
     markup.add(b7, b8)
     return markup
 
 # --- TELEGRAM HANDLERI ---
 
-# Jauna komanda /boss un /kvarks
 @bot.message_handler(commands=['boss', 'kvarks'])
 def send_boss_status(message):
     boss_message = (
@@ -554,7 +552,6 @@ def send_boss_status(message):
     )
     bot.send_message(message.chat.id, boss_message, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
-# Komanda /help
 @bot.message_handler(commands=['help'])
 def send_help_message(message):
     help_text = (
@@ -578,7 +575,6 @@ def send_help_message(message):
     )
     bot.send_message(message.chat.id, help_text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
-# Tiešās komandas pogu funkcionalitātei
 @bot.message_handler(commands=['portfolio'])
 def command_portfolio(message):
     text = build_portfolio_summary()
@@ -663,7 +659,6 @@ def handle_callbacks(call):
         text = run_quark_audit()
         bot.send_message(chat_id, text, parse_mode="Markdown", reply_markup=main_menu_keyboard())
     
-    # JAUNS HANDLERIS LĪGUMU AUDITA POGAI
     elif call.data == "btn_contract_audit":
         bot.answer_callback_query(call.id, "Komandants Kvarks gaida dokumentu skenēšanai...")
         instruction_message = (
@@ -735,12 +730,11 @@ def handle_ticker_text_commands(message):
             save_portfolio_tickers(cleaned)
             bot.reply_to(message, f"🎯 Jaunais portfelis iestatīts:\n`{', '.join(cleaned)}`", parse_mode="Markdown")
 
-# --- JAUNS DOKUMENTU HANDLERIS ---
+# --- DOKUMENTU HANDLERIS ---
 @bot.message_handler(content_types=['document'])
 def handle_docs(message):
     chat_id = message.chat.id
     
-    # Initialize docx_file_path to None, so we know if it was successfully generated
     docx_file_path = None
 
     try:
@@ -749,30 +743,27 @@ def handle_docs(message):
             return
 
         file_name = message.document.file_name
-        file_extension = Path(file_name).suffix.lower() # Izmantojam Path, lai tīri iegūtu paplašinājumu
+        file_extension = Path(file_name).suffix.lower() 
 
-        # Pārbaudām, vai fails ir .pdf vai .docx
         if file_extension not in ('.pdf', '.docx'):
             bot.reply_to(message, "⚠️ Saņemts fails nav atbalstīts. Lūdzu, sūtiet `.pdf` vai `.docx` dokumentus.", reply_markup=main_menu_keyboard())
             return
 
         bot.send_message(chat_id, "⏳ Dokuments saņemts! Tiek veikts juridiskais audits...")
         
-        # Lejupielādējam failu un saglabājam to 'storage/inbox' mapē
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         
-        # Izveidojam unikālu faila nosaukumu, lai izvairītos no pārrakstīšanas
         unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file_name}"
-        save_path = INBOX_DIR / unique_filename # Izmantojam Path objektu ceļu savienošanai
+        save_path = INBOX_DIR / unique_filename 
         
         with open(save_path, 'wb') as new_file:
             new_file.write(downloaded_file)
 
         bot.send_message(chat_id, f"✅ Dokuments `{file_name}` saglabāts, sāku analīzi.")
 
-        # Izsaucam doc_digest analīzes moduli šim failam
-        report_data, docx_file_path = doc_digest_analysis(save_path) # Tagad atgriež divas vērtības
+        # Izsaucam doc_digest analīzes funkciju, nododot tai vajadzīgās atslēgas un ceļus
+        report_data, docx_file_path = doc_digest_analysis(save_path, GEMINI_KEY, OUTBOX_DIR) 
         
         # Map risk level to color emoji for presentation
         risk_map = {
@@ -802,8 +793,7 @@ def handle_docs(message):
             with open(docx_file_path, 'rb') as doc_file:
                 bot.send_document(chat_id, doc_file, caption=caption_text, parse_mode="Markdown")
             bot.send_message(chat_id, "✅ Word slēdziens nosūtīts!")
-            # Optionally delete the generated docx file from outbox after sending
-            # docx_file_path.unlink(missing_ok=True)
+            # docx_file_path.unlink(missing_ok=True) # Jāizlemj, vai dzēst. Drošības pēc atstājam izejošajā mapē.
         else:
             bot.send_message(chat_id, "⚠️ Kļūda: Neizdevās ģenerēt vai atrast Word slēdziena failu. Sazinieties ar Komandantu.", parse_mode="Markdown")
 
@@ -867,7 +857,6 @@ def handle_docs(message):
         else:
             bot.send_message(chat_id, final_report, parse_mode="Markdown", reply_markup=main_menu_keyboard())
 
-        # Pēc apstrādes varam izdzēst failu no inbox mapes, ja tas vairs nav nepieciešams
         # save_path.unlink(missing_ok=True) # Jāizlemj, vai dzēst. Drošības pēc atstājam iesūtnē.
 
     except Exception as e:
