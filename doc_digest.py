@@ -389,9 +389,22 @@ class DocDigestFrame(ctk.CTkFrame):
         )
         self.btn_open_summary.pack(side="left", padx=6, pady=8)
 
+        # Progress bar
+        self.progress_bar = ctk.CTkProgressBar(
+            top_bar,
+            orientation="horizontal",
+            mode="indeterminate", # Pulsating mode for background tasks
+            width=200,
+            height=20,
+            fg_color="#475569", # Background color for the bar
+            progress_color="#60a5fa" # Color of the moving segment
+        )
+        self.progress_bar.set(0) # Ensure it's empty initially
+        self.progress_bar.stop() # Ensure it's stopped initially
+        self.progress_bar.pack(side="right", padx=(10, 15), pady=8) # Pack to the far right
 
         self.lbl_status = ctk.CTkLabel(top_bar, text="", font=ctk.CTkFont(size=12), text_color="#38bdf8")
-        self.lbl_status.pack(side="right", padx=15)
+        self.lbl_status.pack(side="right", padx=(0, 10), pady=8) # Pack to the left of the progress bar
 
         self.txt_output = ctk.CTkTextbox(
             self,
@@ -583,23 +596,33 @@ class DocDigestFrame(ctk.CTkFrame):
         p = Path(path)
         self.btn_select.configure(state="disabled")
         self.btn_open_summary.configure(state="disabled") # Disable summary button at start of new process
+        
+        # Start progress bar animation and update status label
+        self.progress_bar.set(0) # Reset to empty
+        self.progress_bar.start()
         self.lbl_status.configure(text=f"Apstrādā {p.name}...")
+        self.txt_output.insert("end", f"⚡ Sāku {p.name} apstrādi...\n")
+        self.txt_output.see("end")
 
         def _worker():
             analysis, res_msg = self.service.process_file(p)
             def _done():
                 self.btn_select.configure(state="normal")
+                self.progress_bar.stop() # Stop the animation
+                
                 if analysis:
                     # Update last_summary_path and enable the button
                     self.last_summary_path = Path(res_msg) # res_msg is the docx_path string
                     self.btn_open_summary.configure(state="normal")
                     
                     self.lbl_status.configure(text="✅ Apstrāde pabeigta!")
+                    self.progress_bar.set(1) # Fill the bar visually for completion
                     clean_report = self._format_clean_report(p.name, analysis, res_msg)
                     self.txt_output.insert("end", clean_report)
                     self.txt_output.see("end")
                 else:
                     self.lbl_status.configure(text="⚠️ Kļūda!")
+                    self.progress_bar.set(0) # Reset to empty on error
                     self.txt_output.insert("end", f"\n❌ Kļūda failam {p.name}: {res_msg}\n\n")
                     self.btn_open_summary.configure(state="disabled") # Ensure it stays disabled on error
             self.after(0, _done)
