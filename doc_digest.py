@@ -7,6 +7,8 @@ from pathlib import Path
 from datetime import datetime
 import customtkinter as ctk
 from tkinter import filedialog
+import subprocess # Added for cross-platform file opening
+import sys # Added for cross-platform file opening
 
 import docx
 from pptx import Presentation
@@ -344,6 +346,7 @@ class DocDigestFrame(ctk.CTkFrame):
     def __init__(self, master, get_gemini_key_fn=None):
         super().__init__(master, fg_color="transparent")
         self.service = DocDigestService(get_gemini_key_fn=get_gemini_key_fn)
+        self.last_summary_path = None # Initialize path to the last created summary
 
         top_bar = ctk.CTkFrame(self, fg_color="#0f172a", height=50)
         top_bar.pack(fill="x", padx=10, pady=(10, 5))
@@ -372,6 +375,21 @@ class DocDigestFrame(ctk.CTkFrame):
         )
         self.btn_open_excel.pack(side="left", padx=6, pady=8)
 
+        # New button for opening Word summary
+        self.btn_open_summary = ctk.CTkButton(
+            top_bar,
+            text="📄 Atvērt Slēdzienu",
+            width=170,
+            height=34,
+            fg_color="#8b5cf6", # A distinct color for the new button
+            hover_color="#7c3aed",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=self.open_summary_docx,
+            state="disabled" # Initially disabled
+        )
+        self.btn_open_summary.pack(side="left", padx=6, pady=8)
+
+
         self.lbl_status = ctk.CTkLabel(top_bar, text="", font=ctk.CTkFont(size=12), text_color="#38bdf8")
         self.lbl_status.pack(side="right", padx=15)
 
@@ -390,6 +408,22 @@ class DocDigestFrame(ctk.CTkFrame):
             os.startfile(str(EXCEL_REGISTRY_PATH))
         else:
             self.lbl_status.configure(text="Reģistrs vēl nav izveidots")
+
+    def open_summary_docx(self):
+        """Opens the last created Word summary document using the default application."""
+        if self.last_summary_path and self.last_summary_path.exists():
+            try:
+                if sys.platform == "win32":
+                    os.startfile(str(self.last_summary_path))
+                elif sys.platform == "darwin":  # macOS
+                    subprocess.run(['open', str(self.last_summary_path)], check=True)
+                else:  # Linux and other Unix-like systems
+                    subprocess.run(['xdg-open', str(self.last_summary_path)], check=True)
+                self.lbl_status.configure(text="Word kopsavilkums atvērts.")
+            except Exception as e:
+                self.lbl_status.configure(text=f"Kļūda atverot Word kopsavilkumu: {e}")
+        else:
+            self.lbl_status.configure(text="Nav pieejams pēdējais Word kopsavilkums.")
 
     def _format_clean_report(self, filename: str, analysis: dict, docx_path: str) -> str:
         """Pārvērš JSON datus glītā, lasāmā cilvēka formātā."""
@@ -548,6 +582,7 @@ class DocDigestFrame(ctk.CTkFrame):
 
         p = Path(path)
         self.btn_select.configure(state="disabled")
+        self.btn_open_summary.configure(state="disabled") # Disable summary button at start of new process
         self.lbl_status.configure(text=f"Apstrādā {p.name}...")
 
         def _worker():
@@ -555,6 +590,10 @@ class DocDigestFrame(ctk.CTkFrame):
             def _done():
                 self.btn_select.configure(state="normal")
                 if analysis:
+                    # Update last_summary_path and enable the button
+                    self.last_summary_path = Path(res_msg) # res_msg is the docx_path string
+                    self.btn_open_summary.configure(state="normal")
+                    
                     self.lbl_status.configure(text="✅ Apstrāde pabeigta!")
                     clean_report = self._format_clean_report(p.name, analysis, res_msg)
                     self.txt_output.insert("end", clean_report)
@@ -562,6 +601,7 @@ class DocDigestFrame(ctk.CTkFrame):
                 else:
                     self.lbl_status.configure(text="⚠️ Kļūda!")
                     self.txt_output.insert("end", f"\n❌ Kļūda failam {p.name}: {res_msg}\n\n")
+                    self.btn_open_summary.configure(state="disabled") # Ensure it stays disabled on error
             self.after(0, _done)
 
         threading.Thread(target=_worker, daemon=True).start()
