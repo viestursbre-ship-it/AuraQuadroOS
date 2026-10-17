@@ -4,9 +4,8 @@ import os
 
 # --- Configuration Constants ---
 CONFIG_FILE = "config.json"
-DEFAULT_LANGUAGE_CODE = 'lv'
-# Prioritize "report_language", then "language" for reading configuration
-CONFIG_LANGUAGE_KEYS = ["report_language", "language"] 
+DEFAULT_UI_LANGUAGE_CODE = 'lv' # Noklusējuma valoda lietotāja saskarnei
+DEFAULT_OUTPUT_LANGUAGE_CODE = 'auto' # Noklusējuma valoda atskaitēm/ģenerētajiem failiem (vai 'lv', 'en', 'auto' u.c.)
 
 # --- Supported Languages Definition ---
 SUPPORTED_LANGUAGES = {
@@ -59,99 +58,121 @@ TRANSLATIONS = {
     "it": {}
 }
 
-# --- Internal cache for current language, initialized on first access ---
-_current_lang_in_memory = None
+# --- Internal cache for current configuration ---
+_cached_config = None 
 
 def _load_config() -> dict:
     """Helper to load config.json safely. Returns an empty dict if file is not found or corrupted."""
+    global _cached_config
+    if _cached_config is not None:
+        return _cached_config
+
     if not os.path.exists(CONFIG_FILE):
-        return {}
+        _cached_config = {}
+        return _cached_config
     try:
         with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            _cached_config = json.load(f)
+            return _cached_config
     except json.JSONDecodeError:
         # Komandants Kvarks nesveic JSON formāta pārkāpumus.
         print(f"Brīdinājums: '{CONFIG_FILE}' ir bojāts vai nav derīgs JSON. Tiek izmantoti noklusējuma iestatījumi.")
-        return {}
+        _cached_config = {}
+        return _cached_config
     except Exception as e:
         # Vispārīga kļūda faila lasīšanā.
         print(f"Kļūda lasot '{CONFIG_FILE}': {e}. Tiek izmantoti noklusējuma iestatījumi.")
-        return {}
+        _cached_config = {}
+        return _cached_config
 
 def _save_config(config_data: dict):
-    """Helper to save config.json safely."""
+    """Helper to save config.json safely and update the cache."""
+    global _cached_config
     try:
         with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
             json.dump(config_data, f, indent=4, ensure_ascii=False)
+        _cached_config = config_data # Atjauno kešu pēc veiksmīgas saglabāšanas
     except Exception as e:
         # Bruno brīdina par faila rakstīšanas kļūdām.
         print(f"Kļūda saglabājot '{CONFIG_FILE}': {e}")
 
 
-def get_current_language() -> str:
-    """
-    Nolasa pašreizējo valodas izvēli no config.json vai atgriež noklusējuma valodu.
-    Valodas izvēle tiek kešota, lai izvairītos no liekas failu lasīšanas.
-    """
-    global _current_lang_in_memory
-    if _current_lang_in_memory is None:
-        config = _load_config()
-        lang_code = None
-        for key in CONFIG_LANGUAGE_KEYS:
-            lang_code = config.get(key)
-            if lang_code is not None:
-                break
-        
-        if lang_code is None or lang_code not in SUPPORTED_LANGUAGES:
-            lang_code = DEFAULT_LANGUAGE_CODE
-        _current_lang_in_memory = lang_code
-    return _current_lang_in_memory
+def get_ui_language() -> str:
+    """Atgriež aktīvo UI valodas kodu (lv, en, uk, ru, it)."""
+    config = _load_config()
+    lang_code = config.get("ui_language", DEFAULT_UI_LANGUAGE_CODE)
+    if lang_code not in SUPPORTED_LANGUAGES:
+        lang_code = DEFAULT_UI_LANGUAGE_CODE
+    return lang_code
 
-
-def set_current_language(lang_code: str):
-    """
-    Saglabā lietotāja valodas izvēli config.json un atjaunina iekšējo kešu.
-    """
-    global _current_lang_in_memory
+def set_ui_language(lang_code: str):
+    """Saglabā ui_language iekš config.json."""
     if lang_code not in SUPPORTED_LANGUAGES:
         # Komandants Kvarks nepieļauj neatbalstītas operācijas.
-        print(f"Brīdinājums: Valoda '{lang_code}' netiek atbalstīta. Izvēle netiek saglabāta.")
+        print(f"Brīdinājums: UI valoda '{lang_code}' netiek atbalstīta. Izvēle netiek saglabāta.")
         return
 
     config = _load_config()
-    # Always write to the primary language key
-    config[CONFIG_LANGUAGE_KEYS[0]] = lang_code 
+    config["ui_language"] = lang_code
     _save_config(config)
-    _current_lang_in_memory = lang_code
 
+def get_output_language() -> str:
+    """
+    Atgriež reālo atskaišu valodas kodu.
+    Ja konfigurācijā ir "auto", atgriež get_ui_language(), citādi konkrēto norādīto kodu.
+    """
+    config = _load_config()
+    output_lang_setting = config.get("output_language", DEFAULT_OUTPUT_LANGUAGE_CODE)
+
+    if output_lang_setting == "auto":
+        return get_ui_language()
+    elif output_lang_setting in SUPPORTED_LANGUAGES:
+        return output_lang_setting
+    else:
+        # Atgriež UI valodu, ja konfigurētā atskaišu valoda ir nederīga
+        return get_ui_language()
+
+def set_output_language(lang_code: str):
+    """
+    Saglabā output_language iekš config.json.
+    Atbalsta "auto", "lv", "en", "uk", "ru", "it".
+    """
+    if lang_code != "auto" and lang_code not in SUPPORTED_LANGUAGES:
+        # Komandants Kvarks nepieļauj neatbalstītas operācijas.
+        print(f"Brīdinājums: Atskaišu valoda '{lang_code}' netiek atbalstīta. Izvēle netiek saglabāta.")
+        return
+
+    config = _load_config()
+    config["output_language"] = lang_code
+    _save_config(config)
 
 def get_llm_language_instruction(lang_code: str = None) -> str:
     """
-    Atgriež skaidru sistēmas uzvednes frāzi modelim par izmantojamo valodu.
-    Ja valoda nav norādīta, tiek izmantota pašreizējā sistēmas valoda.
+    Atgriež precīzu sistēmas uzvednes teikumu modeļiem par izmantojamo valodu.
+    Ja lang_code nav padots, izmanto get_output_language().
     """
     if lang_code is None:
-        lang_code = get_current_language()
+        lang_code = get_output_language()
 
-    # Fallback to default if requested lang_code is not supported
-    lang_info = SUPPORTED_LANGUAGES.get(lang_code, SUPPORTED_LANGUAGES[DEFAULT_LANGUAGE_CODE])
+    # Atgriežas pie noklusējuma, ja pieprasītā valoda netiek atbalstīta
+    lang_info = SUPPORTED_LANGUAGES.get(lang_code, SUPPORTED_LANGUAGES[DEFAULT_UI_LANGUAGE_CODE])
     
     prompt_lang = lang_info['prompt_lang']
     return f"IMPORTANT: You must generate the entire analysis, headings, and report strictly in {prompt_lang} language."
 
-
 def get_text(key: str, default: str = "") -> str:
     """
-    Atgriež tulkotu tekstu pašreizējā sistēmas valodā.
+    Atgriež tulkotu tekstu pašreizējā UI valodā.
     Ja tulkojums nav atrasts, atgriež noklusējuma vērtību vai pašu atslēgu.
     """
-    lang_code = get_current_language()
+    lang_code = get_ui_language()
     return TRANSLATIONS.get(lang_code, {}).get(key, default or key)
 
-
+# Šī funkcija nodrošināta atpakaļejošai savietojamībai, ja kāds izsauc `set_language`.
+# Tā tagad iestata UI valodu.
 def set_language(lang_code: str):
     """
-    Iestata pašreizējo valodu sistēmai, atjaunina config.json un iekšējo kešu.
+    Iestata pašreizējo UI valodu sistēmai, atjaunina config.json un iekšējo kešu.
     Šī funkcija nodrošina Komandanta Kvarka pavēles izpildi.
     """
-    set_current_language(lang_code)
+    set_ui_language(lang_code)
