@@ -11,8 +11,11 @@ from pathlib import Path
 
 # Import for Word document generation
 from docx import Document
-from docx.shared import Inches, Pt # Inches not strictly needed, Pt for font size if desired
-from docx.enum.text import WD_ALIGN_PARAGRAPH # For paragraph alignment if needed
+from docx.shared import Inches, Pt 
+from docx.enum.text import WD_ALIGN_PARAGRAPH 
+
+# Import for PDF text extraction
+import PyPDF2
 
 # --- IELĀDĒJAM CONFIG UN ATSLĒGAS ---
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
@@ -64,6 +67,28 @@ FINNHUB_KEY = config.get("finnhub_api_key") or os.environ.get("FINNHUB_API_KEY",
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 # --- PALĪGFUNKCIJAS ---
+
+def _extract_text_from_docx(docx_path: Path) -> str:
+    """Ekstrahē tekstu no .docx faila."""
+    document = Document(docx_path)
+    full_text = []
+    for para in document.paragraphs:
+        full_text.append(para.text)
+    return "\n".join(full_text)
+
+def _extract_text_from_pdf(pdf_path: Path) -> str:
+    """Ekstrahē tekstu no .pdf faila."""
+    text = ""
+    try:
+        with open(pdf_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            for page_num in range(len(reader.pages)):
+                page = reader.pages[page_num]
+                text += page.extract_text() or ""
+    except Exception as e:
+        return f"Kļūda, ekstrahējot tekstu no PDF: {e}"
+    return text
+
 def get_portfolio_tickers():
     if os.path.exists(PORTFOLIO_PATH):
         try:
@@ -321,13 +346,13 @@ def generate_word_report(original_file_name: str, report_data: dict) -> Path:
 
 def doc_digest_analysis(file_path: Path):
     """
-    Simulē dokumenta analīzi, izmantojot Gemini AI un ģenerē Word failu ar rezultātiem.
-    Reālā situācijā te būtu jāielādē un jāekstrahē teksts no PDF/DOCX faila.
-    Šī funkcija šobrīd izmanto simulētu saturu.
+    Analizē dokumentu, izmantojot Gemini AI un ģenerē Word failu ar rezultātiem.
+    Ekstrahē tekstu no PDF/DOCX faila.
     Atgriež analīzes rezultātus kā dict un ģenerētā Word faila ceļu.
     """
     docx_file_path = None # Initialize as None
-    
+    document_content = "" # Initialize document content
+
     if not GEMINI_KEY:
         error_results = {
             "risk_level": "⚠️ Kritiskas Kļūda",
@@ -336,7 +361,6 @@ def doc_digest_analysis(file_path: Path):
             "date_warnings": [],
             "summary": "Nevar veikt dokumenta analīzi bez API atslēgas. Lūdzu, konfigurējiet to."
         }
-        # Even on error, we should try to generate a Word file if possible
         try:
             docx_file_path = generate_word_report(file_path.name, error_results)
         except Exception as e:
@@ -353,37 +377,45 @@ def doc_digest_analysis(file_path: Path):
             print("WARNING: gemini-2.5-flash nav pieejams, izmantoju gemini-2.0-flash.")
             model = genai.GenerativeModel("gemini-2.0-flash") # Atkritiens uz stabilu modeli
         
-        # Simulētais saturs dokumenta analīzei
-        # Reālajā scenārijā te būtu koda, kas izvelk tekstu no PDF (PyPDF2) vai DOCX (python-docx).
-        simulated_content = f"""Šis ir testa juridiskais dokuments '{file_path.name}'. Līguma priekšmets ir vispārīga sadarbība starp Piegādātāju un Klientu. Tas ietver noteikumus par pakalpojumu sniegšanu, samaksu un atbildību. Ir pieminēta iespējama arbitrāža strīdu gadījumā un līguma izbeigšanas termiņi. Dokumentā ir vairākas dzelžainas klauzulas par datu aizsardzību un konfidencialitāti, taču trūkst skaidru sodu par noteikumu pārkāpumiem. Līgums stājas spēkā ar 2024-01-01 un beidzas 2024-12-31.
-"""
-        
-        # Pielāgojam simulēto saturu, lai variētu AI atbildes
-        if "risk_contract" in file_path.name.lower():
-            simulated_content = f"""Šis ir 'risk_contract.pdf' dokuments. Līguma priekšmets ir augsta riska derivātu tirdzniecība starp Investoru Alfa un Risku Banku Omega. Tas detalizēti apraksta augsta riska ieguldījumus, kas paredz būtisku kapitāla zuduma iespējamību. Ir īpaši izceltas klauzulas par ierobežotu investoru aizsardzību un atteikšanos no juridiskām pretenzijām pret emitentu. Līgums automātiski pagarināsies katru gadu, ja vien 90 dienas pirms termiņa beigām netiks iesniegts rakstisks paziņojums. Peļņas potenciāls ir augsts, bet kopsavilkums brīdina par "kritisku tirgus nestabilitātes faktoru". Nekavējoties jāpievērš uzmanība 7. sadaļai par "Nepārvaramas varas" apstākļiem. Līguma sākuma datums ir 2022-01-01, bet izbeigšanas datums norādīts kā 2021-12-31, kas ir acīmredzama kļūda.
-"""
-        elif "safe_agreement" in file_path.name.lower():
-             simulated_content = f"""Šis ir 'safe_agreement.docx' dokuments. Līguma priekšmets ir standarta investīciju līgums par stabilu nekustamā īpašuma ieguldījumu starp SIA "Zaļās Investīcijas" un Privāto Ieguldītāju. Nodrošināta augsta investoru aizsardzība, skaidri definēti peļņas sadales nosacījumi un robustas strīdu risināšanas procedūras. Tomēr iekļauta viena piezīme par to, ka ikgadējā atskaite var aizkavēties par līdz 7 dienām. Nav automātisku pagarinājumu. Visi datumi ir loģiski un aktuāli, līgums stājas spēkā ar 2024-06-01.
-"""
+        # --- Real document text extraction ---
+        try:
+            if file_path.suffix == '.docx':
+                document_content = _extract_text_from_docx(file_path)
+            elif file_path.suffix == '.pdf':
+                document_content = _extract_text_from_pdf(file_path)
+            else:
+                document_content = f"Neatbalstīts faila formāts ({file_path.suffix}). Nevar ekstrahēt tekstu."
+                print(f"ERROR: {document_content}")
+        except Exception as e:
+            document_content = f"Kļūda, ekstrahējot tekstu no faila '{file_path.name}': {e}. Lūdzu, pārbaudiet failu."
+            print(f"ERROR: {document_content}")
+
+        if not document_content.strip():
+            document_content = f"Dokuments '{file_path.name}' ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI analizēs šo situāciju."
         
         prompt = f"""Tu esi "AQ-OS Juridiskais Analītiķis", Komandanta Kvarka labā roka dokumentu auditā.
-Analizē šo dokumentu ({file_path.name}) saturu:
+Analizē šo dokumentu ({file_path.name}) saturu un struktūru, ņemot vērā tālāk sniegto tekstu.
+Ja teksts ir īss vai tukšs, informē par to kopsavilkumā.
+
+Dokumenta saturs:
 ---
-{simulated_content}
+{document_content}
 ---
 
 Nodrošini strukturētu, militāri precīzu un kodolīgu atskaiti latviešu valodā. Izcel galvenos punktus un riskus.
 Formāts, kas JĀIEVĒRO Dzelžaini:
-Riska Līmenis: [Zems/Vidējs/Augsts/Kritisks]
-Līguma Priekšmets un Puses: [Īss apraksts, piem., "Investīciju līgums starp X un Y"]
+Riska Līmenis: [Zems/Vidējs/Augsts/Kritisks/Nav definēts]
+Līguma Priekšmets un Puses: [Īss apraksts, piem., "Investīciju līgums starp X un Y". Ja nav skaidri definēts, norādi "Nav skaidri definēts."]
 Galvenie Riski un Zemūdens Akmeņi:
 - [Specifisks risks, piem., "Automātiska pagarināšana"]
 - [Specifisks risks, piem., "Slēptās izmaksas"]
 - [Specifisks risks, piem., "Sankciju klauzulas"]
+- [Ja nav būtisku risku, norādi tikai "Nav būtisku risku fiksēts."]
 Datumu Brīdinājumi:
 - [Datums un problēma, piem., "Termiņš pagājis: 2023-01-01"]
 - [Datums un problēma, piem., "Neloģisks termiņš: sākums pēc beigām"]
-Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 teikumi.]
+- [Ja nav datumu brīdinājumu, norādi tikai "Nav datumu brīdinājumu fiksēts."]
+Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 teikumi. Ja dokuments ir tukšs vai neizdevās ekstrahēt tekstu, norādi to.]
 """
         
         response = model.generate_content(prompt)
@@ -419,17 +451,36 @@ Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 t
                 parsed_response["summary"] = line.replace("Kopsavilkums:", "").strip()
                 current_section = None 
             elif line.startswith("- ") and current_section in ["main_risks_pitfalls", "date_warnings"]:
-                parsed_response[current_section].append(line[2:].strip())
+                item = line[2:].strip()
+                # Filter out generic 'no risks' messages from actual lists
+                if current_section == "main_risks_pitfalls":
+                    if item.lower() != "nav būtisku risku fiksēts.": 
+                        parsed_response[current_section].append(item)
+                elif current_section == "date_warnings":
+                    if item.lower() != "nav datumu brīdinājumu fiksēts.":
+                        parsed_response[current_section].append(item)
             elif parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi." and current_section is None and not line.startswith('-'):
-                # Fallback for summary if it's the first unparsed text and summary is default
-                parsed_response["summary"] = line
+                parsed_response["summary"] = line # Fallback if summary is not parsed initially
+
+        # Refined summary fallback if still default
+        if parsed_response["summary"] == "Neizdevās analizēt Gemini atbildi.":
+            if "Kļūda, ekstrahējot tekstu" in document_content:
+                parsed_response["summary"] = "Kļūda, ekstrahējot tekstu no dokumenta. Analīze var būt nepilnīga."
+            elif document_content.startswith("Dokuments") and ("tukšs" in document_content or "nevarēja ekstrahēt tekstu" in document_content):
+                parsed_response["summary"] = "Dokuments ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI atbildēja uz šo situāciju."
+            else:
+                parsed_response["summary"] = "Neizdevās iegūt kopsavilkumu no AI atbildes."
+
+        # Ensure contract_subject_parties is not empty if summary suggests there was content.
+        if parsed_response["contract_subject_parties"] == "Nav definēts." and parsed_response["summary"] != "Dokuments ir tukšs vai no tā nevarēja ekstrahēt tekstu. AI atbildēja uz šo situāciju.":
+             parsed_response["contract_subject_parties"] = "Nav skaidri definēts."
         
         # Pamata pārbaudes, ja riska līmenis nav skaidri definēts
         if parsed_response["risk_level"] == "Neskaidrs":
             if parsed_response["main_risks_pitfalls"] or parsed_response["date_warnings"]:
-                parsed_response["risk_level"] = "Vidējs" # Ja ir punkti/brīdinājumi, tad vismaz vidējs
+                parsed_response["risk_level"] = "Vidējs" 
             else:
-                parsed_response["risk_level"] = "Zems" # Ja nav, tad zems
+                parsed_response["risk_level"] = "Zems"
 
         # Generate the Word document
         try:
@@ -440,12 +491,16 @@ Kopsavilkums: [Kodolīgs kopsavilkums cilvēcīgā valodā, ne vairāk kā 3-4 t
         return parsed_response, docx_file_path
     
     except Exception as e:
+        error_summary_msg = f"Neizdevās veikt dokumenta analīzi. Sazinieties ar Komandantu. Detalizēta kļūda: {e}"
+        if "Kļūda, ekstrahējot tekstu" in document_content:
+            error_summary_msg = f"Kļūda, ekstrahējot tekstu no dokumenta, vai citas analīzes kļūdas dēļ: {e}. Sazinieties ar Komandantu."
+        
         error_results = {
-            "risk_level": "⚠️ Kritiskas Kļūda",
+            "risk_level": "🔴 Kritiskas Kļūda",
             "contract_subject_parties": "Nav definēts kļūdas dēļ.",
             "main_risks_pitfalls": [f"Gemini analīzes kļūda: {e}"],
             "date_warnings": [],
-            "summary": "Neizdevās veikt dokumenta analīzi. Sazinieties ar Komandantu."
+            "summary": error_summary_msg
         }
         # Attempt to generate a Word file even with error results
         try:
@@ -725,6 +780,7 @@ def handle_docs(message):
             "Vidējs": "🟡 Dzeltens",
             "Augsts": "🟠 Oranžs", 
             "Kritisks": "🔴 Sarkans",
+            "Nav definēts": "⚪ Nav definēts",
             "Neskaidrs": "⚪ Nezināms",
             "⚠️ Kritiskas Kļūda": "🔴 Kļūda"
         }
@@ -788,7 +844,7 @@ def handle_docs(message):
                 "Status: Audits pabeigts. (1/2)"
             ]
             part1 = '\n\n'.join(part1_sections)
-            bot.send_message(chat_id, part1, parse_mode="Markdown") # Removed reply_markup here
+            bot.send_message(chat_id, part1, parse_mode="Markdown")
             
             part2_sections = []
             if main_risks_text:
@@ -805,7 +861,7 @@ def handle_docs(message):
                 if len(part2) > MAX_TELEGRAM_MESSAGE_LENGTH:
                     bot.send_message(chat_id, "⚠️ Papildu detaļas ir pārāk garas, lai nosūtītu visu. Sazinieties ar Komandanta štābu.", parse_mode="Markdown", reply_markup=main_menu_keyboard())
                 else:
-                    bot.send_message(chat_id, part2, parse_mode="Markdown", reply_markup=main_menu_keyboard()) # Add keyboard to the final part
+                    bot.send_message(chat_id, part2, parse_mode="Markdown", reply_markup=main_menu_keyboard())
             else:
                 bot.send_message(chat_id, "ℹ️ Nav sīkāku risku vai brīdinājumu, lai turpinātu ziņojumu. Pilns slēdziens Word formātā nosūtīts.", parse_mode="Markdown", reply_markup=main_menu_keyboard())
         else:
