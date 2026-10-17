@@ -591,7 +591,7 @@ OBLIGĀTI iekļauj dažādas nākotnes nozares, lai nodrošinātu portfeļa dive
 Stratēģiski svarīgās nākotnes nozares, kurās meklēt vienradžus:
 - Mākslīgais intelekts (AI) & Čipi (semiconductors)
 - Kiberdrošība & Datu infrastruktūra
-- Biotehnoloģijas & Genomika / Modernā medicīna (piem., CRSP, VRTX, RXRX, BIIB, ISRG u.tml.)
+- Biotehnoloģijas & Genomika / Modernā medicīna (piem., CRSP, VRTX, RXRX, BIIIB, ISRG u.tml.)
 - Nākotnes enerģija & jaunie materiāli (piem., tīrā enerģija, kodolsintēze, ūdeņraža tehnoloģijas, progresīvas bateriju tehnoloģijas, retzemju metālu alternatīvas)
 - Kosmoss un autonomās sistēmas (piem., satelīti, raķešu tehnoloģijas, droni, robotika, kosmosa tūrisms, resursu ieguve kosmosā)
 
@@ -792,7 +792,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 "black_swan": "Чорний Лебідь (ризик): ",
                 "output_filename_prefix": "Kvar_Yedinorih_Polyuvannya_",
                 "success_message": "Звіт збережено:\n",
-                "error_saving_message": "Виникла помилка під час збереження файлу Word: "
+                "error_saving_message": "Виникла помилка під час збереження файlu Word: "
             },
             "it": { # Example for Italian
                 "report_title": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark",
