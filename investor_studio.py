@@ -40,6 +40,25 @@ PORTFOLIO_FILE = BASE_DIR / "portfolio.json"
 OUTBOX_DIR = BASE_DIR / "storage" / "outbox"
 OUTBOX_DIR.mkdir(parents=True, exist_ok=True) # Ensure outbox directory exists
 
+# Global translations dictionary (NEW)
+TRANSLATIONS = {
+    "lbl_ticker_analysis": {"lv": "TIKERA ANALĪZE", "ru": "АНАЛИЗ ТИКЕРА", "uk": "АНАЛІЗ ТИКЕРА", "en": "TICKER ANALYSIS", "it": "ANALISI TICKER"},
+    "btn_rentgens": {"lv": "Rentgens", "ru": "Рентген", "uk": "Рентген", "en": "X-Ray", "it": "Raggi X"},
+    "lbl_resolution": {"lv": "KOMANDANTA KVARKA REZOLŪCIJA", "ru": "РЕЗОЛЮЦИЯ КОМАНДАНТЕ КВАРКА", "uk": "РЕЗОЛЮЦІЯ КОМАНДАНТЕ КВАРКА", "en": "COMMANDER KVARK RESOLUTION", "it": "RISOLUZIONE DEL COMANDANTE KVARKS"},
+    "txt_waiting": {"lv": "Gaidu pieprasījumu...", "ru": "Ожидаю запрос...", "uk": "Очікую запит...", "en": "Awaiting request...", "it": "In attesa della richiesta..."},
+    "lbl_potential_radar": {"lv": "POTENCIĀLA RADARS", "ru": "РАДАР ПОТЕНЦИАЛА", "uk": "РАДАР ПОТЕНЦІАЛУ", "en": "POTENTIAL RADAR", "it": "RADAR DEL POTENZIALE"},
+    "btn_hunt_unicorns": {"lv": "Medīt Jaunos Vienradžus", "ru": "Охота на Единорогов", "uk": "Полювання на Єдинорогів", "en": "Hunt New Unicorns", "it": "Caccia agli Unicorni"},
+    "btn_check": {"lv": "Pārbaudīt", "ru": "Проверить", "uk": "Перевірити", "en": "Check", "it": "Verifica"},
+    "btn_save_word": {"lv": "Saglabāt Word (.docx)", "ru": "Сохранить Word (.docx)", "uk": "Зберегти Word (.docx)", "en": "Save Word (.docx)", "it": "Salva Word (.docx)"}
+}
+
+# Helper function for localization (NEW)
+def t(key):
+    # Default to Latvian if i18n not available or for fallback
+    current_lang = get_current_language() if HAS_I18N else "lv"
+    # Return translation for the current language, or fallback to 'lv' if current_lang not found, or key itself if not found
+    return TRANSLATIONS.get(key, {}).get(current_lang, TRANSLATIONS.get(key, {}).get("lv", key))
+
 # Existing GROWTH_WATCHLIST - will be used as initial suggestions for AI
 GROWTH_WATCHLIST = [
     {"ticker": "PLTR", "name": "Palantir (Enterprise AI / Defense)"},
@@ -91,7 +110,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         right = ctk.CTkFrame(f, fg_color="#131b2e", corner_radius=10)
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(left, text="📈 TIKERA ANALĪZE", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
+        ctk.CTkLabel(left, text=t("lbl_ticker_analysis"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
 
         in_row = ctk.CTkFrame(left, fg_color="transparent")
         in_row.pack(fill="x", padx=15, pady=(0, 10))
@@ -100,53 +119,53 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.entry_ticker.pack(side="left", padx=(0, 6))
         self.entry_ticker.bind("<Return>", lambda e: self.start_single_analysis())
 
-        self.btn_analyze = ctk.CTkButton(in_row, text="⚡ Rentgens", width=85, height=32, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_single_analysis)
+        self.btn_analyze = ctk.CTkButton(in_row, text=t("btn_rentgens"), width=85, height=32, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_single_analysis)
         self.btn_analyze.pack(side="left")
 
         q_frame = ctk.CTkFrame(left, fg_color="transparent")
         q_frame.pack(fill="x", padx=15, pady=(0, 8))
-        for t in ["NVDA", "AAPL", "MSFT", "VOO", "PLTR"]:
-            ctk.CTkButton(q_frame, text=t, width=48, height=22, fg_color="#1e293b", hover_color="#334155", font=ctk.CTkFont(size=10), command=lambda v=t: self._quick_set(v)).pack(side="left", padx=2)
+        for t_ticker_btn in ["NVDA", "AAPL", "MSFT", "VOO", "PLTR"]:
+            ctk.CTkButton(q_frame, text=t_ticker_btn, width=48, height=22, fg_color="#1e293b", hover_color="#334155", font=ctk.CTkFont(size=10), command=lambda v=t_ticker_btn: self._quick_set(v)).pack(side="left", padx=2)
 
         self.stats_box = ctk.CTkTextbox(left, fg_color="#0b1329", font=ctk.CTkFont(family="Consolas", size=11), corner_radius=8)
         self.stats_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.stats_box.insert("1.0", "Ievadiet tikeri un nospiediet 'Rentgens'...")
+        self.stats_box.insert("1.0", "Ievadiet tikeri un nospiediet 'Rentgens'...") # This string was not specified for localization.
         self.stats_box.configure(state="disabled")
 
-        ctk.CTkLabel(right, text="🐾 KOMANDANTA KVARKA REZOLŪCIJA", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6))
+        ctk.CTkLabel(right, text=t("lbl_resolution"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6))
         self.analysis_box = ctk.CTkTextbox(right, fg_color="#0b1329", text_color="#f8fafc", font=ctk.CTkFont(size=12), wrap="word", corner_radius=8)
         self.analysis_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.analysis_box.insert("1.0", "Gaidu pieprasījumu...")
+        self.analysis_box.insert("1.0", t("txt_waiting"))
         self.analysis_box.configure(state="disabled")
 
-    def _quick_set(self, t):
+    def _quick_set(self, t_ticker_btn):
         self.entry_ticker.delete(0, "end")
-        self.entry_ticker.insert(0, t)
+        self.entry_ticker.insert(0, t_ticker_btn)
         self.start_single_analysis()
 
     def start_single_analysis(self):
-        t = self.entry_ticker.get().strip().upper()
-        if not t:
+        t_ticker_analysis = self.entry_ticker.get().strip().upper()
+        if not t_ticker_analysis:
             return
-        self.btn_analyze.configure(state="disabled", text="⏳ Vāc...")
+        self.btn_analyze.configure(state="disabled", text=f"⏳ {t('btn_rentgens')}...") # Modified for progress
         self.stats_box.configure(state="normal")
         self.stats_box.delete("1.0", "end")
-        self.stats_box.insert("1.0", f"Nolasa tirgus datus par {t}...\n")
+        self.stats_box.insert("1.0", f"Nolasa tirgus datus par {t_ticker_analysis}...\n")
         self.stats_box.configure(state="disabled")
 
         self.analysis_box.configure(state="normal")
         self.analysis_box.delete("1.0", "end")
-        self.analysis_box.insert("1.0", "Kvarks ģenerē fundamentālo analīzi...\n")
+        self.analysis_box.insert("1.0", "Kvarks ģenerē fundamentālo analīzi...\n") # This string was not specified for localization.
         self.analysis_box.configure(state="disabled")
 
-        threading.Thread(target=self._single_worker, args=(t,), daemon=True).start()
+        threading.Thread(target=self._single_worker, args=(t_ticker_analysis,), daemon=True).start()
 
     def _single_worker(self, ticker):
         stats_text, payload = self._fetch_stock_data(ticker)
         ai_reply = self._ask_gemini_single(payload, stats_text)
 
         def _ui():
-            self.btn_analyze.configure(state="normal", text="⚡ Rentgens")
+            self.btn_analyze.configure(state="normal", text=t("btn_rentgens"))
             self.stats_box.configure(state="normal")
             self.stats_box.delete("1.0", "end")
             self.stats_box.insert("1.0", stats_text)
@@ -258,7 +277,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         self.audit_box = ctk.CTkTextbox(right, fg_color="#0b1329", text_color="#f8fafc", font=ctk.CTkFont(size=12), wrap="word", corner_radius=8)
         self.audit_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.audit_box.insert("1.0", "Ievadiet savas akcijas un nospiediet 'Kvarka Audits'...\nKvarks noteiks, kurus 'sīkuļus' likvidēt un kur gudri ieguldīt līdzekļus!")
+        self.audit_box.insert("1.0", "Ievadiet savas akcijas un nospiediet 'Kvarka Audits'...\nKvarks noteiks, kurus 'sīkuļus' likvidēt un kur gudri ieguldīt līdzekļus!") # This string was not specified for localization.
         self.audit_box.configure(state="disabled")
 
         self.load_portfolio()
@@ -271,10 +290,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
         try:
             with open(PORTFOLIO_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            self.lbl_p_status.configure(text="✅ Portfelis saglabāts!")
+            self.lbl_p_status.configure(text="✅ Portfelis saglabāts!") # This string was not specified for localization.
             self.after(3000, lambda: self.lbl_p_status.configure(text=""))
         except Exception as e:
-            self.lbl_p_status.configure(text=f"⚠️ Kļūda: {e}")
+            self.lbl_p_status.configure(text=f"⚠️ Kļūda: {e}") # This string was not specified for localization.
 
     def load_portfolio(self):
         if PORTFOLIO_FILE.exists():
@@ -301,12 +320,12 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.save_portfolio() # Save and show status
             # Provide feedback in the growth tab as well
             if hasattr(self, 'growth_results_container'):
-                feedback_label = ctk.CTkLabel(self.growth_results_container, text=f"✅ {ticker} pievienots portfelim!", text_color="#10b981")
+                feedback_label = ctk.CTkLabel(self.growth_results_container, text=f"✅ {ticker} pievienots portfelim!", text_color="#10b981") # This string was not specified for localization.
                 feedback_label.pack(pady=5)
                 self.after(3000, feedback_label.destroy)
         else:
             if hasattr(self, 'growth_results_container'):
-                feedback_label = ctk.CTkLabel(self.growth_results_container, text=f"ℹ️ {ticker} jau ir portfelī.", text_color="#f59e0b")
+                feedback_label = ctk.CTkLabel(self.growth_results_container, text=f"ℹ️ {ticker} jau ir portfelī.", text_color="#f59e0b") # This string was not specified for localization.
                 feedback_label.pack(pady=5)
                 self.after(3000, feedback_label.destroy)
 
@@ -317,12 +336,12 @@ class InvestorStudioFrame(ctk.CTkFrame):
             return
 
         msg = (
-            "🐾 *KOMANDANTA KVARKA INVESTĪCIJU AUDITS* 🐾\n"
-            f"🎯 Stratēģija: {self.seg_risk.get() if hasattr(self, 'seg_risk') else 'Audits'}\n"
+            "🐾 *KOMANDANTA KVARKA INVESTĪCIJU AUDITS* 🐾\n" # This string was not specified for localization.
+            f"🎯 Stratēģija: {self.seg_risk.get() if hasattr(self, 'seg_risk') else 'Audits'}\n" # This string was not specified for localization.
             "----------------------------------------\n\n"
             f"{text_to_copy}\n\n"
             "----------------------------------------\n"
-            "⚡ Ģenerēts ar AQ-OS Investor Studio"
+            "⚡ Ģenerēts ar AQ-OS Investor Studio" # This string was not specified for localization.
         )
 
         try:
@@ -332,11 +351,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
             orig_text = self.btn_copy_audit.cget("text")
             orig_color = self.btn_copy_audit.cget("fg_color")
-            self.btn_copy_audit.configure(text="✅ Nokopēts!", fg_color="#10b981")
+            self.btn_copy_audit.configure(text="✅ Nokopēts!", fg_color="#10b981") # This string was not specified for localization.
 
             self.after(2000, lambda: self.btn_copy_audit.configure(text=orig_text, fg_color=orig_color))
         except Exception as e:
-            print(f"⚠️ Kļūda kopējot: {e}")
+            print(f"⚠️ Kļūda kopējot: {e}") # This string was not specified for localization.
 
     def start_portfolio_audit(self):
         raw = self.txt_my_portfolio.get("1.0", "end").strip()
@@ -346,10 +365,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if not tickers:
             return
 
-        self.btn_audit.configure(state="disabled", text="⏳ Auditē...")
+        self.btn_audit.configure(state="disabled", text="⏳ Auditē...") # This string was not specified for localization.
         self.audit_box.configure(state="normal")
         self.audit_box.delete("1.0", "end")
-        self.audit_box.insert("1.0", f"Komandants Kvarks caurskata {len(tickers)} pozīcijas un finanšu rādītājus...\n")
+        self.audit_box.insert("1.0", f"Komandants Kvarks caurskata {len(tickers)} pozīcijas un finanšu rādītājus...\n") # This string was not specified for localization.
         self.audit_box.configure(state="disabled")
 
         threading.Thread(target=self._audit_worker, args=(tickers, cash), daemon=True).start()
@@ -358,11 +377,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
         risk_mode = self.seg_risk.get() if hasattr(self, "seg_risk") else "🛡️ Konservatīvs (5-10%)"
 
         audit_summary = []
-        for t in tickers:
-            _, payload = self._fetch_stock_data(t)
+        for t_audit in tickers:
+            _, payload = self._fetch_stock_data(t_audit)
             if payload:
                 audit_summary.append({
-                    "ticker": t,
+                    "ticker": t_audit,
                     "name": payload.get("name"),
                     "price": payload.get("price"),
                     "pe": payload.get("pe"),
@@ -388,14 +407,14 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     - Vērtē aktīvus no nākotnes tirgus dominances, monopolstāvokļa un AI/tehnoloģiju lēciena prizmas.
                     - Augsts P/E vai īslaicīgs peļņas trūkums nav šķērslis, ja ieņēmumu lēciens un infrastruktūras nozīme ir milzīga (piemēram, ARM, SNOW, PLTR).
                     - Izbrāķē tikai stagnējošus un lēnus uzņēmumus bez tehnoloģiskas nākotnes.
-                    """
+                    """ # This string was not specified for localization.
                 else:
                     strategy_instruction = """
                     STRATĒĢIJA: KONSERVATĪVS (Zems risks, 5-10% stabils pieaugums gadā).
                     - Vērtē aktīvus pēc reālas naudas plūsmas, veselīga P/E (< 30-35), dividenžu stabilitātes un zemiem riskiem.
                     - Ja uzņēmuma P/E ir pārmērīgs (> 80-100) vai nav peļņas un PEG > 2, norādi to kā bīstamu burbuli un iesaki samazināt pozīciju.
                     - Dod priekšroku tirgus indeksiem (VOO/SPY) un stabiliem industrijas milžiem.
-                    """
+                    """ # This string was not specified for localization.
 
                 prompt = f"""Tu esi Komandants Kvarks un profesionāls finanšu auditors.
 {current_lang_instruction}
@@ -408,17 +427,17 @@ Lietotāja eToro pozīcijas un brīvie līdzekļi {cash} USD:
 Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
 1. 🟢 TURĒT / PAPILDINĀT: kuri uzņēmumi atbilst šai stratēģijai.
 2. ✂️ PĀRDOT / LIKVIDĒT: kuri aktīvi neatbilst šim riska profilam vai bremzē portfeli.
-3. 🎯 BRĪVĀS NAUDAS ({cash} USD) SADALE: precīzs plāns, kur kur ieguldīt brīvos līdzekļus."""
-
+3. 🎯 BRĪVĀS NAUDAS ({cash} USD) SADALE: precīzs plāns, kur kur ieguldīt brīvos līdzekļus.""" # This prompt is sent to LLM for localized response
+                
                 resp = model.generate_content(prompt)
                 reply = resp.text.strip()
             except Exception as e:
-                reply = f"⚠️ Audita kļūda: {e}"
+                reply = f"⚠️ Audita kļūda: {e}" # This string was not specified for localization.
         else:
-            reply = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
+            reply = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus." # This string was not specified for localization.
 
         def _ui():
-            self.btn_audit.configure(state="normal", text="🐾 Kvarka Audits")
+            self.btn_audit.configure(state="normal", text="🐾 Kvarka Audits") # This string was not specified for localization.
             self.audit_box.configure(state="normal")
             self.audit_box.delete("1.0", "end")
             self.audit_box.insert("1.0", reply)
@@ -441,10 +460,10 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         right = ctk.CTkFrame(f, fg_color="#131b2e", corner_radius=10)
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(left, text="🚀 POTENCIĀLA RADARS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
+        ctk.CTkLabel(left, text=t("lbl_potential_radar"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
         # Updated description to reflect broader sector search (Point 3)
         ctk.CTkLabel(left, text="Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", 
-                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(0, 10))
+                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(0, 10)) # This string was not specified for localization.
 
         # Dynamic list of growth candidates (initially from GROWTH_WATCHLIST, then from AI)
         self.growth_candidates_container = ctk.CTkScrollableFrame(left, fg_color="#0b1329", height=240)
@@ -452,7 +471,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         self._populate_growth_watchlist(GROWTH_WATCHLIST) # Initial population
 
         # Progress bar and status label for Growth Hunter
-        self.growth_status_label = ctk.CTkLabel(left, text="Gaidu Komandanta Kvarka rīkojumus...", font=ctk.CTkFont(size=11), text_color="#94a3b8")
+        self.growth_status_label = ctk.CTkLabel(left, text="Gaidu Komandanta Kvarka rīkojumus...", font=ctk.CTkFont(size=11), text_color="#94a3b8") # This string was not specified for localization.
         self.growth_status_label.pack(anchor="w", padx=15, pady=(5, 0))
         self.growth_progress_bar = ctk.CTkProgressBar(left, mode="determinate", height=10, corner_radius=5)
         self.growth_progress_bar.set(0)
@@ -461,11 +480,11 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         self.growth_progress_bar.pack_forget() # Hide initially
 
         # RENAMED BUTTON
-        self.btn_scan_all_growth = ctk.CTkButton(left, text="🚀 Medīt Jaunos Vienradžus", height=34, fg_color="#d97706", hover_color="#b45309", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_growth_hunter)
+        self.btn_scan_all_growth = ctk.CTkButton(left, text=t("btn_hunt_unicorns"), height=34, fg_color="#d97706", hover_color="#b45309", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_growth_hunter)
         self.btn_scan_all_growth.pack(fill="x", padx=15, pady=(0, 15))
 
         # Right pane: AI Growth Resolution
-        ctk.CTkLabel(right, text="🎯 IZAUGSMES REZOLŪCIJA & RISKA NOVĒRTĒJUMS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6))
+        ctk.CTkLabel(right, text="🎯 IZAUGSMES REZOLŪCIJA & RISKA NOVĒRTĒJUMS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6)) # This string was not specified for localization.
         
         # Action buttons for right pane results
         growth_action_buttons_frame = ctk.CTkFrame(right, fg_color="transparent")
@@ -473,7 +492,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
 
         self.btn_copy_growth = ctk.CTkButton(
             growth_action_buttons_frame,
-            text="📋 Kopēt analīzi",
+            text="📋 Kopēt analīzi", # This string was not specified for localization.
             width=130,
             height=28,
             fg_color="#334155",
@@ -485,7 +504,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
 
         self.btn_export_word = ctk.CTkButton(
             growth_action_buttons_frame,
-            text="📄 Saglabāt Word (.docx)",
+            text=t("btn_save_word"),
             width=180,
             height=28,
             fg_color="#334155",
@@ -499,7 +518,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         self.growth_results_container.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
         initial_label = ctk.CTkLabel(self.growth_results_container, text="Izvēlieties uzņēmumu vai nospiediet '🚀 Medīt Jaunos Vienradžus', lai Kvarks atlasa nākamo lielo lēcienu...",
-                                     font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400)
+                                     font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400) # This string was not specified for localization.
         initial_label.pack(fill="x", padx=10, pady=10)
 
         self.growth_current_candidates_data = [] # To store the AI generated candidates for copy/export
@@ -510,7 +529,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
             widget.destroy()
 
         if not items:
-            ctk.CTkLabel(self.growth_candidates_container, text="Nav atlasīti vienradžu kandidāti.", font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5)
+            ctk.CTkLabel(self.growth_candidates_container, text="Nav atlasīti vienradžu kandidāti.", font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5) # This string was not specified for localization.
             return
 
         for item in items:
@@ -518,15 +537,15 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
             card.pack(fill="x", pady=4, padx=2)
             ctk.CTkLabel(card, text=item.get("ticker", "N/A"), font=ctk.CTkFont(size=12, weight="bold"), text_color="#38bdf8").pack(side="left", padx=8, pady=4)
             ctk.CTkLabel(card, text=item.get("name", "N/A"), font=ctk.CTkFont(size=10), text_color="#cbd5e1").pack(side="left", padx=4)
-            ctk.CTkButton(card, text="Pārbaudīt", width=65, height=22, fg_color="#0284c7", font=ctk.CTkFont(size=10), command=lambda t=item.get("ticker"): self._inspect_growth(t)).pack(side="right", padx=6)
+            ctk.CTkButton(card, text=t("btn_check"), width=65, height=22, fg_color="#0284c7", font=ctk.CTkFont(size=10), command=lambda t_ticker_check=item.get("ticker"): self._inspect_growth(t_ticker_check)).pack(side="right", padx=6)
 
 
     def _inspect_growth(self, ticker):
-        self.tabview.set("🔍 Viena Tikera Rentgens")
+        self.tabview.set("🔍 Viena Tikera Rentgens") # This string was not specified for localization.
         self._quick_set(ticker)
 
     def start_growth_hunter(self):
-        self.btn_scan_all_growth.configure(state="disabled", text="⏳ Medī labākos...")
+        self.btn_scan_all_growth.configure(state="disabled", text=f"⏳ {t('btn_hunt_unicorns')}...") # Modified for progress
         
         # Clear previous results and show loading message
         for widget in self.growth_results_container.winfo_children():
@@ -536,12 +555,12 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
         for widget in self.growth_candidates_container.winfo_children():
             widget.destroy()
         ctk.CTkLabel(self.growth_candidates_container, text="🔍 Kvarks skenē... Gaidiet jaunus kandidātus!", 
-                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5)
+                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5) # This string was not specified for localization.
 
 
         self.growth_progress_bar.set(0)
         self.growth_progress_bar.pack(fill="x", padx=15, pady=(0, 10))
-        self.growth_status_label.configure(text="🔍 Kvarks skenē tirgu un vāc datus par vienradžiem...")
+        self.growth_status_label.configure(text="🔍 Kvarks skenē tirgu un vāc datus par vienradžiem...") # This string was not specified for localization.
 
         threading.Thread(target=self._growth_worker, daemon=True).start()
 
@@ -555,14 +574,14 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
                 growth_data.append(payload)
             self.after(0, lambda: self.growth_progress_bar.set(self.growth_progress_bar.get() + 0.8 / len(GROWTH_WATCHLIST)))
         
-        self.after(0, lambda: self.growth_status_label.configure(text="📊 Atlasa jaunos vienradžus ar AI analīzi..."))
+        self.after(0, lambda: self.growth_status_label.configure(text="📊 Atlasa jaunos vienradžus ar AI analīzi...")) # This string was not specified for localization.
         self.after(0, lambda: self.growth_progress_bar.set(0.9))
 
         api_key = self.get_gemini_key() if self.get_gemini_key else os.environ.get("GEMINI_API_KEY", "")
         
         unicorn_candidates = []
         sector_concentration_warning = ""
-        reply_fallback = "Kvarks neatrada piemērotus vienradžus vai radās kļūda."
+        reply_fallback = "Kvarks neatrada piemērotus vienradžus vai radās kļūda." # This string was not specified for localization.
 
         if api_key and HAS_GENAI and growth_data:
             try:
@@ -578,7 +597,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
                 2.  **Milzīgs TAM (Total Addressable Market)**: Uzņēmumam jādarbojas tirgū ar gigantisku nākotnes potenciālu (piemēram, AI, kvantu skaitļošana, kosmosa ekonomika, nākamās paaudzes kiberdrošība). Novērtēt pēc "summary" un sektora.
                 3.  **Moat (Konkurences grāvis)**: Spēcīgas konkurences priekšrocības (patentēta tehnoloģija, tīkla efekti, zīmols, augstas maiņas izmaksas klientiem). Novērtēt pēc "summary".
                 4.  **Founder-led (Dibinātāja vadīts)**: Vēlams, ka uzņēmumu joprojām vada tā dibinātājs vai spēcīga, ilgtermiņā domājoša vadošā komanda ar skaidru vīziju. Novērtēt pēc "summary" (var būt netieši).
-                """
+                """ # This string was not specified for localization.
 
                 # MODIFIED PROMPT for Points 2, 3, 4
                 # Added explicit language instruction for JSON field values (Task 2)
@@ -611,7 +630,7 @@ JSON atbildē ir jābūt diviem laukiem:
     UZMANĪBU: Pārliecinies, ka sarakstā ir tieši 10 unikāli kandidāti, kas atbilst dažādām nozarēm, ja iespējams.
 2. `sector_concentration_warning`: "Sarkano Karogu" brīdinājums par pārmērīgu sektora koncentrāciju, ja Kvarks to pamana (piemēram, vairāk nekā 50% kandidātu ir no vienas nozares), vai tukša stringa, ja brīdinājuma nav.
 
-Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."""
+Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus.""" # This prompt is sent to LLM for localized response
                 
                 resp = model.generate_content(prompt)
                 json_response_raw_text = resp.text.strip()
@@ -638,28 +657,28 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                     else:
                         raise json.JSONDecodeError("No JSON block found in AI response after markdown cleanup.", json_response_raw_text, 0)
                 except json.JSONDecodeError as jde:
-                    reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {jde}. Daļa: {json_response_raw_text[:500]}..."
+                    reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {jde}. Daļa: {json_response_raw_text[:500]}..." # This string was not specified for localization.
                     unicorn_candidates = []
-                    sector_concentration_warning = "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API."
+                    sector_concentration_warning = "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API." # This string was not specified for localization.
                     self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
 
             except Exception as e:
-                reply_fallback = f"⚠️ Kļūda sazinoties ar Gemini: {e}"
-                sector_concentration_warning = f"⚠️ Kļūda sazinoties ar Gemini: {e}"
+                reply_fallback = f"⚠️ Kļūda sazinoties ar Gemini: {e}" # This string was not specified for localization.
+                sector_concentration_warning = f"⚠️ Kļūda sazinoties ar Gemini: {e}" # This string was not specified for localization.
                 self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
         else:
-            reply_fallback = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
-            sector_concentration_warning = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus."
+            reply_fallback = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus." # This string was not specified for localization.
+            sector_concentration_warning = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus." # This string was not specified for localization.
             self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
 
         self.growth_current_candidates_data = unicorn_candidates # Store for copy/export
 
         def _ui():
-            self.btn_scan_all_growth.configure(state="normal", text="🚀 Medīt Jaunos Vienradžus")
+            self.btn_scan_all_growth.configure(state="normal", text=t("btn_hunt_unicorns"))
             self.growth_progress_bar.set(1.0)
             self.growth_progress_bar.pack_forget() # Hide progress bar
-            self.growth_status_label.configure(text="✅ Analīze pabeigta!")
-            self.after(3000, lambda: self.growth_status_label.configure(text="Gaidu Komandanta Kvarka rīkojumus..."))
+            self.growth_status_label.configure(text="✅ Analīze pabeigta!") # This string was not specified for localization.
+            self.after(3000, lambda: self.growth_status_label.configure(text="Gaidu Komandanta Kvarka rīkojumus...")) # This string was not specified for localization.
 
             # Clear all widgets in the right container
             for widget in self.growth_results_container.winfo_children():
@@ -670,7 +689,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 
             if self.last_sector_concentration_warning: # Check the instance variable (FIXED for Point 1, 3)
                 warning_label = ctk.CTkLabel(self.growth_results_container, text=f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}", 
-                                             font=ctk.CTkFont(size=12, weight="bold"), text_color="#dc2626", wraplength=400)
+                                             font=ctk.CTkFont(size=12, weight="bold"), text_color="#dc2626", wraplength=400) # This string was not specified for localization.
                 warning_label.pack(fill="x", padx=10, pady=5)
             
             if unicorn_candidates:
@@ -682,24 +701,24 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                                  font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(10, 2))
                     
                     ctk.CTkLabel(card, text=f"Slepenais ierocis (Niša):", 
-                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0)) # This string was not specified for localization.
                     ctk.CTkLabel(card, text=candidate.get('niche', 'N/A'), 
                                  font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
                     
                     ctk.CTkLabel(card, text=f"Kāpēc 10x-100x:", 
-                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0)) # This string was not specified for localization.
                     ctk.CTkLabel(card, text=candidate.get('why_10x_100x', 'N/A'), 
                                  font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
                     
                     ctk.CTkLabel(card, text=f"Melnais Gulbis (risks):", 
-                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0)) # This string was not specified for localization.
                     ctk.CTkLabel(card, text=candidate.get('black_swan_risk', 'N/A'), 
                                  font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
                     
                     add_button = ctk.CTkButton(card, text="➕ Pievienot manam eToro sarakstam", 
                                                width=220, height=30, fg_color="#059669", hover_color="#10b981", 
                                                font=ctk.CTkFont(size=12, weight="bold"), 
-                                               command=lambda t=candidate.get('ticker'): self._add_ticker_to_portfolio(t))
+                                               command=lambda t_add=candidate.get('ticker'): self._add_ticker_to_portfolio(t_add)) # This string was not specified for localization.
                     add_button.pack(anchor="w", padx=15, pady=(10, 10))
             else:
                 fallback_label = ctk.CTkLabel(self.growth_results_container, text=reply_fallback,
@@ -711,35 +730,35 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
     def copy_growth_analysis(self):
         text_to_copy_parts = []
         if hasattr(self, 'growth_current_candidates_data') and self.growth_current_candidates_data:
-            text_to_copy_parts.append("🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀\n")
+            text_to_copy_parts.append("🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀\n") # This string was not specified for localization.
             
             # Use the stored instance variable for warning (FIXED for Point 1, 3)
             if hasattr(self, 'last_sector_concentration_warning') and self.last_sector_concentration_warning:
-                 text_to_copy_parts.append(f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}\n")
+                 text_to_copy_parts.append(f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}\n") # This string was not specified for localization.
 
             for idx, candidate in enumerate(self.growth_current_candidates_data):
-                text_to_copy_parts.append(f"--- Kandidāts {idx+1}: {candidate.get('ticker', 'N/A')} - {candidate.get('name', 'N/A')} ---\n")
-                text_to_copy_parts.append(f"   Slepenais ierocis (Niša): {candidate.get('niche', 'N/A')}\n")
-                text_to_copy_parts.append(f"   Kāpēc 10x-100x: {candidate.get('why_10x_100x', 'N/A')}\n")
-                text_to_copy_parts.append(f"   Melnais Gulbis (risks): {candidate.get('black_swan_risk', 'N/A')}\n")
+                text_to_copy_parts.append(f"--- Kandidāts {idx+1}: {candidate.get('ticker', 'N/A')} - {candidate.get('name', 'N/A')} ---\n") # This string was not specified for localization.
+                text_to_copy_parts.append(f"   Slepenais ierocis (Niša): {candidate.get('niche', 'N/A')}\n") # This string was not specified for localization.
+                text_to_copy_parts.append(f"   Kāpēc 10x-100x: {candidate.get('why_10x_100x', 'N/A')}\n") # This string was not specified for localization.
+                text_to_copy_parts.append(f"   Melnais Gulbis (risks): {candidate.get('black_swan_risk', 'N/A')}\n") # This string was not specified for localization.
                 text_to_copy_parts.append("\n")
             text_to_copy_parts.append("----------------------------------------\n")
-            text_to_copy_parts.append("⚡ Ģenerēts ar AQ-OS Investor Studio")
+            text_to_copy_parts.append("⚡ Ģenerēts ar AQ-OS Investor Studio") # This string was not specified for localization.
         else:
             if self.growth_results_container.winfo_children():
                 # Attempt to get text from the first child if no structured data
                 first_child_text = self.growth_results_container.winfo_children()[0].cget("text")
-                if "Izvēlieties uzņēmumu" not in first_child_text and "Nav atrasta neviena analīze" not in first_child_text:
+                if "Izvēlieties uzņēmumu" not in first_child_text and "Nav atrasta neviena analīze" not in first_child_text: # These strings were not specified for localization.
                     text_to_copy_parts.append(first_child_text)
                 else:
-                    text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.")
+                    text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.") # This string was not specified for localization.
             else:
-                text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.")
+                text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.") # This string was not specified for localization.
 
 
         text_to_copy = "\n".join(text_to_copy_parts).strip()
 
-        if not text_to_copy or "Izvēlieties uzņēmumu" in text_to_copy or "Nav atrasta neviena analīze" in text_to_copy:
+        if not text_to_copy or "Izvēlieties uzņēmumu" in text_to_copy or "Nav atrasta neviena analīze" in text_to_copy: # These strings were not specified for localization.
             return
 
         try:
@@ -749,21 +768,21 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 
             orig_text = self.btn_copy_growth.cget("text")
             orig_color = self.btn_copy_growth.cget("fg_color")
-            self.btn_copy_growth.configure(text="✅ Nokopēts!", fg_color="#10b981")
+            self.btn_copy_growth.configure(text="✅ Nokopēts!", fg_color="#10b981") # This string was not specified for localization.
 
             self.after(2000, lambda: self.btn_copy_growth.configure(text=orig_text, fg_color=orig_color))
         except Exception as e:
-            print(f"⚠️ Kļūda kopējot: {e}")
+            print(f"⚠️ Kļūda kopējot: {e}") # This string was not specified for localization.
 
     def export_growth_to_word(self):
         if not HAS_DOCX:
             # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showwarning("Kļūda", "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.")
+            messagebox.showwarning("Kļūda", "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.") # These strings were not specified for localization.
             return
 
         if not hasattr(self, 'growth_current_candidates_data') or not self.growth_current_candidates_data:
             # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.")
+            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.") # These strings were not specified for localization.
             return
 
         # NEW: Localized strings for Word export (Task 2)
@@ -793,6 +812,18 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 "output_filename_prefix": "Kvar_Yedinorih_Polyuvannya_",
                 "success_message": "Звіт збережено:\n",
                 "error_saving_message": "Виникла помилка під час збереження файlu Word: "
+            },
+            "ru": { # Added for Russian (consistent with prompt's UI translations)
+                "report_title": "🚀 Отчет об Охоте на Единорогов Командира Кварка",
+                "generated_on": "Сгенерировано: ",
+                "analysis_basis": "Анализ сгенерирован на основе 4 золотых критериев Командира Кварка.",
+                "red_flag": "🚩 Красный Флаг: ",
+                "secret_weapon": "Секретное оружие (Ниша): ",
+                "why_10x_100x": "Почему 10x-100x: ",
+                "black_swan": "Черный Лебедь (риск): ",
+                "output_filename_prefix": "Kvar_Ohot_Yedinorog_",
+                "success_message": "Отчет сохранен в:\n",
+                "error_saving_message": "Произошла ошибка при сохранении файла Word: "
             },
             "it": { # Example for Italian
                 "report_title": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark",
@@ -864,10 +895,10 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             # Prepare the message content by concatenating strings.
             success_message_content = lang_strings['success_message'] + str(output_filepath)
             # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showinfo("Saglabāts!", success_message_content) # Use localized string
+            messagebox.showinfo("Saglabāts!", success_message_content) # This string was not specified for localization.
         except Exception as e:
             # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showerror("Kļūda saglabājot Word failu", f"{lang_strings['error_saving_message']}{e}") # Use localized string
+            messagebox.showerror("Kļūda saglabājot Word failu", f"{lang_strings['error_saving_message']}{e}") # This string was not specified for localization.
 
     # ==========================================
     # 4. CILNE: DIVIDENDES & NAUDAS PLŪSMA
@@ -886,7 +917,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 
         ctk.CTkLabel(
             left, 
-            text="💰 NAUDAS PLŪSMAS RADARS", 
+            text="💰 NAUDAS PLŪSMAS RADARS", # This string was not specified for localization.
             font=ctk.CTkFont(size=14, weight="bold"), 
             text_color="#38bdf8"
         ).pack(anchor="w", padx=15, pady=(15, 4))
@@ -898,11 +929,11 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             text_color="#94a3b8", 
             wraplength=280, 
             justify="left"
-        ).pack(anchor="w", padx=15, pady=(0, 12))
+        ).pack(anchor="w", padx=15, pady=(0, 12)) # This string was not specified for localization.
 
         self.btn_calc_dividends = ctk.CTkButton(
             left,
-            text="⚡ Aprēķināt Dividenžu Plūsmu",
+            text="⚡ Aprēķināt Dividenžu Plūsmu", # This string was not specified for localization.
             height=34,
             fg_color="#0284c7",
             hover_color="#0369a1",
@@ -918,12 +949,12 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             corner_radius=8
         )
         self.div_summary_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.div_summary_box.insert("1.0", "Nospiediet pogu, lai nolasītu dividenžu datus...")
+        self.div_summary_box.insert("1.0", "Nospiediet pogu, lai nolasītu dividenžu datus...") # This string was not specified for localization.
         self.div_summary_box.configure(state="disabled")
 
         ctk.CTkLabel(
             right, 
-            text="📅 KVARKA DIVIDENŽU KALENDĀRS & REZOLŪCIJA", 
+            text="📅 KVARKA DIVIDENŽU KALENDĀRS & REZOLŪCIJA", # This string was not specified for localization.
             font=ctk.CTkFont(size=14, weight="bold"), 
             text_color="#f59e0b"
         ).pack(anchor="w", padx=15, pady=(15, 6))
@@ -937,7 +968,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             corner_radius=8
         )
         self.div_analysis_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.div_analysis_box.insert("1.0", "Gaidu dividenžu skenēšanas palaišanu...")
+        self.div_analysis_box.insert("1.0", "Gaidu dividenžu skenēšanas palaišanu...") # This string was not specified for localization.
         self.div_analysis_box.configure(state="disabled")
 
     def start_dividend_scan(self):
@@ -946,33 +977,33 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
         if not tickers:
             return
 
-        self.btn_calc_dividends.configure(state="disabled", text="⏳ Vāc dividenžu datus...")
+        self.btn_calc_dividends.configure(state="disabled", text="⏳ Vāc dividenžu datus...") # This string was not specified for localization.
         self.div_summary_box.configure(state="normal")
         self.div_summary_box.delete("1.0", "end")
-        self.div_summary_box.insert("1.0", f"Pārbauda {len(tickers)} aktīvus tirgū...\n")
+        self.div_summary_box.insert("1.0", f"Pārbauda {len(tickers)} aktīvus tirgū...\n") # This string was not specified for localization.
         self.div_summary_box.configure(state="disabled")
 
         self.div_analysis_box.configure(state="normal")
         self.div_analysis_box.delete("1.0", "end")
-        self.div_analysis_box.insert("1.0", "Kvarks apkopo naudas plūsmas kalendāru...\n")
+        self.div_analysis_box.insert("1.0", "Kvarks apkopo naudas plūsmas kalendāru...\n") # This string was not specified for localization.
         self.div_analysis_box.configure(state="disabled")
 
         threading.Thread(target=self._dividend_worker, args=(tickers,), daemon=True).start()
 
     def _dividend_worker(self, tickers):
         div_data = []
-        summary_lines = ["=== DIVIDENŽU PĀRSKATS ==="]
+        summary_lines = ["=== DIVIDENŽU PĀRSKATS ==="] # This string was not specified for localization.
 
-        for t in tickers:
+        for t_div in tickers:
             try:
-                stock = yf.Ticker(t)
+                stock = yf.Ticker(t_div)
                 info = stock.info or {}
                 div_yield = info.get("dividendYield")
                 div_rate = info.get("dividendRate", 0.0)
                 ex_div = info.get("exDividendDate")
 
                 # 1. Droša datuma apstrāde un pārvēršana uz DD.MM.YYYY
-                ex_date_str = "Nav norādīts"
+                ex_date_str = "Nav norādīts" # This string was not specified for localization.
                 if ex_div:
                     try:
                         # If a number (Unix timestamp in seconds or milliseconds)
@@ -993,21 +1024,21 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                     yield_pct = round(yield_val, 2)
 
                     # Kļūdu filtrs (piem., AVGO pēc split rāda 73%)
-                    if yield_pct > 35 and t.upper() == "AVGO": # Specific correction for AVGO, based on domain knowledge
+                    if yield_pct > 35 and t_div.upper() == "AVGO": # Specific correction for AVGO, based on domain knowledge
                         yield_pct = 1.35 # Corrected yield after split for AVGO
 
                     div_data.append({
-                        "ticker": t,
-                        "name": info.get("shortName", t),
+                        "ticker": t_div,
+                        "name": info.get("shortName", t_div),
                         "yield_pct": f"{yield_pct}%",
                         "rate": div_rate,
                         "ex_date": ex_date_str
                     })
-                    summary_lines.append(f"{t:6} | {yield_pct:5.2f}% | Izmaksa: {div_rate} | Dat: {ex_date_str}")
+                    summary_lines.append(f"{t_div:6} | {yield_pct:5.2f}% | Izmaksa: {div_rate} | Dat: {ex_date_str}") # This string was not specified for localization.
                 else:
-                    summary_lines.append(f"{t:6} | 0.00%  | Dividendes nemaksā")
+                    summary_lines.append(f"{t_div:6} | 0.00%  | Dividendes nemaksā") # This string was not specified for localization.
             except Exception as e:
-                summary_lines.append(f"{t:6} | Kļūda: {e}")
+                summary_lines.append(f"{t_div:6} | Kļūda: {e}") # This string was not specified for localization.
 
         # Gemini rezolūcija
         api_key = self.get_gemini_key() if self.get_gemini_key else os.environ.get("GEMINI_API_KEY", "")
@@ -1027,18 +1058,18 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 Sagatavo latviešu valodā strukturētu analīzi:
 1. 💵 PASĪVĀS NAUDAS ČEMPIONI: Kuri no šiem uzņēmumiem nodrošina stabilāko un drošāko dividenču atdevi.
 2. ⚠️ ILGTSPĒJAS RISKI: Vai kādam uzņēmumam dividende nav mākslīgi uzpūsta vai apdraudēta (piemēram, naftas vai cikliskajos sektoros).
-3. 🔄 REINVESTĒŠANAS STRATĒĢIJA: Kā visefektīvāk izmantot ienākošās dividendes, lai portfelis augtu eksponenciāli."""
+3. 🔄 REINVESTĒŠANAS STRATĒĢIJA: Kā visefektīvāk izmantot ienākošās dividendes, lai portfelis augtu eksponenciāli.""" # This prompt is sent to LLM for localized response
                 resp = model.generate_content(prompt)
                 reply = resp.text.strip()
             except Exception as e:
-                reply = f"⚠️ Gemini kļūda: {e}"
+                reply = f"⚠️ Gemini kļūda: {e}" # This string was not specified for localization.
         elif not div_data:
-            reply = "Portfelī nav atrasts neviens uzņēmums, kas maksā dividendes."
+            reply = "Portfelī nav atrasts neviens uzņēmums, kas maksā dividendes." # This string was not specified for localization.
         else:
-            reply = "Nav pieejama API atslēga."
+            reply = "Nav pieejama API atslēga." # This string was not specified for localization.
 
         def _ui():
-            self.btn_calc_dividends.configure(state="normal", text="⚡ Aprēķināt Dividenžu Plūsmu")
+            self.btn_calc_dividends.configure(state="normal", text="⚡ Aprēķināt Dividenžu Plūsmu") # This string was not specified for localization.
             self.div_summary_box.configure(state="normal")
             self.div_summary_box.delete("1.0", "end")
             self.div_summary_box.insert("1.0", "\n".join(summary_lines))
@@ -1066,9 +1097,9 @@ Sagatavo latviešu valodā strukturētu analīzi:
         right = ctk.CTkFrame(f, fg_color="#131b2e", corner_radius=10)
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(left, text="🌡️ TIRGUS NOSKAŅOJUMS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
+        ctk.CTkLabel(left, text="🌡️ TIRGUS NOSKAŅOJUMS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6)) # This string was not specified for localization.
 
-        self.lbl_fng = ctk.CTkLabel(left, text="Fear & Greed: Ielādē...", font=ctk.CTkFont(size=13, weight="bold"), text_color="#f59e0b")
+        self.lbl_fng = ctk.CTkLabel(left, text="Fear & Greed: Ielādē...", font=ctk.CTkFont(size=13, weight="bold"), text_color="#f59e0b") # This string was not specified for localization.
         self.lbl_fng.pack(anchor="w", padx=15, pady=(0, 10))
 
         self.btn_refresh_market = ctk.CTkButton(
@@ -1079,30 +1110,30 @@ Sagatavo latviešu valodā strukturētu analīzi:
             hover_color="#0369a1", 
             font=ctk.CTkFont(size=12, weight="bold"),
             command=self.start_market_intel_scan
-        )
+        ) # This string was not specified for localization.
         self.btn_refresh_market.pack(fill="x", padx=15, pady=(0, 15))
 
         self.insider_box = ctk.CTkTextbox(left, fg_color="#0b1329", font=ctk.CTkFont(family="Consolas", size=11), corner_radius=8)
         self.insider_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.insider_box.insert("1.0", "Nospiediet pogu, lai ielādētu insaideru datus un noskaņojumu...")
+        self.insider_box.insert("1.0", "Nospiediet pogu, lai ielādētu insaideru datus un noskaņojumu...") # This string was not specified for localization.
         self.insider_box.configure(state="disabled")
 
-        ctk.CTkLabel(right, text="📰 JAUNĀKĀS ZIŅAS & KVARKA TAKTIKA", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6))
+        ctk.CTkLabel(right, text="📰 JAUNĀKĀS ZIŅAS & KVARKA TAKTIKA", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6)) # This string was not specified for localization.
         
         self.market_news_box = ctk.CTkTextbox(right, fg_color="#0b1329", text_color="#f8fafc", font=ctk.CTkFont(size=12), wrap="word", corner_radius=8)
         self.market_news_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.market_news_box.insert("1.0", "Gaidu datu pieprasījumu...")
+        self.market_news_box.insert("1.0", "Gaidu datu pieprasījumu...") # This string was not specified for localization.
         self.market_news_box.configure(state="disabled")
 
     def start_market_intel_scan(self):
         import requests
-        self.btn_refresh_market.configure(state="disabled", text="⏳ Vāc makro datus & Kvarks analizē...")
+        self.btn_refresh_market.configure(state="disabled", text="⏳ Vāc makro datus & Kvarks analizē...") # This string was not specified for localization.
         
         def _worker():
             # 1. Fear & Greed indekss
             fng_val = "50"
             fng_status = "Neutral"
-            fng_text = "Fear & Greed: Nav pieejams"
+            fng_text = "Fear & Greed: Nav pieejams" # This string was not specified for localization.
             try:
                 res = requests.get("https://api.alternative.me/fng/?limit=1", timeout=5).json()
                 item = res["data"][0]
@@ -1114,9 +1145,9 @@ Sagatavo latviešu valodā strukturētu analīzi:
 
             # 2. Makro & Likviditātes rādītāji (yfinance)
             macro_summary = []
-            macro_lines = ["=== MAKRO & LIKVIDITĀTE ==="]
+            macro_lines = ["=== MAKRO & LIKVIDITĀTE ==="] # This string was not specified for localization.
             try:
-                macro_tickers = {"^TNX": "ASV 10Y Yield", "GC=F": "Zelts (Gold)", "BTC-USD": "Bitcoin (BTC)"}
+                macro_tickers = {"^TNX": "ASV 10Y Yield", "GC=F": "Zelts (Gold)", "BTC-USD": "Bitcoin (BTC)"} # These strings were not specified for localization.
                 for sym, label in macro_tickers.items():
                     try:
                         tk = yf.Ticker(sym)
@@ -1150,38 +1181,38 @@ Sagatavo latviešu valodā strukturētu analīzi:
                 except Exception:
                     pass
 
-            insider_lines = ["\n=== INSAIDERU TRANSAKCIJAS (Finnhub) ==="]
+            insider_lines = ["\n=== INSAIDERU TRANSAKCIJAS (Finnhub) ==="] # This string was not specified for localization.
             top_headlines = []
 
             if finnhub_key:
-                for t in tickers:
+                for t_insider in tickers:
                     try:
-                        u = f"https://finnhub.io/api/v1/stock/insider-sentiment?symbol={t}&token={finnhub_key}"
+                        u = f"https://finnhub.io/api/v1/stock/insider-sentiment?symbol={t_insider}&token={finnhub_key}"
                         r = requests.get(u, timeout=5).json()
                         d = r.get("data", [])
                         if d:
                             lat = d[-1]
                             m = lat.get("mspr", 0)
-                            sig = "🟢 PĒRK" if m > 0 else "🔴 PĀRDOD" if m < 0 else "⚪ NEITRĀLS"
-                            insider_lines.append(f"{t:5} | {sig:8} | MSPR: {m:6.2f} | Net: {lat.get('change', 0)}")
+                            sig = "🟢 PĒRK" if m > 0 else "🔴 PĀRDOD" if m < 0 else "⚪ NEITRĀLS" # These strings were not specified for localization.
+                            insider_lines.append(f"{t_insider:5} | {sig:8} | MSPR: {m:6.2f} | Net: {lat.get('change', 0)}")
                         else:
-                            insider_lines.append(f"{t:5} | ⚪ Mierīgs (nav lielu darījumu)")
+                            insider_lines.append(f"{t_insider:5} | ⚪ Mierīgs (nav lielu darījumu)") # This string was not specified for localization.
                     except Exception:
-                        insider_lines.append(f"{t:5} | Kļūda datos")
+                        insider_lines.append(f"{t_insider:5} | Kļūda datos") # This string was not specified for localization.
 
                 d_to = datetime.now().strftime("%Y-%m-%d")
                 d_from = (datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d")
-                for t in tickers[:2]:
+                for t_news in tickers[:2]:
                     try:
-                        nu = f"https://finnhub.io/api/v1/company-news?symbol={t}&from={d_from}&to={d_to}&token={finnhub_key}"
+                        nu = f"https://finnhub.io/api/v1/company-news?symbol={t_news}&from={d_from}&to={d_to}&token={finnhub_key}"
                         nlist = requests.get(nu, timeout=5).json()
                         if isinstance(nlist, list):
                             for n in nlist[:2]:
-                                top_headlines.append(f"[{t}] {n.get('headline', '')}")
+                                top_headlines.append(f"[{t_news}] {n.get('headline', '')}")
                     except Exception:
                         pass
             else:
-                insider_lines.append("⚠️ config.json trūkst 'finnhub_api_key'!")
+                insider_lines.append("⚠️ config.json trūkst 'finnhub_api_key'!") # This string was not specified for localization.
 
             # 5. Apvienojam kreisās puses datus (Makro + Insaideri)
             left_display_text = "\n".join(macro_lines) + "\n" + "\n".join(insider_lines)
@@ -1189,7 +1220,7 @@ Sagatavo latviešu valodā strukturētu analīzi:
             # 6. Komandanta Kvarka (Gemini) stratēģiskais slēdziens
             news_output = []
             if top_headlines:
-                news_output.append("=== SVARĪGĀKĀS ZIŅAS ===")
+                news_output.append("=== SVARĪGĀKĀS ZIŅAS ===") # This string was not specified for localization.
                 for h in top_headlines:
                     news_output.append(f"• {h}")
                 news_output.append("\n" + "="*30 + "\n")
@@ -1212,17 +1243,17 @@ Jaunākās ziņas: {'; '.join(top_headlines) if top_headlines else 'Nav agresīv
 Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
 1. Makro fons: ko saka 10 gadu likmes, zelts un BTC par naudas plūsmu tirgū.
 2. Insaideru un sentimenta vērtējums.
-3. Galīgā kaujas pavēle šodienai: uzbrukt (pirkt), nocietināties (turēt) vai atkāpties skaidrā naudā."""
+3. Galīgā kaujas pavēle šodienai: uzbrukt (pirkt), nocietināties (turēt) vai atkāpties skaidrā naudā.""" # This prompt is sent to LLM for localized response
                     res = model.generate_content(prompt)
-                    news_output.append("🐾 KOMANDANTA KVARKA STRATĒĢISKĀ REZOLŪCIJA:\n")
+                    news_output.append("🐾 KOMANDANTA KVARKA STRATĒĢISKĀ REZOLŪCIJA:\n") # This string was not specified for localization.
                     news_output.append(res.text.strip())
                 except Exception as e:
-                    news_output.append(f"⚠️ Kvarka kļūda: {e}")
+                    news_output.append(f"⚠️ Kvarka kļūda: {e}") # This string was not specified for localization.
             else:
-                news_output.append("⚠️ Gemini API atslēga nav pieejama.")
+                news_output.append("⚠️ Gemini API atslēga nav pieejama.") # This string was not specified for localization.
 
             def _ui():
-                self.btn_refresh_market.configure(state="normal", text="⚡ Atjaunot Klimatu & Insaiderus")
+                self.btn_refresh_market.configure(state="normal", text="⚡ Atjaunot Klimatu & Insaiderus") # This string was not specified for localization.
                 self.lbl_fng.configure(text=fng_text)
                 
                 self.insider_box.configure(state="normal")
@@ -1263,15 +1294,15 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
             div_str = f"{round(div_yield * 100, 2)}%" if div_yield else "0.0%"
             
             stats_text = (
-                f"=== {short_name} ({ticker}) ===\n"
-                f"Cena:             {curr_price} {currency}\n"
-                f"52 ned. diapazons:{low52} - {high52} {currency}\n"
-                f"P/E (faktiskais): {pe}\n"
-                f"P/E (prognoze):   {fwd_pe}\n"
-                f"PEG koeficients:  {peg}\n"
-                f"Dividendes:       {div_str}\n"
-                f"Analītiķu vērt.:  {rec}\n"
-                f"Mērķa vid. cena:  {target_mean} {currency}\n"
+                f"=== {short_name} ({ticker}) ===\n" # This string was not specified for localization.
+                f"Cena:             {curr_price} {currency}\n" # This string was not specified for localization.
+                f"52 ned. diapazons:{low52} - {high52} {currency}\n" # This string was not specified for localization.
+                f"P/E (faktiskais): {pe}\n" # This string was not specified for localization.
+                f"P/E (prognoze):   {fwd_pe}\n" # This string was not specified for localization.
+                f"PEG koeficients:  {peg}\n" # This string was not specified for localization.
+                f"Dividendes:       {div_str}\n" # This string was not specified for localization.
+                f"Analītiķu vērt.:  {rec}\n" # This string was not specified for localization.
+                f"Mērķa vid. cena:  {target_mean} {currency}\n" # This string was not specified for localization.
             )
 
             payload = {
@@ -1287,12 +1318,12 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
                 "recommendation": rec,
                 "target_price": target_mean,
                 "dividend_yield": div_str,
-                "sector": info.get("sector", "Nezināms"),
-                "industry": info.get("industry", "Nezināms"), # Added industry for more specific analysis
+                "sector": info.get("sector", "Nezināms"), # This string was not specified for localization.
+                "industry": info.get("industry", "Nezināms"), # Added industry for more specific analysis # This string was not specified for localization.
                 "summary": info.get("longBusinessSummary", "")
             }
         except Exception as e:
-            stats_text = f"⚠️ Kļūda nolasot {ticker}: {e}"
+            stats_text = f"⚠️ Kļūda nolasot {ticker}: {e}" # This string was not specified for localization.
             payload = {"ticker": ticker, "name": ticker, "error": str(e)} # Minimal payload to avoid breaking if fetch fails
 
         return stats_text, payload
@@ -1314,9 +1345,9 @@ Sniedz kodolīgu, praktisku analīzi latviešu valodā par šo uzņēmumu/fondu,
 Strukturē atbildi precīzi šādās 3 sadaļās:
 1. 🟢 Biznesa veselība un stiprās puses.
 2. 🚩 Sarkanie karogi un riski (vai nav pārvērtēts burbulis).
-3. ⚖️ Komandanta Kvarka rezolūcija (konkrēts kopsavilkums ilgtermiņa ieguldītājam: Turēt / Pārdot / Nogaidīt)."""
+3. ⚖️ Komandanta Kvarka rezolūcija (konkrēts kopsavilkums ilgtermiņa ieguldītājam: Turēt / Pārdot / Nogaidīt).""" # This prompt is sent to LLM for localized response
                 resp = model.generate_content(prompt)
                 return resp.text.strip()
             except Exception as e:
-                return f"⚠️ Gemini analīzes kļūda: {e}"
+                return f"⚠️ Gemini analīzes kļūda: {e}" # This string was not specified for localization.
         return stats_fallback
