@@ -7,6 +7,7 @@ from pathlib import Path
 import customtkinter as ctk
 import yfinance as yf
 from datetime import datetime, timedelta
+import re # Added for safe JSON extraction (Task 1)
 
 # Import for messagebox (FIX 1)
 from tkinter import messagebox
@@ -580,6 +581,7 @@ Sagatavo latviešu valodā tiešu un strukturētu auditu atbilstoši izvēlētaj
                 """
 
                 # MODIFIED PROMPT for Points 2, 3, 4
+                # Added explicit language instruction for JSON field values (Task 2)
                 prompt = f"""Tu esi agresīvs izaugsmes investīciju eksperts un Komandants Kvarks.
 {current_lang_instruction}
 Tavs uzdevums ir atrast tieši 10 "Jaunos Vienradžus" - uzņēmumus ar 10x-100x izaugsmes potenciālu.
@@ -603,32 +605,40 @@ JSON atbildē ir jābūt diviem laukiem:
 1. `unicorn_candidates`: Saraksts (array) ar dict (objektiem). Katram objektam jāsatur šādi lauki:
     - `ticker`: Uzņēmuma tikers.
     - `name`: Uzņēmuma nosaukums.
-    - `niche`: "Slepenais ierocis" (īss 1-2 teikumu nišas apraksts, kas dod konkurences priekšrocības).
-    - `why_10x_100x`: "Kāpēc 10x-100x" (ass 2 teikumu pamatojums par milzīgo izaugsmes potenciālu, balstoties uz Kvarka kritērijiem un nozares perspektīvām).
-    - `black_swan_risk`: "Melnais Gulbis" (objektīvs 1-2 teikumu riska faktors, kas var apturēt izaugsmi).
+    - `niche`: "Slepenais ierocis" (īss 1-2 teikumu nišas apraksts, kas dod konkurences priekšrocības). Šī lauka vērtībai OBLIGĀTI jābūt ģenerētai atbilstoši valodai: "{current_lang_instruction}".
+    - `why_10x_100x`: "Kāpēc 10x-100x" (ass 2 teikumu pamatojums par milzīgo izaugsmes potenciālu, balstoties uz Kvarka kritērijiem un nozares perspektīvām). Šī lauka vērtībai OBLIGĀTI jābūt ģenerētai atbilstoši valodai: "{current_lang_instruction}".
+    - `black_swan_risk`: "Melnais Gulbis" (objektīvs 1-2 teikumu riska faktors, kas var apturēt izaugsmi). Šī lauka vērtībai OBLIGĀTI jābūt ģenerētai atbilstoši valodai: "{current_lang_instruction}".
     UZMANĪBU: Pārliecinies, ka sarakstā ir tieši 10 unikāli kandidāti, kas atbilst dažādām nozarēm, ja iespējams.
 2. `sector_concentration_warning`: "Sarkano Karogu" brīdinājums par pārmērīgu sektora koncentrāciju, ja Kvarks to pamana (piemēram, vairāk nekā 50% kandidātu ir no vienas nozares), vai tukša stringa, ja brīdinājuma nav.
 
 Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."""
                 
                 resp = model.generate_content(prompt)
-                json_response_str = resp.text.strip()
+                json_response_raw_text = resp.text.strip()
                 
-                # CRITICAL FIX: Clean the response from markdown blocks
-                if json_response_str.startswith("```json"):
-                    json_response_str = json_response_str[len("```json"):].strip()
-                if json_response_str.endswith("```"):
-                    json_response_str = json_response_str[:-len("```")].strip()
+                # CRITICAL FIX: Clean the response from markdown blocks (Task 1)
+                # This part was mostly correct, but now combined with regex for robustness.
+                json_cleaned_from_md = json_response_raw_text
+                if json_cleaned_from_md.startswith("```json"):
+                    json_cleaned_from_md = json_cleaned_from_md[len("```json"):].strip()
+                if json_cleaned_from_md.endswith("```"):
+                    json_cleaned_from_md = json_cleaned_from_md[:-len("```")].strip()
 
-                # Ensure safe JSON parsing
+                # NEW: Use regex to find the JSON block only (Task 1)
+                json_match = re.search(r'\{.*\}', json_cleaned_from_md, re.DOTALL)
+                json_to_parse = json_match.group(0) if json_match else ""
+
                 try:
-                    parsed_response = json.loads(json_response_str)
-                    unicorn_candidates = parsed_response.get("unicorn_candidates", [])
-                    sector_concentration_warning = parsed_response.get("sector_concentration_warning", "")
-                    self.last_sector_concentration_warning = sector_concentration_warning # Store for copy/export (FIXED for Point 1, 3)
-                    reply_fallback = "" # If successful, clear fallback
+                    if json_to_parse: # Only attempt to load if a JSON block was found
+                        parsed_response = json.loads(json_to_parse)
+                        unicorn_candidates = parsed_response.get("unicorn_candidates", [])
+                        sector_concentration_warning = parsed_response.get("sector_concentration_warning", "")
+                        self.last_sector_concentration_warning = sector_concentration_warning # Store for copy/export (FIXED for Point 1, 3)
+                        reply_fallback = "" # If successful, clear fallback
+                    else:
+                        raise json.JSONDecodeError("No JSON block found in AI response after markdown cleanup.", json_response_raw_text, 0)
                 except json.JSONDecodeError as jde:
-                    reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {jde}. Daļa: {json_response_str[:500]}..."
+                    reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {jde}. Daļa: {json_response_raw_text[:500]}..."
                     unicorn_candidates = []
                     sector_concentration_warning = "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API."
                     self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
@@ -655,8 +665,8 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             for widget in self.growth_results_container.winfo_children():
                 widget.destroy()
 
-            # Populate left pane with AI candidates
-            self._populate_growth_watchlist(unicorn_candidates) # Use AI-selected candidates for left pane (Point 2)
+            # Populate left pane with AI candidates (Task 3: Dynamic list)
+            self._populate_growth_watchlist(unicorn_candidates) # Uses AI-selected candidates for left pane
 
             if self.last_sector_concentration_warning: # Check the instance variable (FIXED for Point 1, 3)
                 warning_label = ctk.CTkLabel(self.growth_results_container, text=f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}", 
@@ -717,7 +727,12 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             text_to_copy_parts.append("⚡ Ģenerēts ar AQ-OS Investor Studio")
         else:
             if self.growth_results_container.winfo_children():
-                text_to_copy_parts.append(self.growth_results_container.winfo_children()[0].cget("text")) 
+                # Attempt to get text from the first child if no structured data
+                first_child_text = self.growth_results_container.winfo_children()[0].cget("text")
+                if "Izvēlieties uzņēmumu" not in first_child_text and "Nav atrasta neviena analīze" not in first_child_text:
+                    text_to_copy_parts.append(first_child_text)
+                else:
+                    text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.")
             else:
                 text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.")
 
@@ -751,7 +766,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             messagebox.showinfo("Info", "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.")
             return
 
-        # NEW: Localized strings for Word export
+        # NEW: Localized strings for Word export (Task 2)
         current_lang = get_current_language() # Uses the actual current language from i18n or the 'lv' fallback
 
         localized_strings = {
@@ -1005,7 +1020,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 {json.dumps(div_data, ensure_ascii=False, indent=2)}
 
 Sagatavo latviešu valodā strukturētu analīzi:
-1. 💵 PASĪVĀS NAUDAS ČEMPIONI: Kuri no šiem uzņēmumiem nodrošina stabilāko un drošāko dividenžu atdevi.
+1. 💵 PASĪVĀS NAUDAS ČEMPIONI: Kuri no šiem uzņēmumiem nodrošina stabilāko un drošāko dividenču atdevi.
 2. ⚠️ ILGTSPĒJAS RISKI: Vai kādam uzņēmumam dividende nav mākslīgi uzpūsta vai apdraudēta (piemēram, naftas vai cikliskajos sektoros).
 3. 🔄 REINVESTĒŠANAS STRATĒĢIJA: Kā visefektīvāk izmantot ienākošās dividendes, lai portfelis augtu eksponenciāli."""
                 resp = model.generate_content(prompt)
