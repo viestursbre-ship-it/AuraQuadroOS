@@ -76,6 +76,11 @@ TRANSLATIONS = {
         "btn_summarize_doc": "⚡ Izvilkt Būtību & Kopsavilkumu",
         "lbl_doc_preview": "Dokumenta satura priekšskatījums:",
         "lbl_ai_summary": "AI Analīze & Kopsavilkums:",
+        # Document Digest atslēgas
+        "btn_select_doc": "📥 Izvēlēties Dokumentu",
+        "btn_open_contracts": "📊 Atvērt Līgumu Reģistru",
+        "btn_open_conclusion": "📄 Atvērt Slēdzienu",
+        "lbl_doc_waiting_status": "0% - Gaida dokumentu",
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Analizēt Tīkeri",
         "lbl_ticker_input": "Ievadiet Tīkeri (piem., AAPL, NVDA):",
@@ -122,6 +127,11 @@ TRANSLATIONS = {
         "btn_summarize_doc": "⚡ Extract Digest & Summary",
         "lbl_doc_preview": "Document content preview:",
         "lbl_ai_summary": "AI Analysis & Summary:",
+        # Document Digest atslēgas
+        "btn_select_doc": "📥 Select Document",
+        "btn_open_contracts": "📊 Open Contracts Register",
+        "btn_open_conclusion": "📄 Open Report",
+        "lbl_doc_waiting_status": "0% - Waiting for document",
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Analyze Ticker",
         "lbl_ticker_input": "Enter Ticker (e.g., AAPL, NVDA):",
@@ -149,7 +159,7 @@ TRANSLATIONS = {
         "lbl_language": "Мова:",
         "lbl_client_rfq": "1. 📥 Запит клієнта:",
         "btn_load_file": "📁 Завантажити",
-        "lbl_supplier_costs": "2. 🏷️ Собівартість дистриб'ютора:",
+        "lbl_supplier_costs": "2. 🏷️ Собівартість дистри'ютора:",
         "lbl_commercial_offer": "⚡ Готова пропозиція (Client-Safe):",
         # Bank Studio atslēgas
         "btn_load_bank_statement": "📁 Завантажити виписку банку (CSV/XLSX)",
@@ -168,6 +178,11 @@ TRANSLATIONS = {
         "btn_summarize_doc": "⚡ Витягти суть та резюме",
         "lbl_doc_preview": "Попередній перегляд документа:",
         "lbl_ai_summary": "AI Аналіз та резюме:",
+        # Document Digest atslēgas
+        "btn_select_doc": "📥 Вибрати документ",
+        "btn_open_contracts": "📊 Відкрити реєстр договорів",
+        "btn_open_conclusion": "📄 Відкрити висновок",
+        "lbl_doc_waiting_status": "0% - Очікування документа",
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Аналізувати тикер",
         "lbl_ticker_input": "Введіть тикер (напр., AAPL, NVDA):",
@@ -214,6 +229,11 @@ TRANSLATIONS = {
         "btn_summarize_doc": "⚡ Извлечь суть и резюме",
         "lbl_doc_preview": "Предпросмотр документа:",
         "lbl_ai_summary": "AI Анализ и резюме:",
+        # Document Digest atslēgas
+        "btn_select_doc": "📥 Выбрать документ",
+        "btn_open_contracts": "📊 Открыть реестр договоров",
+        "btn_open_conclusion": "📄 Открыть заключение",
+        "lbl_doc_waiting_status": "0% - Ожидание документа",
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Анализировать тикер",
         "lbl_ticker_input": "Введите тикер (напр., AAPL, NVDA):",
@@ -260,6 +280,11 @@ TRANSLATIONS = {
         "btn_summarize_doc": "⚡ Estrai sommario e sintesi",
         "lbl_doc_preview": "Anteprima documento:",
         "lbl_ai_summary": "Analisi AI e sintesi:",
+        # Document Digest atslēgas
+        "btn_select_doc": "📥 Seleziona documento",
+        "btn_open_contracts": "📊 Apri registro contratti",
+        "btn_open_conclusion": "📄 Apri relazione",
+        "lbl_doc_waiting_status": "0% - In attesa del documento",
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Analizza ticker",
         "lbl_ticker_input": "Inserisci ticker (es., AAPL, NVDA):",
