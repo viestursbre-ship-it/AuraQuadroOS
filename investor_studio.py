@@ -105,7 +105,7 @@ TRANSLATIONS = {
     "warning_red_flag": {"lv": "🚩 Sarkanais Karogs: {warning_message}", "en": "🚩 Red Flag: {warning_message}", "ru": "🚩 Красный Флаг: {warning_message}", "uk": "🚩 Червоний Прапор: {warning_message}", "it": "🚩 Bandiera Rossa: {warning_message}"},
     "lbl_niche": {"lv": "Slepenais ierocis (Niša):", "en": "Secret Weapon (Niche):", "ru": "Секретное оружие (Ниша):", "uk": "Секретна зброя (Ніша):", "it": "Arma Segreta (Nicchia):"},
     "lbl_why_10x_100x": {"lv": "Kāpēc 10x-100x:", "en": "Why 10x-100x:", "ru": "Почему 10x-100x:", "uk": "Чому 10x-100x:", "it": "Perché 10x-100x:"},
-    "lbl_black_swan": {"lv": "Melnais Gulbis (risks):", "en": "Black Swan (risk):", "ru": "Черный Лебедь (риск):", "uk": "Чорний Лебідь (ризик):", "it": "Cigno Nero (rischio):"},
+    "lbl_black_swan": {"lv": "Melnais Gulbis (risks):", "en": "Black Swan (risk):", "ru": "Черный Лебедь (риск):", "uk": "Чорний Лебīдь (ризик):", "it": "Cigno Nero (rischio):"},
     "btn_add_to_portfolio": {"lv": "➕ Pievienot manam eToro sarakstam", "en": "➕ Add to my eToro list", "ru": "➕ Добавить в мой список eToro", "uk": "➕ Додати до мого списку eToro", "it": "➕ Aggiungi alla mia lista eToro"},
     "growth_copy_header": {"lv": "🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀", "en": "🚀 COMMANDER KVARK'S UNICORN HUNT RESULTS 🚀", "ru": "🚀 РЕЗУЛЬТАТЫ ОХОТЫ НА ЕДИНОРОГОВ КОМАНДИРА КВАРКА 🚀", "uk": "🚀 РЕЗУЛЬТАТИ ПОЛЮВАННЯ НА ЄДИНОРОГІВ КОМАНДИРА КВАРКА 🚀", "it": "🚀 RISULTATI DELLA CACCIA AGLI UNICORNI DEL COMANDANTE QUARK 🚀"},
     "growth_copy_candidate_header": {"lv": "--- Kandidāts {idx_plus_1}: {ticker} - {name} ---", "en": "--- Candidate {idx_plus_1}: {ticker} - {name} ---", "ru": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "uk": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "it": "--- Candidato {idx_plus_1}: {ticker} - {name} ---"},
@@ -138,7 +138,7 @@ TRANSLATIONS = {
     "btn_calc_dividends": {"lv": "⚡ Aprēķināt Dividenžu Plūsmu", "en": "⚡ Calculate Dividend Flow", "ru": "⚡ Рассчитать Дивидендный Поток", "uk": "⚡ Розрахувати Дивідендний Поток", "it": "⚡ Calcola Flusso Dividendi"},
     "dividends_initial_msg": {"lv": "Nospiediet pogu, lai nolasītu dividenžu datus...", "en": "Press the button to fetch dividend data...", "ru": "Нажмите кнопку, чтобы получить данные о дивидендах...", "uk": "Натисніть кнопку, щоб отримати дані про дивіденди...", "it": "Premi il pulsante per recuperare i dati sui dividendi..."},
     "dividends_initial_analysis_msg": {"lv": "Gaidu dividenžu skenēšanas palaišanu...", "en": "Awaiting dividend scan initiation...", "ru": "Ожидаю запуск сканирования дивидендов...", "uk": "Очікую запуск сканування дивідендів...", "it": "In attesa dell'avvio della scansione dei dividendi..."},
-    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Збирає дані про dividendus...", "it": "⏳ Raccolta dati dividendi..."},
+    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Збирає datus par dividendēm...", "it": "⏳ Raccolta dati dividendi..."},
     "dividends_scan_progress1": {"lv": "Pārbauda {len_tickers} aktīvus tirgū...\n", "en": "Checking {len_tickers} assets in the market...\n", "ru": "Проверяет {len_tickers} активов на рынке...\n", "uk": "Перевіряє {len_tickers} активів на ринку...\n", "it": "Controllando {len_tickers} asset sul mercato...\n"},
     "dividends_scan_progress2": {"lv": "Kvarks apkopo naudas plūsmas kalendāru...\n", "en": "Quark compiles the cash flow calendar...\n", "ru": "Кварк составляет календарь денежного потока...\n", "uk": "Кварк складає календар грошового потоку...\n", "it": "Quark compila il calendario dei flussi di cassa...\n"},
     "dividends_summary_header": {"lv": "=== DIVIDENŽU PĀRSKATS ===", "en": "=== DIVIDEND OVERVIEW ===", "ru": "=== ОБЗОР ДИВИДЕНДОВ ===", "uk": "=== ОГЛЯД ДИВІДЕНДІВ ===", "it": "=== RIEPILOGO DIVIDENDI ==="},
@@ -207,11 +207,12 @@ TRANSLATIONS = {
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
 # This should only happen ONCE upon module load.
 if HAS_I18N:
+    # Register translations dictionary with the i18n module as per UZDEVUMS.
+    i18n.register_translations(TRANSLATIONS)
     # The AuraQuadro local i18n module is stated to contain a global TRANSLATIONS dictionary
     # and does not support/require set_dictionary. It expects TRANSLATIONS to be defined
     # at module level, and directly uses it.
     # Removed i18n.get() and i18n.set() calls as per instructions.
-    pass
 else:
     # Define dummy functions if i18n is not available to prevent crashes
     class DummyI18nModule: # Create a dummy class to emulate the module
