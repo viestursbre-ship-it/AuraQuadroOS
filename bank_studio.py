@@ -13,10 +13,10 @@ from tkinter import filedialog, messagebox
 import google.generativeai as genai
 import i18n
 
-# i18n global setup
-i18n.set('locale', 'lv')
-i18n.set('fallback', 'lv')
-i18n.load_path.append(str(Path(__file__).resolve().parent / "locales"))
+# AuraQuadroOS i18n setup:
+# Remove the problematic i18n.set and i18n.load_path calls.
+# Use i18n.set_ui_language to set the initial locale.
+i18n.set_ui_language('lv')
 
 
 def get_app_config():
@@ -245,7 +245,8 @@ class BankStudioFrame(ctk.CTkFrame):
     def set_ui_language(self, lang: str = None):
         """Sets the current UI language and refreshes elements."""
         if lang:
-            i18n.set('locale', lang)
+            # Corrected to use the AuraQuadroOS local i18n module's function
+            i18n.set_ui_language(lang)
         self.refresh_ui()
 
     def refresh_ui(self):
@@ -259,7 +260,8 @@ class BankStudioFrame(ctk.CTkFrame):
         if hasattr(self, "btn_export_xml"): # corresponds to btn_generate
             self.btn_export_xml.configure(text=i18n.t("btn_generate_xml"))
         # Update initial status label if it's still in its default state
-        if hasattr(self, "lbl_status") and self.lbl_status.cget("text") == i18n.t("lbl_status_initial", locale="lv"):
+        # Removed locale="lv" as i18n.t(key) is the specified format.
+        if hasattr(self, "lbl_status") and self.lbl_status.cget("text") == i18n.t("lbl_status_initial"):
             self.lbl_status.configure(text=i18n.t("lbl_status_initial"))
 
 
