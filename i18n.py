@@ -34,6 +34,15 @@ TRANSLATIONS = {
         "lbl_lang": "Valoda:",
         "status_ready": "Gatavs!",
         "status_calculating": "Gemini tāmē & ģenerē Excel...",
+        # New translations for 'lv'
+        "btn_calculate": "⚡ Aprēķināt & Noformēt",
+        "btn_open_excel": "📊 Atvērt Excel Tāmēšanai",
+        "btn_copy_email": "📋 Kopēt E-pastam",
+        "lbl_language": "Valoda:",
+        "lbl_client_rfq": "1. 📥 Klienta Pieprasījums:",
+        "btn_load_file": "📁 Ielādēt",
+        "lbl_supplier_costs": "2. 🏷️ Distributora Pašizmaksa / Cenas:",
+        "lbl_commercial_offer": "⚡ Gatavais Piedāvājums Klientam (Drošs):",
     },
     "en": {
         "tab_offers": "💼 Quote Studio",
@@ -51,15 +60,56 @@ TRANSLATIONS = {
         "lbl_lang": "Language:",
         "status_ready": "Ready!",
         "status_calculating": "Gemini calculating & generating Excel...",
+        # New translations for 'en'
+        "btn_calculate": "⚡ Calculate & Generate",
+        "btn_open_excel": "📊 Open Excel Sheet",
+        "btn_copy_email": "📋 Copy for Email",
+        "lbl_language": "Language:",
+        "lbl_client_rfq": "1. 📥 Client RFQ / Requirements:",
+        "btn_load_file": "📁 Load",
+        "lbl_supplier_costs": "2. 🏷️ Supplier / Disti Costs:",
+        "lbl_commercial_offer": "⚡ Commercial Offer (Client-Safe):",
     },
-    # Empty stubs for new languages, allowing get_text to safely access them
-    "uk": {},
-    "ru": {},
-    "it": {}
+    "uk": {
+        # New translations for 'uk'
+        "btn_calculate": "⚡ Розрахувати та оформити",
+        "btn_open_excel": "📊 Відкрити Excel для кошторису",
+        "btn_copy_email": "📋 Копіювати для Email",
+        "lbl_margin": "Маржа (%):",
+        "lbl_language": "Мова:",
+        "lbl_client_rfq": "1. 📥 Запит клієнта:",
+        "btn_load_file": "📁 Завантажити",
+        "lbl_supplier_costs": "2. 🏷️ Собівартість дистриб'ютора:",
+        "lbl_commercial_offer": "⚡ Готова пропозиція (Client-Safe):",
+    },
+    "ru": {
+        # New translations for 'ru'
+        "btn_calculate": "⚡ Рассчитать и оформить",
+        "btn_open_excel": "📊 Открыть Excel для сметы",
+        "btn_copy_email": "📋 Копировать для Email",
+        "lbl_margin": "Маржа (%):",
+        "lbl_language": "Язык:",
+        "lbl_client_rfq": "1. 📥 Запрос клиента:",
+        "btn_load_file": "📁 Загрузить",
+        "lbl_supplier_costs": "2. 🏷️ Себестоимость дистрибьютора:",
+        "lbl_commercial_offer": "⚡ Готовое предложение (Client-Safe):",
+    },
+    "it": {
+        # New translations for 'it'
+        "btn_calculate": "⚡ Calcola e genera",
+        "btn_open_excel": "📊 Apri foglio Excel",
+        "btn_copy_email": "📋 Copia per email",
+        "lbl_margin": "Margine (%):",
+        "lbl_language": "Lingua:",
+        "lbl_client_rfq": "1. 📥 Richiesta del cliente:",
+        "btn_load_file": "📁 Carica",
+        "lbl_supplier_costs": "2. 🏷️ Costi fornitore:",
+        "lbl_commercial_offer": "⚡ Offerta commerciale (Client-Safe):",
+    }
 }
 
 # --- Internal cache for current configuration ---
-_cached_config = None 
+_cached_config = None
 
 def _load_config() -> dict:
     """Helper to load config.json safely. Returns an empty dict if file is not found or corrupted."""
@@ -107,7 +157,7 @@ def get_ui_language() -> str:
     # Nolasot "ui_language" (vai "language") no config.json, obligāti veic .strip().lower().
     # Fallback to "language" key for backward compatibility if it exists, though "ui_language" is primary.
     raw_lang_code = config.get("ui_language") or config.get("language")
-    
+
     # Normalize the language code immediately
     if isinstance(raw_lang_code, str):
         lang_code = raw_lang_code.strip().lower()
@@ -143,7 +193,7 @@ def get_output_language() -> str:
     """
     config = _load_config()
     raw_output_lang_setting = config.get("output_language")
-    
+
     # Obligāti normalizē ar .strip().lower().
     if isinstance(raw_output_lang_setting, str):
         output_lang_setting = raw_output_lang_setting.strip().lower()
@@ -188,7 +238,7 @@ def get_llm_language_instruction(lang_code: str = None) -> str:
 
     # Atgriežas pie noklusējuma, ja pieprasītā valoda netiek atbalstīta
     lang_info = SUPPORTED_LANGUAGES.get(normalized_lang_code, SUPPORTED_LANGUAGES[DEFAULT_UI_LANGUAGE_CODE])
-    
+
     prompt_lang = lang_info['prompt_lang']
     return f"IMPORTANT: You must generate the entire analysis, headings, and report strictly in {prompt_lang} language."
 
@@ -196,9 +246,24 @@ def get_text(key: str, default: str = "") -> str:
     """
     Atgriež tulkotu tekstu pašreizējā UI valodā.
     Ja tulkojums nav atrasts, atgriež noklusējuma vērtību vai pašu atslēgu.
+    Nodrošina fallback uz 'lv' un tad 'en', ja atslēga nav atrasta aktīvajā valodā.
     """
     lang_code = get_ui_language() # This already returns a normalized, supported language code
-    return TRANSLATIONS.get(lang_code, {}).get(key, default or key)
+
+    # Try to get translation in the active language
+    if key in TRANSLATIONS.get(lang_code, {}):
+        return TRANSLATIONS[lang_code][key]
+
+    # If not found in active language, try 'lv' as fallback
+    if key in TRANSLATIONS.get('lv', {}):
+        return TRANSLATIONS['lv'][key]
+
+    # If not found in 'lv', try 'en' as fallback
+    if key in TRANSLATIONS.get('en', {}):
+        return TRANSLATIONS['en'][key]
+
+    # If still not found, return the provided default or the key itself
+    return default or key
 
 # Šī funkcija nodrošināta atpakaļejošai savietojamībai, ja kāds izsauc `set_language`.
 # Tā tagad iestata UI valodu.
