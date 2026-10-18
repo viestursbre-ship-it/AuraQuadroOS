@@ -8,6 +8,7 @@ DEFAULT_UI_LANGUAGE_CODE = 'lv' # Noklusējuma valoda lietotāja saskarnei
 DEFAULT_OUTPUT_LANGUAGE_CODE = 'auto' # Noklusējuma valoda atskaitēm/ģenerētajiem failiem (vai 'lv', 'en', 'auto' u.c.')
 
 # --- Supported Languages Definition ---
+# Nodrošinātas tieši 5 atbalstītās valodas: "lv", "en", "ru", "uk", "it"
 SUPPORTED_LANGUAGES = {
     'lv': {'name': 'Latviešu', 'prompt_lang': 'Latvian'},
     'en': {'name': 'English', 'prompt_lang': 'English'},
@@ -15,6 +16,21 @@ SUPPORTED_LANGUAGES = {
     'ru': {'name': 'Русский', 'prompt_lang': 'Russian'},
     'it': {'name': 'Italiano', 'prompt_lang': 'Italian'}
 }
+
+# --- Language Code Mapping for Normalization ---
+# Ja saņemts kods "ua", automātiski pārvērt to par "uk"
+LANG_CODE_MAP = {"ua": "uk"}
+
+def _normalize_lang_input(raw_lang: str) -> str:
+    """
+    Normalizē ievadīto valodas kodu, ieskaitot .strip().lower() un "ua" -> "uk" kartēšanu.
+    Ja ievade nav virkne, atgriež noklusējuma UI valodu.
+    """
+    if not isinstance(raw_lang, str):
+        return DEFAULT_UI_LANGUAGE_CODE # Atgriež noklusējumu, ja ievade nav virkne
+    
+    cleaned_lang = raw_lang.strip().lower()
+    return LANG_CODE_MAP.get(cleaned_lang, cleaned_lang)
 
 # --- Translations Dictionary ---
 TRANSLATIONS = {
@@ -34,7 +50,7 @@ TRANSLATIONS = {
         "lbl_lang": "Valoda:",
         "status_ready": "Gatavs!",
         "status_calculating": "Gemini tāmē & ģenerē Excel...",
-        # New translations for 'lv'
+        # Offer Studio atslēgas, nodrošinātas visām valodām
         "btn_calculate": "⚡ Aprēķināt & Noformēt",
         "btn_open_excel": "📊 Atvērt Excel Tāmēšanai",
         "btn_copy_email": "📋 Kopēt E-pastam",
@@ -60,7 +76,7 @@ TRANSLATIONS = {
         "lbl_lang": "Language:",
         "status_ready": "Ready!",
         "status_calculating": "Gemini calculating & generating Excel...",
-        # New translations for 'en'
+        # Offer Studio atslēgas, nodrošinātas visām valodām
         "btn_calculate": "⚡ Calculate & Generate",
         "btn_open_excel": "📊 Open Excel Sheet",
         "btn_copy_email": "📋 Copy for Email",
@@ -71,11 +87,25 @@ TRANSLATIONS = {
         "lbl_commercial_offer": "⚡ Commercial Offer (Client-Safe):",
     },
     "uk": {
-        # New translations for 'uk'
+        "tab_offers": "💼 Студія пропозицій",
+        "tab_hp": "💻 HP Експерт",
+        "tab_voice": "🎙️ Голосова Студія",
+        "tab_dropzone": "📁 Зона для документів",
+        "tab_radar": "⚙️ Налаштування радару",
+        "btn_calc": "⚡ Розрахувати та оформити",
+        "btn_excel": "📊 Відкрити Excel для кошторису",
+        "btn_copy": "📋 Копіювати для Email",
+        "lbl_client_req": "1. 📥 Запит клієнта / Вимоги:",
+        "lbl_dist_costs": "2. 🏷️ Собівартість дистриб'ютора:",
+        "lbl_result": "⚡ Згенерована комерційна пропозиція (безпечна для клієнта):",
+        "lbl_margin": "Маржа (%):",
+        "lbl_lang": "Мова:",
+        "status_ready": "Готово!",
+        "status_calculating": "Gemini розраховує та генерує Excel...",
+        # Offer Studio atslēgas, nodrošinātas visām valodām
         "btn_calculate": "⚡ Розрахувати та оформити",
         "btn_open_excel": "📊 Відкрити Excel для кошторису",
         "btn_copy_email": "📋 Копіювати для Email",
-        "lbl_margin": "Маржа (%):",
         "lbl_language": "Мова:",
         "lbl_client_rfq": "1. 📥 Запит клієнта:",
         "btn_load_file": "📁 Завантажити",
@@ -83,11 +113,25 @@ TRANSLATIONS = {
         "lbl_commercial_offer": "⚡ Готова пропозиція (Client-Safe):",
     },
     "ru": {
-        # New translations for 'ru'
+        "tab_offers": "💼 Студия предложений",
+        "tab_hp": "💻 HP Эксперт",
+        "tab_voice": "🎙️ Голосовая Студия",
+        "tab_dropzone": "📁 Зона для документов",
+        "tab_radar": "⚙️ Настройки радара",
+        "btn_calc": "⚡ Рассчитать и оформить",
+        "btn_excel": "📊 Открыть Excel для сметы",
+        "btn_copy": "📋 Копировать для Email",
+        "lbl_client_req": "1. 📥 Запрос клиента / Требования:",
+        "lbl_dist_costs": "2. 🏷️ Себестоимость дистрибьютора:",
+        "lbl_result": "⚡ Сгенерированное коммерческое предложение (безопасно для клиента):",
+        "lbl_margin": "Маржа (%):",
+        "lbl_lang": "Язык:",
+        "status_ready": "Готово!",
+        "status_calculating": "Gemini рассчитывает и генерирует Excel...",
+        # Offer Studio atslēgas, nodrošinātas visām valodām
         "btn_calculate": "⚡ Рассчитать и оформить",
         "btn_open_excel": "📊 Открыть Excel для сметы",
         "btn_copy_email": "📋 Копировать для Email",
-        "lbl_margin": "Маржа (%):",
         "lbl_language": "Язык:",
         "lbl_client_rfq": "1. 📥 Запрос клиента:",
         "btn_load_file": "📁 Загрузить",
@@ -95,11 +139,25 @@ TRANSLATIONS = {
         "lbl_commercial_offer": "⚡ Готовое предложение (Client-Safe):",
     },
     "it": {
-        # New translations for 'it'
+        "tab_offers": "💼 Studio Offerte",
+        "tab_hp": "💻 Esperto HP",
+        "tab_voice": "🎙️ Studio Vocale",
+        "tab_dropzone": "📁 Zona Documenti",
+        "tab_radar": "⚙️ Impostazioni Radar",
+        "btn_calc": "⚡ Calcola e genera",
+        "btn_excel": "📊 Apri foglio Excel",
+        "btn_copy": "📋 Copia per email",
+        "lbl_client_req": "1. 📥 Richiesta del cliente / Requisiti:",
+        "lbl_dist_costs": "2. 🏷️ Costi fornitore / distributore:",
+        "lbl_result": "⚡ Preventivo commerciale generato (sicuro per il cliente):",
+        "lbl_margin": "Margine (%):",
+        "lbl_lang": "Lingua:",
+        "status_ready": "Pronto!",
+        "status_calculating": "Gemini calcola e genera Excel...",
+        # Offer Studio atslēgas, nodrošinātas visām valodām
         "btn_calculate": "⚡ Calcola e genera",
         "btn_open_excel": "📊 Apri foglio Excel",
         "btn_copy_email": "📋 Copia per email",
-        "lbl_margin": "Margine (%):",
         "lbl_language": "Lingua:",
         "lbl_client_rfq": "1. 📥 Richiesta del cliente:",
         "btn_load_file": "📁 Carica",
@@ -150,22 +208,15 @@ def _save_config(config_data: dict):
 def get_ui_language() -> str:
     """
     Atgriež aktīvo UI valodas kodu (lv, en, uk, ru, it).
-    Nolasot "ui_language" (vai "language") no config.json, obligāti veic .strip().lower().
-    Ja config.json ir ierakstīts "RU", tam OBLIGĀTI jāatgriež "ru", nevis jākrīt atpakaļ uz "lv".
+    Nolasot "ui_language" (vai "language") no config.json, obligāti veic normalizāciju.
+    Ja config.json ir ierakstīts "RU" vai "UA", tam OBLIGĀTI jāatgriež "ru" vai "uk", nevis jākrīt atpakaļ uz "lv".
     """
     config = _load_config()
-    # Nolasot "ui_language" (vai "language") no config.json, obligāti veic .strip().lower().
-    # Fallback to "language" key for backward compatibility if it exists, though "ui_language" is primary.
     raw_lang_code = config.get("ui_language") or config.get("language")
 
-    # Normalize the language code immediately
-    if isinstance(raw_lang_code, str):
-        lang_code = raw_lang_code.strip().lower()
-    else:
-        lang_code = DEFAULT_UI_LANGUAGE_CODE # If it's not a string (e.g., None), use default
+    # Normalizē valodas kodu, izmantojot palīgfunkciju
+    lang_code = _normalize_lang_input(raw_lang_code)
 
-    # Ja iegūtā vērtība ir "ru", "uk", "en", "it", "lv", atgriez to.
-    # Ja config.json ir ierakstīts "RU", tam OBLIGĀTI jāatgriež "ru", nevis jākrīt atpakaļ uz "lv".
     if lang_code in SUPPORTED_LANGUAGES:
         return lang_code
     else:
@@ -174,47 +225,45 @@ def get_ui_language() -> str:
 
 def set_ui_language(lang_code: str):
     """Saglabā ui_language iekš config.json."""
-    # Ensure the lang_code being set is normalized and supported
-    normalized_lang_code = lang_code.strip().lower()
+    # Nodrošina, ka iestatāmais valodas kods tiek normalizēts un atbalstīts
+    normalized_lang_code = _normalize_lang_input(lang_code)
     if normalized_lang_code not in SUPPORTED_LANGUAGES:
         # Komandants Kvarks nepieļauj neatbalstītas operācijas.
         print(f"Brīdinājums: UI valoda '{lang_code}' (normalizēta '{normalized_lang_code}') netiek atbalstīta. Izvēle netiek saglabāta.")
         return
 
     config = _load_config()
-    config["ui_language"] = normalized_lang_code # Save the normalized code
+    config["ui_language"] = normalized_lang_code # Saglabā normalizēto kodu
     _save_config(config)
 
 def get_output_language() -> str:
     """
     Atgriež reālo atskaišu valodas kodu.
     Ja konfigurācijā ir "auto" vai tukša, atgriež get_ui_language().
-    Obligāti normalizē ar .strip().lower().
+    Obligāti normalizē ar _normalize_lang_input().
     """
     config = _load_config()
     raw_output_lang_setting = config.get("output_language")
 
-    # Obligāti normalizē ar .strip().lower().
-    if isinstance(raw_output_lang_setting, str):
-        output_lang_setting = raw_output_lang_setting.strip().lower()
-    else:
-        output_lang_setting = DEFAULT_OUTPUT_LANGUAGE_CODE # If not a string, use default (which is 'auto')
-
-    # Ja tā ir "auto" vai tukša, atgriez get_ui_language().
-    if not output_lang_setting or output_lang_setting == "auto":
+    # Ja sākotnējais iestatījums ir None, tukšs vai "auto", izmanto UI valodu.
+    if not raw_output_lang_setting or raw_output_lang_setting.strip().lower() == "auto":
         return get_ui_language()
-    elif output_lang_setting in SUPPORTED_LANGUAGES:
-        return output_lang_setting
+    
+    # Citādi, normalizē konfigurēto valodas kodu (ieskaitot 'ua'->'uk' kartēšanu)
+    normalized_lang_code = _normalize_lang_input(raw_output_lang_setting)
+
+    # Ja normalizētais kods tiek atbalstīts, atgriež to. Citādi, atgriežas pie UI valodas.
+    if normalized_lang_code in SUPPORTED_LANGUAGES:
+        return normalized_lang_code
     else:
-        # Atgriež UI valodu, ja konfigurētā atskaišu valoda ir nederīga/nav atbalstīta
         return get_ui_language()
 
 def set_output_language(lang_code: str):
     """
     Saglabā output_language iekš config.json.
-    Atbalsta "auto", "lv", "en", "uk", "ru", "it".
+    Atbalsta "auto", "lv", "en", "uk", "ru", "it" (pēc normalizācijas).
     """
-    normalized_lang_code = lang_code.strip().lower() # Normalize before checking and saving
+    normalized_lang_code = _normalize_lang_input(lang_code) # Normalizē pirms pārbaudes un saglabāšanas
 
     if normalized_lang_code != "auto" and normalized_lang_code not in SUPPORTED_LANGUAGES:
         # Komandants Kvarks nepieļauj neatbalstītas operācijas.
@@ -222,7 +271,7 @@ def set_output_language(lang_code: str):
         return
 
     config = _load_config()
-    config["output_language"] = normalized_lang_code # Save the normalized code
+    config["output_language"] = normalized_lang_code # Saglabā normalizēto kodu
     _save_config(config)
 
 def get_llm_language_instruction(lang_code: str = None) -> str:
@@ -233,8 +282,8 @@ def get_llm_language_instruction(lang_code: str = None) -> str:
     if lang_code is None:
         lang_code = get_output_language()
 
-    # Ensure lang_code is normalized before lookup
-    normalized_lang_code = lang_code.strip().lower() if lang_code else DEFAULT_UI_LANGUAGE_CODE
+    # Nodrošina, ka lang_code ir normalizēts pirms uzmeklēšanas
+    normalized_lang_code = _normalize_lang_input(lang_code)
 
     # Atgriežas pie noklusējuma, ja pieprasītā valoda netiek atbalstīta
     lang_info = SUPPORTED_LANGUAGES.get(normalized_lang_code, SUPPORTED_LANGUAGES[DEFAULT_UI_LANGUAGE_CODE])
@@ -248,21 +297,21 @@ def get_text(key: str, default: str = "") -> str:
     Ja tulkojums nav atrasts, atgriež noklusējuma vērtību vai pašu atslēgu.
     Nodrošina fallback uz 'lv' un tad 'en', ja atslēga nav atrasta aktīvajā valodā.
     """
-    lang_code = get_ui_language() # This already returns a normalized, supported language code
+    lang_code = get_ui_language() # Šī funkcija jau atgriež normalizētu, atbalstītu valodas kodu
 
-    # Try to get translation in the active language
+    # Mēģina iegūt tulkojumu aktīvajā valodā
     if key in TRANSLATIONS.get(lang_code, {}):
         return TRANSLATIONS[lang_code][key]
 
-    # If not found in active language, try 'lv' as fallback
+    # Ja nav atrasts aktīvajā valodā, mēģina "lv" kā atkāpes variantu
     if key in TRANSLATIONS.get('lv', {}):
         return TRANSLATIONS['lv'][key]
 
-    # If not found in 'lv', try 'en' as fallback
+    # Ja nav atrasts "lv", mēģina "en" kā atkāpes variantu
     if key in TRANSLATIONS.get('en', {}):
         return TRANSLATIONS['en'][key]
 
-    # If still not found, return the provided default or the key itself
+    # Ja joprojām nav atrasts, atgriež norādīto noklusējumu vai pašu atslēgu (nav tukšums)
     return default or key
 
 def t(key: str, lang: str = None) -> str:
@@ -270,21 +319,25 @@ def t(key: str, lang: str = None) -> str:
     Atgriež tulkotu tekstu norādītajā valodā vai pašreizējā UI valodā, ja valoda nav norādīta.
     Nodrošina fallback uz 'lv' un tad 'en', ja atslēga nav atrasta norādītajā valodā.
     """
-    target_lang = (lang or get_ui_language()).strip().lower() # Ensure lang is normalized if provided, otherwise use UI lang
+    # Normalizē norādīto 'lang' parametru vai izmanto normalizēto UI valodu
+    if lang:
+        target_lang = _normalize_lang_input(lang)
+    else:
+        target_lang = get_ui_language() # Šī funkcija jau atgriež normalizētu, atbalstītu valodas kodu
 
-    # Try to get translation in the target language
+    # Mēģina iegūt tulkojumu mērķa valodā
     if key in TRANSLATIONS.get(target_lang, {}):
         return TRANSLATIONS[target_lang][key]
 
-    # If not found in target language, try 'lv' as fallback
+    # Ja nav atrasts mērķa valodā, mēģina "lv" kā atkāpes variantu
     if key in TRANSLATIONS.get('lv', {}):
         return TRANSLATIONS['lv'][key]
 
-    # If not found in 'lv', try 'en' as fallback
+    # Ja nav atrasts "lv", mēģina "en" kā atkāpes variantu
     if key in TRANSLATIONS.get('en', {}):
         return TRANSLATIONS['en'][key]
 
-    # If still not found, return the key itself as per specification
+    # Ja joprojām nav atrasts, atgriež pašu atslēgu (nav tukšums)
     return key
 
 # Šī funkcija nodrošināta atpakaļejošai savietojamībai, ja kāds izsauc `set_language`.
