@@ -59,6 +59,21 @@ TRANSLATIONS = {
         "btn_load_file": "📁 Ielādēt",
         "lbl_supplier_costs": "2. 🏷️ Distributora Pašizmaksa / Cenas:",
         "lbl_commercial_offer": "⚡ Gatavais Piedāvājums Klientam (Drošs):",
+        # Bank Studio atslēgas
+        "btn_load_bank_statement": "📁 Ielādēt Bankas Izrakstu (CSV/XLSX)",
+        "btn_analyze_cashflow": "⚡ Analizēt Naudas Plūsmu",
+        "lbl_bank_summary": "Finanšu Kopsavilkums & Rādītāji:",
+        "lbl_incoming_funds": "Ienākošie līdzekļi:",
+        "lbl_outgoing_funds": "Izejošie maksājumi:",
+        "lbl_net_cashflow": "Neto naudas plūsma:",
+        # Dokumentu Drop-Zone atslēgas
+        "btn_drop_browse": "📄 Izvēlēties Dokumentu (PDF, DOCX, TXT)",
+        "btn_summarize_doc": "⚡ Izvilkt Būtību & Kopsavilkumu",
+        "lbl_doc_preview": "Dokumenta satura priekšskatījums:",
+        "lbl_ai_summary": "AI Analīze & Kopsavilkums:",
+        # Investor Studio papildu atslēgas
+        "btn_audit_ticker": "⚡ Analizēt Tīkeri",
+        "lbl_ticker_input": "Ievadiet Tīkeri (piem., AAPL, NVDA):",
     },
     "en": {
         "tab_offers": "💼 Quote Studio",
@@ -85,6 +100,21 @@ TRANSLATIONS = {
         "btn_load_file": "📁 Load",
         "lbl_supplier_costs": "2. 🏷️ Supplier / Disti Costs:",
         "lbl_commercial_offer": "⚡ Commercial Offer (Client-Safe):",
+        # Bank Studio atslēgas
+        "btn_load_bank_statement": "📁 Load Bank Statement (CSV/XLSX)",
+        "btn_analyze_cashflow": "⚡ Analyze Cash Flow",
+        "lbl_bank_summary": "Financial Summary & Metrics:",
+        "lbl_incoming_funds": "Incoming funds:",
+        "lbl_outgoing_funds": "Outgoing payments:",
+        "lbl_net_cashflow": "Net cash flow:",
+        # Dokumentu Drop-Zone atslēgas
+        "btn_drop_browse": "📄 Select Document (PDF, DOCX, TXT)",
+        "btn_summarize_doc": "⚡ Extract Digest & Summary",
+        "lbl_doc_preview": "Document content preview:",
+        "lbl_ai_summary": "AI Analysis & Summary:",
+        # Investor Studio papildu atslēgas
+        "btn_audit_ticker": "⚡ Analyze Ticker",
+        "lbl_ticker_input": "Enter Ticker (e.g., AAPL, NVDA):",
     },
     "uk": {
         "tab_offers": "💼 Студія пропозицій",
@@ -111,6 +141,21 @@ TRANSLATIONS = {
         "btn_load_file": "📁 Завантажити",
         "lbl_supplier_costs": "2. 🏷️ Собівартість дистриб'ютора:",
         "lbl_commercial_offer": "⚡ Готова пропозиція (Client-Safe):",
+        # Bank Studio atslēgas
+        "btn_load_bank_statement": "📁 Завантажити виписку банку (CSV/XLSX)",
+        "btn_analyze_cashflow": "⚡ Аналізувати грошовий потік",
+        "lbl_bank_summary": "Фінансовий підсумок та показники:",
+        "lbl_incoming_funds": "Надходження:",
+        "lbl_outgoing_funds": "Вихідні платежі:",
+        "lbl_net_cashflow": "Чистий грошовий потік:",
+        # Dokumentu Drop-Zone atslēgas
+        "btn_drop_browse": "📄 Вибрати документ (PDF, DOCX, TXT)",
+        "btn_summarize_doc": "⚡ Витягти суть та резюме",
+        "lbl_doc_preview": "Попередній перегляд документа:",
+        "lbl_ai_summary": "AI Аналіз та резюме:",
+        # Investor Studio papildu atslēgas
+        "btn_audit_ticker": "⚡ Аналізувати тикер",
+        "lbl_ticker_input": "Введіть тикер (напр., AAPL, NVDA):",
     },
     "ru": {
         "tab_offers": "💼 Студия предложений",
@@ -137,6 +182,21 @@ TRANSLATIONS = {
         "btn_load_file": "📁 Загрузить",
         "lbl_supplier_costs": "2. 🏷️ Себестоимость дистрибьютора:",
         "lbl_commercial_offer": "⚡ Готовое предложение (Client-Safe):",
+        # Bank Studio atslēgas
+        "btn_load_bank_statement": "📁 Загрузить выписку банка (CSV/XLSX)",
+        "btn_analyze_cashflow": "⚡ Анализировать денежный поток",
+        "lbl_bank_summary": "Финансовая сводка и показатели:",
+        "lbl_incoming_funds": "Поступления:",
+        "lbl_outgoing_funds": "Исходящие платежи:",
+        "lbl_net_cashflow": "Чистый денежный поток:",
+        # Dokumentu Drop-Zone atslēgas
+        "btn_drop_browse": "📄 Выбрать документ (PDF, DOCX, TXT)",
+        "btn_summarize_doc": "⚡ Извлечь суть и резюме",
+        "lbl_doc_preview": "Предпросмотр документа:",
+        "lbl_ai_summary": "AI Анализ и резюме:",
+        # Investor Studio papildu atslēgas
+        "btn_audit_ticker": "⚡ Анализировать тикер",
+        "lbl_ticker_input": "Введите тикер (напр., AAPL, NVDA):",
     },
     "it": {
         "tab_offers": "💼 Studio Offerte",
@@ -163,6 +223,21 @@ TRANSLATIONS = {
         "btn_load_file": "📁 Carica",
         "lbl_supplier_costs": "2. 🏷️ Costi fornitore:",
         "lbl_commercial_offer": "⚡ Offerta commerciale (Client-Safe):",
+        # Bank Studio atslēgas
+        "btn_load_bank_statement": "📁 Carica estratto conto (CSV/XLSX)",
+        "btn_analyze_cashflow": "⚡ Analizza flusso di cassa",
+        "lbl_bank_summary": "Riepilogo finanziario e metriche:",
+        "lbl_incoming_funds": "Entrate:",
+        "lbl_outgoing_funds": "Uscite:",
+        "lbl_net_cashflow": "Flusso di cassa netto:",
+        # Dokumentu Drop-Zone atslēgas
+        "btn_drop_browse": "📄 Seleziona documento (PDF, DOCX, TXT)",
+        "btn_summarize_doc": "⚡ Estrai sommario e sintesi",
+        "lbl_doc_preview": "Anteprima documento:",
+        "lbl_ai_summary": "Analisi AI e sintesi:",
+        # Investor Studio papildu atslēgas
+        "btn_audit_ticker": "⚡ Analizza ticker",
+        "lbl_ticker_input": "Inserisci ticker (es., AAPL, NVDA):",
     }
 }
 
