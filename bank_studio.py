@@ -11,6 +11,13 @@ from xml.dom import minidom
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import google.generativeai as genai
+import i18n
+
+# i18n global setup
+i18n.set('locale', 'lv')
+i18n.set('fallback', 'lv')
+i18n.load_path.append(str(Path(__file__).resolve().parent / "locales"))
+
 
 def get_app_config():
     if getattr(sys, 'frozen', False):
@@ -70,10 +77,10 @@ def verify_vendor_security(reg_nr, iban, vendor_name):
         known = db[clean_reg]
         known_ibans = [re.sub(r'\s+', '', x).upper() for x in known.get("ibans", [])]
         if clean_iban in known_ibans:
-            return "trusted", f"🟢 Pārbaudīts partneris: {known.get('name', vendor_name)}"
+            return "trusted", i18n.t("status_trusted_vendor", name=known.get('name', vendor_name))
         else:
-            return "mismatch", f"🔴 ALARM! Partnerim {known.get('name')} mainīts IBAN!\nZināmais: {', '.join(known_ibans)}\nRēķinā: {clean_iban}"
-    return "new", f"🟡 Jauns piegādātājs: {vendor_name} (Reģ: {clean_reg})"
+            return "mismatch", i18n.t("status_vendor_iban_mismatch", name=known.get('name'), known_ibans=', '.join(known_ibans), invoice_iban=clean_iban)
+    return "new", i18n.t("status_new_vendor", name=vendor_name, reg_nr=clean_reg)
 
 # ==========================================
 # CITADELE ISO 20022 (pain.001.001.03) ĢENERATORS
@@ -141,7 +148,7 @@ def generate_citadele_xml(invoice_data, my_iban="LV00PARX0000000000000", my_name
 
     # RmtInf (Maksājuma mērķis)
     rmt_inf = ET.SubElement(tx_inf, "RmtInf")
-    ET.SubElement(rmt_inf, "Ustrd").text = f"Apmaksa par rēķinu {invoice_data.get('invoice_no', '')}"
+    ET.SubElement(rmt_inf, "Ustrd").text = i18n.t("payment_purpose_invoice", invoice_no=invoice_data.get('invoice_no', ''))
 
     xml_str = ET.tostring(root, encoding="utf-8")
     parsed_xml = minidom.parseString(xml_str)
@@ -160,18 +167,21 @@ class BankStudioFrame(ctk.CTkFrame):
         top_bar = ctk.CTkFrame(self, fg_color="#1e293b", corner_radius=8)
         top_bar.pack(fill="x", padx=10, pady=10)
 
-        ctk.CTkLabel(
-            top_bar, 
-            text="🏦 Citadele Bank Studio (ISO 20022)", 
+        # Title Label
+        self.lbl_title = ctk.CTkLabel(
+            top_bar,
+            text="", # Text will be set by refresh_ui
             font=ctk.CTkFont(size=16, weight="bold"),
             text_color="#f8fafc"
-        ).pack(side="left", padx=15, pady=10)
+        )
+        self.lbl_title.pack(side="left", padx=15, pady=10)
 
+        # Load PDF Button
         self.btn_select_pdf = ctk.CTkButton(
-            top_bar, 
-            text="📄 Ielādēt PDF Rēķinu", 
+            top_bar,
+            text="", # Text will be set by refresh_ui
             command=self.load_pdf_invoice,
-            fg_color="#2563eb", 
+            fg_color="#2563eb",
             hover_color="#1d4ed8"
         )
         self.btn_select_pdf.pack(side="right", padx=10, pady=10)
@@ -182,8 +192,8 @@ class BankStudioFrame(ctk.CTkFrame):
 
         # Statusa / Kvarka Drošinātāja baneris
         self.lbl_status = ctk.CTkLabel(
-            self.form_frame, 
-            text="Gatavs darbam. Ielādējiet PDF rēķinu no e-pasta vai datora.", 
+            self.form_frame,
+            text="", # Text will be set by refresh_ui or directly
             font=ctk.CTkFont(size=13, weight="bold"),
             text_color="#94a3b8",
             wraplength=600,
@@ -193,9 +203,9 @@ class BankStudioFrame(ctk.CTkFrame):
 
         # Rēķina detaļu kartīte
         self.details_box = ctk.CTkTextbox(
-            self.form_frame, 
-            font=ctk.CTkFont(size=13), 
-            text_color="#e2e8f0", 
+            self.form_frame,
+            font=ctk.CTkFont(size=13),
+            text_color="#e2e8f0",
             fg_color="#1e293b",
             height=200
         )
@@ -206,25 +216,52 @@ class BankStudioFrame(ctk.CTkFrame):
         bottom_bar = ctk.CTkFrame(self.form_frame, fg_color="transparent")
         bottom_bar.pack(fill="x", padx=20, pady=15)
 
+        # Whitelist Button (btn_partner)
         self.btn_whitelist = ctk.CTkButton(
-            bottom_bar, 
-            text="⭐ Pievienot partneri bāzei", 
+            bottom_bar,
+            text="", # Text will be set by refresh_ui
             command=self.whitelist_current_vendor,
             state="disabled",
             fg_color="#475569"
         )
         self.btn_whitelist.pack(side="left")
 
+        # Export XML Button (btn_generate)
         self.btn_export_xml = ctk.CTkButton(
-            bottom_bar, 
-            text="🚀 Ģenerēt Citadele XML", 
+            bottom_bar,
+            text="", # Text will be set by refresh_ui
             command=self.export_xml,
             state="disabled",
-            fg_color="#16a34a", 
+            fg_color="#16a34a",
             hover_color="#15803d",
             font=ctk.CTkFont(weight="bold")
         )
         self.btn_export_xml.pack(side="right")
+
+        # Initialize UI texts with i18n
+        self.refresh_ui()
+        self.lbl_status.configure(text=i18n.t("lbl_status_initial"))
+
+    def set_ui_language(self, lang: str = None):
+        """Sets the current UI language and refreshes elements."""
+        if lang:
+            i18n.set('locale', lang)
+        self.refresh_ui()
+
+    def refresh_ui(self):
+        """Refreshes all UI elements with current language texts."""
+        if hasattr(self, "lbl_title"):
+            self.lbl_title.configure(text=i18n.t("lbl_bank_title"))
+        if hasattr(self, "btn_select_pdf"): # corresponds to btn_load
+            self.btn_select_pdf.configure(text=i18n.t("btn_load_pdf_invoice"))
+        if hasattr(self, "btn_whitelist"): # corresponds to btn_partner
+            self.btn_whitelist.configure(text=i18n.t("btn_add_partner"))
+        if hasattr(self, "btn_export_xml"): # corresponds to btn_generate
+            self.btn_export_xml.configure(text=i18n.t("btn_generate_xml"))
+        # Update initial status label if it's still in its default state
+        if hasattr(self, "lbl_status") and self.lbl_status.cget("text") == i18n.t("lbl_status_initial", locale="lv"):
+            self.lbl_status.configure(text=i18n.t("lbl_status_initial"))
+
 
     def _get_api_key(self):
         if self.get_gemini_key_fn:
@@ -235,13 +272,13 @@ class BankStudioFrame(ctk.CTkFrame):
 
     def load_pdf_invoice(self):
         file_path = filedialog.askopenfilename(
-            title="Izvēlieties rēķina PDF",
-            filetypes=[("PDF faili", "*.pdf")]
+            title=i18n.t("dialog_select_pdf"),
+            filetypes=[(i18n.t("filetype_pdf"), "*.pdf")]
         )
         if not file_path:
             return
 
-        self.lbl_status.configure(text="⏳ Gemini analizē rēķinu un rekvizītus...", text_color="#38bdf8")
+        self.lbl_status.configure(text=i18n.t("status_gemini_analyzing_invoice"), text_color="#38bdf8")
         self.btn_export_xml.configure(state="disabled")
         self.btn_whitelist.configure(state="disabled")
 
@@ -250,7 +287,7 @@ class BankStudioFrame(ctk.CTkFrame):
     def _parse_invoice_thread(self, file_path):
         api_key = self._get_api_key()
         if not api_key:
-            self._update_status_ui("⚠️ Gemini API atslēga nav atrasta!", "#ef4444")
+            self._update_status_ui(i18n.t("status_api_key_missing"), "#ef4444")
             return
 
         try:
@@ -323,7 +360,7 @@ Struktūra:
             ))
 
         except Exception as e:
-            self._update_status_ui(f"⚠️ Kļūda nolasot rēķinu: {e}", "#ef4444")
+            self._update_status_ui(i18n.t("status_error_reading_invoice", error=e), "#ef4444")
 
     def _render_invoice_data(self, data, status_msg, color, status_code):
         self.lbl_status.configure(text=status_msg, text_color=color)
@@ -337,12 +374,12 @@ Struktūra:
 
         # 2. Sagatavojam kopsavilkuma tekstu
         summary_text = (
-            f"Piegādātājs:       {data.get('vendor_name')}\n"
-            f"Reģistrācijas Nr: {data.get('reg_nr')}\n"
-            f"Konta IBAN:       {data.get('iban')}\n"
-            f"Rēķina Numurs:    {data.get('invoice_no')}\n"
-            f"Summa apmaksai:   {amt_val:.2f} EUR\n"
-            f"Apmaksas termiņš: {data.get('due_date')}\n"
+            f"{i18n.t('invoice_supplier')}       {data.get('vendor_name')}\n"
+            f"{i18n.t('invoice_reg_nr')} {data.get('reg_nr')}\n"
+            f"{i18n.t('invoice_iban')}       {data.get('iban')}\n"
+            f"{i18n.t('invoice_no')}    {data.get('invoice_no')}\n"
+            f"{i18n.t('invoice_amount_to_pay')}   {amt_val:.2f} {i18n.t('unit_eur')}\n"
+            f"{i18n.t('invoice_due_date')} {data.get('due_date')}\n"
         )
 
         self.details_box.configure(state="normal")
@@ -367,7 +404,7 @@ Struktūra:
         name = self.current_invoice.get("vendor_name", "")
 
         if not reg or not iban:
-            messagebox.showwarning("Brīdinājums", "Trūkst reģ. numura vai IBAN!")
+            messagebox.showwarning(i18n.t("dialog_warning"), i18n.t("warning_missing_reg_iban"))
             return
 
         db = load_vendors_db()
@@ -378,8 +415,8 @@ Struktūra:
                 db[reg]["ibans"].append(iban)
 
         save_vendors_db(db)
-        messagebox.showinfo("Veiksmīgi", f"Partneris '{name}' pievienots uzticamajam sarakstam!")
-        self.lbl_status.configure(text=f"🟢 Pārbaudīts partneris: {name}", text_color="#22c55e")
+        messagebox.showinfo(i18n.t("dialog_success"), i18n.t("success_vendor_added", name=name))
+        self.lbl_status.configure(text=i18n.t("status_trusted_vendor", name=name), text_color="#22c55e")
         self.btn_whitelist.configure(state="disabled", fg_color="#475569")
 
     def export_xml(self):
@@ -400,38 +437,38 @@ Struktūra:
         save_path = filedialog.asksaveasfilename(
             defaultextension=".xml",
             initialfile=default_filename,
-            filetypes=[("XML faili", "*.xml")]
+            filetypes=[(i18n.t("filetype_xml"), "*.xml")]
         )
 
         if save_path:
             with open(save_path, "w", encoding="utf-8") as f:
                 f.write(xml_content)
-            messagebox.showinfo("Eksports pabeigts", f"Citadeles ISO 20022 XML fails veiksmīgi saglabāts:\n{save_path}")
+            messagebox.showinfo(i18n.t("dialog_export_complete"), i18n.t("info_export_complete", path=save_path))
 
     def process_pdf_direct(self, file_path):
         """Metode, ko izsauc Radars, kad nospiež pogu [🏦 Bank]."""
         if not file_path:
-            self._update_status_ui("⚠️ Faila ceļš nav norādīts!", "#ef4444")
+            self._update_status_ui(i18n.t("status_file_path_missing"), "#ef4444")
             return
 
         resolved_path = Path(file_path)
-        
+
         # Ja tiešais ceļš neeksistē, pameklējam relatīvi pret lietotnes mapi vai storage/invoices
         if not resolved_path.exists():
             base_dir = Path(__file__).resolve().parent
             candidate1 = base_dir / file_path
             candidate2 = base_dir / "storage" / "invoices" / Path(file_path).name
-            
+
             if candidate1.exists():
                 resolved_path = candidate1
             elif candidate2.exists():
                 resolved_path = candidate2
             else:
-                self._update_status_ui(f"⚠️ Fails nav atrasts: {resolved_path.name}", "#ef4444")
+                self._update_status_ui(i18n.t("status_file_not_found", file_name=resolved_path.name), "#ef4444")
                 return
 
         file_path_str = str(resolved_path)
-        self.lbl_status.configure(text="⏳ Gemini analizē ienākošo rēķinu no Radara...", text_color="#38bdf8")
+        self.lbl_status.configure(text=i18n.t("status_gemini_analyzing_invoice_radar"), text_color="#38bdf8")
         self.btn_export_xml.configure(state="disabled")
         self.btn_whitelist.configure(state="disabled")
 
