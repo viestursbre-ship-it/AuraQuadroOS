@@ -113,7 +113,7 @@ TRANSLATIONS = {
     "growth_copy_niche": {"lv": "   Slepenais ierocis (Niša): {niche}", "en": "   Secret Weapon (Niche): {niche}", "ru": "   Секретное оружие (Ниша): {niche}", "uk": "   Секретна зброя (Ніша):", "it": "   Arma Segreta (Nicchia): {niche}"},
     "growth_copy_why": {"lv": "   Kāpēc 10x-100x: {why}", "en": "   Why 10x-100x: {why}", "ru": "   Почему 10x-100x: {why}", "uk": "   Чому 10x-100x: {why}", "it": "   Perché 10x-100x:"},
     "growth_copy_risk": {"lv": "   Melnais Gulbis (risks): {risk}", "en": "   Black Swan (risk): {risk}", "ru": "   Черный Лебедь (риск): {risk}", "uk": "   Чорний Лебідis (ризик): {risk}", "it": "   Cigno Nero (rischio): {risk}"},
-    "growth_no_analysis_to_copy": {"lv": "Nav atrasta neviena analīze, ko kopēt.", "en": "No analysis found to copy.", "ru": "Не найдено анализа для копирования.", "uk": "Не знайдено аналізу для копіювання.", "it": "Nessuna analisi trovata da copiare."},
+    "growth_no_analysis_to_copy": {"lv": "Nav atrasta neviena analīze, ko kopēt.", "en": "No analysis found to copy.", "ru": "Не найдено анализа для копирования.", "uk": "Не знайдено аналізу для коpiювання.", "it": "Nessuna analisi trovata da copiare."},
     "error_title": {"lv": "Kļūda", "en": "Error", "ru": "Ошибка", "uk": "Помилка", "it": "Errore"},
     "error_docx_missing": {"lv": "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.", "en": "To export to Word, the 'python-docx' library is required.\nInstall it with 'pip install python-docx'.", "ru": "Для экспорта в Word требуется библиотека 'python-docx'.\nУстановите ее с помощью 'pip install python-docx'.", "uk": "Для експорту в Word потрібна бібліотека 'python-docx'.\nВстановіть її за допомогою 'pip install python-docx'.", "it": "Per esportare in Word è necessaria la libreria 'python-docx'.\nInstallala con 'pip install python-docx'."},
     "info_title": {"lv": "Info", "en": "Info", "ru": "Информация", "uk": "Інформація", "it": "Info"},
@@ -139,7 +139,7 @@ TRANSLATIONS = {
     "btn_calc_dividends": {"lv": "⚡ Aprēķināt Dividenžu Plūsmu", "en": "⚡ Calculate Dividend Flow", "ru": "⚡ Рассчитать Дивидендный Поток", "uk": "⚡ Розрахувати Дивіденžu Potok", "it": "⚡ Calcola Flusso Dividendi"},
     "dividends_initial_msg": {"lv": "Nospiediet pogu, lai nolasītu dividenžu datus...", "en": "Press the button to fetch dividend data...", "ru": "Нажмите кнопку, чтобы получить данные о дивидендах...", "uk": "Натисніть кнопку, щоб отримати дані про дивіденди...", "it": "Premi il pulsante per recuperare i dati sui dividendi..."},
     "dividends_initial_analysis_msg": {"lv": "Gaidu dividenžu skenēšanas palaišanu...", "en": "Awaiting dividend scan initiation...", "ru": "Ожидаю запуск сканирования дивидендов...", "uk": "Очікую запуск сканування дивідендів...", "it": "In attesa dell'avvio della scansione dei dividendi..."},
-    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Збирає datus par dividendēm...", "it": "⏳ Raccolta dati dividendi..."},
+    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Збирает datus par dividendēm...", "it": "⏳ Raccolta dati dividendi..."},
     "dividends_scan_progress1": {"lv": "Pārbauda {len_tickers} aktīvus tirgū...\n", "en": "Checking {len_tickers} assets in the market...\n", "ru": "Проверяет {len_tickers} активов на рынке...\n", "uk": "Перевіряє {len_tickers} активів на ринку...\n", "it": "Controllando {len_tickers} asset sul mercato...\n"},
     "dividends_scan_progress2": {"lv": "Kvarks apkopo naudas plūsmas kalendāru...\n", "en": "Quark compiles the cash flow calendar...\n", "ru": "Кварк составляет календарь денежного потока...\n", "uk": "Кварк складає календар grošas plūsmas...\n", "it": "Quark compila il calendario dei flussi di cassa...\n"},
     "dividends_summary_header": {"lv": "=== DIVIDENŽU PĀRSKATS ===", "en": "=== DIVIDEND OVERVIEW ===", "ru": "=== ОБЗОР ДИВИДЕНДОВ ===", "uk": "=== ОГЛЯД ДИВІДЕНДІВ ===", "it": "=== RIEPILOGO DIVIDENDI ==="},
@@ -204,7 +204,7 @@ TRANSLATIONS = {
     "source_label": {"lv": "Avots", "en": "Source", "ru": "Источник", "uk": "Джерело", "it": "Fonte"},
     "error_gemini_analysis": {"lv": "⚠️ Gemini analīzes kļūda: {e}", "en": "⚠️ Gemini analysis error: {e}", "ru": "⚠️ Oшибка анализа Gemini: {e}", "uk": "⚠️ Помилка analīzes Gemini: {e}", "it": "⚠️ Errore di analisi Gemini: {e}"},
     "data_fetch_error": {"lv": "⚠️ Kļūda nolasot datus", "en": "⚠️ Error fetching data", "ru": "⚠️ Ошибка pri poluchenii dannyx", "uk": "⚠️ Помилка pri otrimanni danih", "it": "⚠️ Errore nel recupero dei dati"},
-    "error_invalid_cash_balance": {"lv": "Nederīga naudas atlikuma vērtība.", "en": "Invalid cash balance value.", "ru": "Неверное значение остатка денежных средств.", "uk": "Невірна вартість залишku grošas koštív.", "it": "Valore del saldo di cassa non valido."} # New key for specific error message
+    "error_invalid_cash_balance": {"lv": "Nederīga naudas atlikuma vērtība.", "en": "Invalid cash balance value.", "ru": "Неверное значение остатка денежных средств.", "uk": "Невірна вартість zaļā atlikumu.", "it": "Valore del saldo di cassa non valido."} # New key for specific error message
 }
 
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
@@ -618,7 +618,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
 
             lang_instruction = get_llm_language_instruction() # Use the helper function
 
@@ -871,7 +871,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1029,7 +1029,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def _hunt_unicorns_worker(self):
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1369,7 +1369,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1605,7 +1605,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
 
             lang_instruction = get_llm_language_instruction()
 
