@@ -32,6 +32,14 @@ _OUTPUT_LANG_DISPLAY_MAP = {
 }
 _OUTPUT_LANG_CODE_MAP = {v: k for k, v in _OUTPUT_LANG_DISPLAY_MAP.items()}
 
+# JAUNUMS: Radara režīma valodu un koda kartējumi
+_RADAR_MODE_DISPLAY_MAP = {
+    "Offline / Manual": "manual",
+    "Gmail (IMAP)": "imap",
+    "Outlook (Desktop)": "outlook"
+}
+_RADAR_MODE_CODE_MAP = {v: k for k, v in _RADAR_MODE_DISPLAY_MAP.items()}
+
 
 UI_TEXTS = {
     "LV": {
@@ -53,6 +61,9 @@ UI_TEXTS = {
         "btn_save": "💾 Saglabāt iestatījumus",
         "saved_msg": "✅ Iestatījumi saglabāti! (Atskaite: {time})",
         "lbl_output_lang_header": "📄 Atskaišu un dokumentu ģenerēšanas valoda:",
+        "lbl_radar_mode": "📡 Radara režīms / Radar Mode:", # JAUNUMS
+        "lbl_gemini_api_key": "🔑 Gemini API Key:", # JAUNUMS
+        "lbl_finnhub_api_key": "📈 Finnhub API Key:", # JAUNUMS
     },
     "EN": {
         "title": "⚡ AQ-OS Cockpit — Control Center",
@@ -73,6 +84,9 @@ UI_TEXTS = {
         "btn_save": "💾 Save Settings",
         "saved_msg": "✅ Settings saved! (Briefing: {time})",
         "lbl_output_lang_header": "📄 Report and Document Generation Language:",
+        "lbl_radar_mode": "📡 Radar Mode:", # JAUNUMS
+        "lbl_gemini_api_key": "🔑 Gemini API Key:", # JAUNUMS
+        "lbl_finnhub_api_key": "📈 Finnhub API Key:", # JAUNUMS
     },
     "UA": { # Placeholder translations (UI_TEXTS expects "UA")
         "title": "⚡ AQ-OS Cockpit — Центр Управління",
@@ -93,6 +107,9 @@ UI_TEXTS = {
         "btn_save": "💾 Зберегти налаштування",
         "saved_msg": "✅ Налаштування збережено! (Брифінг: {time})",
         "lbl_output_lang_header": "📄 Мова генерування звітів та документів:",
+        "lbl_radar_mode": "📡 Режим Радару:", # JAUNUMS
+        "lbl_gemini_api_key": "🔑 Gemini API Key:", # JAUNUMS
+        "lbl_finnhub_api_key": "📈 Finnhub API Key:", # JAUNUMS
     },
     "RU": { # Placeholder translations
         "title": "⚡ AQ-OS Cockpit — Центр Управления",
@@ -113,6 +130,9 @@ UI_TEXTS = {
         "btn_save": "💾 Сохранить настройки",
         "saved_msg": "✅ Настройки сохранены! (Отчет: {time})",
         "lbl_output_lang_header": "📄 Язык генерации отчетов и документов:",
+        "lbl_radar_mode": "📡 Режим Радара:", # JAUNUMS
+        "lbl_gemini_api_key": "🔑 Gemini API Key:", # JAUNUMS
+        "lbl_finnhub_api_key": "📈 Finnhub API Key:", # JAUNUMS
     },
     "IT": { # Placeholder translations
         "title": "⚡ AQ-OS Cockpit — Centro di Controllo",
@@ -133,6 +153,9 @@ UI_TEXTS = {
         "btn_save": "💾 Salva impostazioni",
         "saved_msg": "✅ Impostazioni salvate! (Briefing: {time})",
         "lbl_output_lang_header": "📄 Lingua di generazione rapporti e documenti:",
+        "lbl_radar_mode": "📡 Modalità Radar:", # JAUNUMS
+        "lbl_gemini_api_key": "🔑 Chiave API Gemini:", # JAUNUMS
+        "lbl_finnhub_api_key": "📈 Chiave API Finnhub:", # JAUNUMS
     }
 }
 
@@ -175,6 +198,16 @@ def get_initial_output_language():
         except Exception:
             pass
     return "auto"
+
+def _load_config_data():
+    """Helper function to load config.json data safely."""
+    if os.path.exists("config.json"):
+        try:
+            with open("config.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
 
 class CockpitWindow(ctk.CTkToplevel):
     def __init__(self, master=None):
@@ -299,13 +332,7 @@ class CockpitWindow(ctk.CTkToplevel):
         i18n.set_ui_language(config_lang_code)
 
         # JAUNUMS: Saglabā izvēli config.json (i18n standarta valodas kods)
-        cfg = {}
-        if os.path.exists("config.json"):
-            try:
-                with open("config.json", "r", encoding="utf-8") as f:
-                    cfg = json.load(f)
-            except Exception:
-                pass
+        cfg = _load_config_data()
         cfg["ui_language"] = config_lang_code # Saglabājam i18n standarta kodu
         try:
             with open("config.json", "w", encoding="utf-8") as f:
@@ -366,7 +393,14 @@ class CockpitWindow(ctk.CTkToplevel):
             self.lbl_kw_header.configure(text=t["lbl_kw"])
             self.lbl_desc_text.configure(text=t["lbl_desc"])
             self.btn_save_settings.configure(text=t["btn_save"])
-            self.lbl_output_lang_header.configure(text=t["lbl_output_lang_header"]) # JAUNUMS
+            self.lbl_output_lang_header.configure(text=t["lbl_output_lang_header"]) 
+            # JAUNUMS: Atjaunina jaunos uzrakstus
+            if hasattr(self, "lbl_radar_mode_header"):
+                self.lbl_radar_mode_header.configure(text=t["lbl_radar_mode"])
+            if hasattr(self, "lbl_gemini_api_key"):
+                self.lbl_gemini_api_key.configure(text=t["lbl_gemini_api_key"])
+            if hasattr(self, "lbl_finnhub_api_key"):
+                self.lbl_finnhub_api_key.configure(text=t["lbl_finnhub_api_key"])
             
             # Atjaunina saglabāšanas ziņojumu, ja tas ir redzams
             if self.lbl_saved.cget("text"):
@@ -378,13 +412,7 @@ class CockpitWindow(ctk.CTkToplevel):
         """Saglabā izvēlēto atskaišu un dokumentu ģenerēšanas valodu."""
         selected_output_code = _OUTPUT_LANG_DISPLAY_MAP.get(display_text, "auto")
 
-        cfg = {}
-        if os.path.exists("config.json"):
-            try:
-                with open("config.json", "r", encoding="utf-8") as f:
-                    cfg = json.load(f)
-            except Exception:
-                pass
+        cfg = _load_config_data()
         
         cfg["output_language"] = selected_output_code
         try:
@@ -392,6 +420,21 @@ class CockpitWindow(ctk.CTkToplevel):
                 json.dump(cfg, f, ensure_ascii=False, indent=2)
         except Exception:
             pass
+            
+    # JAUNUMS: Radar režīma maiņas funkcija (nekavējoties saglabā config.json)
+    def on_radar_mode_change(self, display_text):
+        """Saglabā izvēlēto radara režīmu."""
+        selected_radar_code = _RADAR_MODE_DISPLAY_MAP.get(display_text, "manual")
+
+        cfg = _load_config_data()
+        
+        cfg["radar_mode"] = selected_radar_code
+        try:
+            with open("config.json", "w", encoding="utf-8") as f:
+                json.dump(cfg, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
 
     def open_for_offer(self, subject, sender, body):
         self.deiconify()
@@ -418,6 +461,7 @@ class CockpitWindow(ctk.CTkToplevel):
 
     def setup_settings_tab(self):
         t = UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])
+        cfg = _load_config_data() # Ielādējam config.json datus
 
         # 1. Bankas rekvizīti
         self.lbl_bank_sec = ctk.CTkLabel(
@@ -446,14 +490,65 @@ class CockpitWindow(ctk.CTkToplevel):
         self.lbl_name.pack(anchor="w", pady=(0, 2))
         self.entry_my_name = ctk.CTkEntry(f_name, width=280, height=32, font=ctk.CTkFont(size=13), placeholder_text="Mans Uzņēmums SIA")
         self.entry_my_name.pack(anchor="w")
+        
+        # JAUNUMS: Radara režīms
+        self.lbl_radar_mode_header = ctk.CTkLabel(
+            self.tab_settings,
+            text=t["lbl_radar_mode"],
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="#38bdf8"
+        )
+        self.lbl_radar_mode_header.pack(anchor="w", padx=25, pady=(15, 6))
 
-        # 2. Atskaites laiks
+        self.radar_mode_optionmenu = ctk.CTkOptionMenu(
+            self.tab_settings,
+            values=list(_RADAR_MODE_DISPLAY_MAP.keys()),
+            width=280,
+            height=32,
+            command=self.on_radar_mode_change
+        )
+        self.radar_mode_optionmenu.pack(anchor="w", padx=25, pady=(0, 15))
+        
+        # Ielādējam radara režīma vērtību un iestatām to
+        initial_radar_mode_code = cfg.get("radar_mode", "manual")
+        initial_radar_mode_display = _RADAR_MODE_CODE_MAP.get(initial_radar_mode_code, "Offline / Manual")
+        self.radar_mode_optionmenu.set(initial_radar_mode_display)
+
+
+        # JAUNUMS: API Atslēgu sadaļa
+        api_keys_frame = ctk.CTkFrame(self.tab_settings, fg_color="transparent")
+        api_keys_frame.pack(fill="x", padx=25, pady=(10, 15))
+        
+        # Gemini API Key
+        f_gemini = ctk.CTkFrame(api_keys_frame, fg_color="transparent")
+        f_gemini.pack(side="top", anchor="w", fill="x", pady=(0, 10))
+        self.lbl_gemini_api_key = ctk.CTkLabel(f_gemini, text=t["lbl_gemini_api_key"], font=ctk.CTkFont(size=12))
+        self.lbl_gemini_api_key.pack(anchor="w", pady=(0, 2))
+        self.entry_gemini_api_key = ctk.CTkEntry(f_gemini, width=350, height=32, font=ctk.CTkFont(size=13), show="*")
+        self.entry_gemini_api_key.pack(anchor="w")
+
+        # Finnhub API Key
+        f_finnhub = ctk.CTkFrame(api_keys_frame, fg_color="transparent")
+        f_finnhub.pack(side="top", anchor="w", fill="x")
+        self.lbl_finnhub_api_key = ctk.CTkLabel(f_finnhub, text=t["lbl_finnhub_api_key"], font=ctk.CTkFont(size=12))
+        self.lbl_finnhub_api_key.pack(anchor="w", pady=(0, 2))
+        self.entry_finnhub_api_key = ctk.CTkEntry(f_finnhub, width=350, height=32, font=ctk.CTkFont(size=13), show="*")
+        self.entry_finnhub_api_key.pack(anchor="w")
+
+        # Ielādējam API atslēgas no config.json
+        gemini_api_key = cfg.get("gemini_api_key") or cfg.get("aq_ai_api_key", "")
+        finnhub_api_key = cfg.get("finnhub_api_key", "")
+        self.entry_gemini_api_key.insert(0, gemini_api_key)
+        self.entry_finnhub_api_key.insert(0, finnhub_api_key)
+
+
+        # 2. Atskaites laiks (saglabā esošo pozīciju vai pielāgo, ja nepieciešams)
         self.lbl_time_header = ctk.CTkLabel(
             self.tab_settings, 
             text=t["lbl_time"], 
             font=ctk.CTkFont(size=14, weight="bold")
         )
-        self.lbl_time_header.pack(anchor="w", padx=25, pady=(10, 4))
+        self.lbl_time_header.pack(anchor="w", padx=25, pady=(10, 4)) # Adjusted padding to fit new elements
 
         self.entry_briefing_time = ctk.CTkEntry(self.tab_settings, width=120, height=32, font=ctk.CTkFont(size=13))
         self.entry_briefing_time.pack(anchor="w", padx=25, pady=(0, 10))
@@ -484,17 +579,13 @@ class CockpitWindow(ctk.CTkToplevel):
         # output_lang tiek ielādēta no config.json (piem., "auto", "lv", "uk")
         output_lang = get_initial_output_language() 
 
-        if os.path.exists("config.json"):
-            try:
-                with open("config.json", "r", encoding="utf-8") as f:
-                    cfg = json.load(f)
-                    kw_list = cfg.get("keywords", kw_list)
-                    briefing_time = cfg.get("briefing_time", "18:00")
-                    my_iban = cfg.get("my_iban", my_iban)
-                    my_name = cfg.get("my_name", my_name)
-                    # output_lang jau tiek ielādēta, izmantojot get_initial_output_language()
-            except Exception:
-                pass
+        # Ielādējam datus no config.json
+        # cfg ir jau ielādēta sākumā `setup_settings_tab` metodē
+        kw_list = cfg.get("keywords", kw_list)
+        briefing_time = cfg.get("briefing_time", "18:00")
+        my_iban = cfg.get("my_iban", my_iban)
+        my_name = cfg.get("my_name", my_name)
+
 
         self.entry_my_iban.insert(0, my_iban)
         self.entry_my_name.insert(0, my_name)
@@ -515,7 +606,7 @@ class CockpitWindow(ctk.CTkToplevel):
         self.lbl_saved = ctk.CTkLabel(self.tab_settings, text="", font=ctk.CTkFont(size=12), text_color="#10b981")
         self.lbl_saved.pack(anchor="w", padx=25)
 
-        # JAUNUMS: Atskaišu valodas iestatījumu sadaļa
+        # Atskaišu valodas iestatījumu sadaļa
         self.lbl_output_lang_header = ctk.CTkLabel(
             self.tab_settings,
             text=t["lbl_output_lang_header"],
@@ -544,14 +635,15 @@ class CockpitWindow(ctk.CTkToplevel):
         b_time = self.entry_briefing_time.get().strip() or "18:00"
         my_iban = self.entry_my_iban.get().strip()
         my_name = self.entry_my_name.get().strip()
+        
+        # JAUNUMS: Nolasa radara režīmu un API atslēgas
+        selected_radar_display = self.radar_mode_optionmenu.get()
+        radar_mode_code = _RADAR_MODE_DISPLAY_MAP.get(selected_radar_display, "manual")
 
-        cfg = {}
-        if os.path.exists("config.json"):
-            try:
-                with open("config.json", "r", encoding="utf-8") as f:
-                    cfg = json.load(f)
-            except Exception:
-                pass
+        gemini_api_key = self.entry_gemini_api_key.get().strip()
+        finnhub_api_key = self.entry_finnhub_api_key.get().strip()
+
+        cfg = _load_config_data() # Ielādējam config.json datus drošā veidā
 
         cfg["keywords"] = kw
         cfg["briefing_time"] = b_time
@@ -565,6 +657,12 @@ class CockpitWindow(ctk.CTkToplevel):
         cfg["my_iban"] = my_iban
         cfg["my_name"] = my_name
         # output_language tiek saglabāta, izmantojot on_output_language_change, tāpēc šeit nav jāmaina
+
+        # JAUNUMS: Saglabā radara režīmu un API atslēgas
+        cfg["radar_mode"] = radar_mode_code
+        cfg["gemini_api_key"] = gemini_api_key
+        cfg["aq_ai_api_key"] = gemini_api_key  # Sinhronizācijai
+        cfg["finnhub_api_key"] = finnhub_api_key
 
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump(cfg, f, ensure_ascii=False, indent=2)
