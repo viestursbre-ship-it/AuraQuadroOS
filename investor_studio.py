@@ -8,6 +8,7 @@ import customtkinter as ctk
 import yfinance as yf
 from datetime import datetime, timedelta
 import re # Added for safe JSON extraction (Task 1)
+import requests # LEO ADDITION: Import requests for Alpha Vantage and FMP
 
 # Import for messagebox (FIX 1)
 from tkinter import messagebox
@@ -83,7 +84,7 @@ TRANSLATIONS = {
     "audit_loading_msg": {"lv": "Komandants Kvarks caurskata {len_tickers} pozīcijas un finanšu rādītājus...\n", "en": "Commander Quark reviews {len_tickers} positions and financial indicators...\n", "ru": "Командир Кварк просматривает {len_tickers} позиций и финансовые показатели...\n", "uk": "Командир Кварк переглядає {len_tickers} позицій та фінансові показники...\n", "it": "Il Comandante Quark esamina {len_tickers} posizioni e indicatori finanziari...\n"},
     "audit_initial_msg": {"lv": "Ievadiet savas akcijas un nospiediet 'Kvarka Audits'...\nKvarks noteiks, kurus 'sīkuļus' likvidēt un kur gudri ieguldīt līdzekļus!", "en": "Enter your stocks and press 'Quark's Audit'...\nQuark will determine which 'minnows' to liquidate and where to invest wisely!", "ru": "Введите свои акции и нажмите 'Аудит Кварка'...\nКварк определит, какие 'мелкие' позиции ликвидировать и куда разумно вложить средства!", "uk": "Введіть свої акції та натисніть 'Аудит Кварка'...\nКварк визначить, які 'дрібниці' ліквідувати і куди розумно вкласти кошти!", "it": "Inserisci i tuoi titoli e premi 'Audit di Quark'...\nQuark determinerà quali 'pesci piccoli' liquidare e dove investire saggiamente!"},
     "strategy_venture_desc": {"lv": "STRATĒĢIJA: VENTURE & GROWTH HUNTER (Agresīvs riska kapitāls).\n- Vērtē aktīvus no nākotnes tirgus dominances, monopolstāvokļa un AI/tehnoloģiju lēciena prizmas.\n- Augsts P/E vai īslaicīgs peļņas trūkums nav šķērslis, ja ieņēmumu lēciens un infrastruktūras nozīme ir milzīga (piemēram, ARM, SNOW, PLTR).\n- Izbrāķē tikai stagnējošus un lēnus uzņēmumus bez tehnoloģiskas nākotnes.", "en": "STRATEGY: VENTURE & GROWTH HUNTER (Aggressive Venture Capital).\n- Values assets from the perspective of future market dominance, monopoly position, and AI/technology leap.\n- High P/E or temporary lack of profit is not an obstacle if revenue growth and infrastructure importance are enormous (e.g., ARM, SNOW, PLTR).\n- Only rejects stagnant and slow companies without a technological future.", "ru": "СТРАТЕГИЯ: ВЕНЧУРНЫЙ ОХОТНИК ЗА РОСТОМ (Агрессивный венчурный капитал).\n- Оценивает активы с точки зрения будущего доминирования на рынке, монопольного положения и технологического скачка AI.\n- Высокий P/E или временное отсутствие прибыли не является препятствием, если рост выручки и значимость инфраструктуры огромны (например, ARM, SNOW, PLTR).\n- Отбрасывает только стагнирующие и медленные компании без технологического будущего.", "uk": "СТРАТЕГІЯ: ВЕНЧУРНИЙ МИСЛИВЕЦЬ ЗА ЗРОСТАННЯМ (Агресивний венчурний капітал).\n- Оцінює активи з позиції майбутнього домінування на ринку, монопольного становища та стрибка AI/технологій.\n- Високий P/E або тимчасова відсутність прибутку не є перешкодою, якщо стрибок доходів та значення інфраструктури величезні (наприклад, ARM, SNOW, PLTR).\n- Відкидає лише стагнуючі та повільні компанії без технологічного майбутнього.", "it": "STRATEGIA: Cacciatore di Venture & Crescita (Capitale di rischio aggressivo).\n- Valuta gli asset dal punto di vista del dominio futuro del mercato, della posizione di monopolio e del salto tecnologico AI.\n- Un P/E elevato o una temporanea mancanza di profitto non sono un ostacolo se la crescita dei ricavi e l'importanza dell'infrastruttura sono enormi (es. ARM, SNOW, PLTR).\n- Rifiuta solo le aziende stagnanti e lente senza un futuro tecnologico."},
-    "strategy_conservative_desc": {"lv": "STRATĒĢIJA: KONSERVATĪVS (Zems risks, 5-10% stabils pieaugums gadā).\n- Vērtē aktīvus pēc reālas naudas plūsmas, veselīga P/E (< 30-35), dividenžu stabilitātes un zemiem riskiem.\n- Ja uzņēmuma P/E ir pārmērīgs (> 80-100) vai nav peļņas un PEG > 2, norādi to kā bīstamu burbuli un iesaki samazināt pozīciju.\n- Dod priekšroku tirgus indeksiem (VOO/SPY) un stabiliem industrijas milžiem.", "en": "STRATEGY: CONSERVATIVE (Low risk, 5-10% stable annual growth).\n- Values assets by real cash flow, healthy P/E (< 30-35), dividend stability, and low risks.\n- If a company's P/E is excessive (> 80-100) or has no profit and PEG > 2, indicate it as a dangerous bubble and recommend reducing the position.\n- Prefers market indices (VOO/SPY) and stable industry giants.", "ru": "СТРАТЕГИЯ: КОНСЕРВАТИВНАЯ (Низкий риск, 5-10% стабильного роста в год).\n- Оценивает активы по реальному денежному потоку, здоровому P/E (< 30-35), стабильности дивидендов и низким рискам.\n- Если P/E компании чрезмерен (> 80-100) или нет прибыли, а PEG > 2, укажите это как опасный пузырь и рекомендуйте уменьшить позицию.\n- Отдает предпочтение рыночным индексам (VOO/SPY) и стабильным промышленным гигантам.", "uk": "СТРАТЕГІЯ: КОНСЕРВАТИВНА (Низький ризик, 5-10% стабільний річний приріст).\n- Оцінює активи за реальним грошовим потоком, здоровим P/E (< 30-35), стабільністю дивідендів та низькими ризиками.\n- Якщо P/E компанії надмірний (> 80-100) або немає прибутку, а PEG > 2, вкажіть це як небезпечний міхур і рекомендуйте зменшити позицію.\n- Віддає перевагу ринковим індексам (VOO/SPY) та стабільним промисловим гігантам.", "it": "STRATEGIA: CONSERVATIVA (Basso rischio, 5-10% crescita annua stabile).\n- Valuta gli asset in base al flusso di cassa reale, un P/E sano (< 30-35), la stabilità dei dividendi e i bassi rischi.\n- Se il P/E di un'azienda è eccessivo (> 80-100) o non c'è profitto e il PEG > 2, indicalo come una bolla pericolosa e consiglia di ridurre la posizione.\n- Preferisce gli indici di mercato (VOO/SPY) e i giganti del settore stabili."},
+    "strategy_conservative_desc": {"lv": "STRATĒĢIJA: KONSERVATĪVS (Zems risks, 5-10% stabils pieaugums gadā).\n- Vērtē aktīvus pēc reālas naudas plūsmas, veselīga P/E (< 30-35), dividenžu stabilitātes un zemiem riskiem.\n- Ja uzņēmuma P/E ir pārmērīgs (> 80-100) vai nav peļņas un PEG > 2, norādi to kā bīstamu burbuli un iesaki samazināt pozīciju.\n- Dod priekšroku tirgus indeksiem (VOO/SPY) un stabiliem industrijas milžiem.", "en": "STRATEGY: CONSERVATIVE (Low risk, 5-10% stable annual growth).\n- Values assets by real cash flow, healthy P/E (< 30-35), dividend stability, and low risks.\n- If a company's P/E is excessive (> 80-100) or has no profit and PEG > 2, indicate it as a dangerous bubble and recommend reducing the position.\n- Prefers market indices (VOO/SPY) and stable industry giants.", "ru": "СТРАТЕГИЯ: КОНСЕРВАТИВНАЯ (Низкий риск, 5-10% стабильного роста в год).\n- Оценивает активы по реальному денежному потоку, здоровому P/E (< 30-35), стабильности дивидендов и низким рискам.\n- Если P/E компании чрезмерен (> 80-100) или нет прибыли, а PEG > 2, укажите это как опасный пузырь и рекомендуйте уменьшить позицию.\n- Отдает предпочтение рыночным индексам (VOO/SPY) и стабильным промышленным гигантам.", "uk": "СТРАТЕГІЯ: КОНСЕРВАТИВНА (Низький ризик, 5-10% стабільний річний приріст).\n- Оцінює активи за реальним грошовим потоком, здоровим P/E (< 30-35), стабільністю дивідендів та низькими ризиками.\n- Якщо P/E компанії надмірний (> 80-100) або немає прибутку, а PEG > 2, вкажіть це як небезпечний міхurs і рекомендуйте зменшити позицію.\n- Віддає перевагу ринковим індексам (VOO/SPY) та стабільним промисловим гігантам.", "it": "STRATEGIA: CONSERVATIVA (Basso rischio, 5-10% crescita annua stabile).\n- Valuta gli asset in base al flusso di cassa reale, un P/E sano (< 30-35), la stabilità dei dividendi e i bassi rischi.\n- Se il P/E di un'azienda è eccessivo (> 80-100) o non c'è profitto e il PEG > 2, indicalo come una bolla pericolosa e consiglia di ridurre la posizione.\n- Preferisce gli indici di mercato (VOO/SPY) e i giganti del settore stabili."},
     "error_audit_gemini": {"lv": "⚠️ Audita kļūda: {e}", "en": "⚠️ Audit error: {e}", "ru": "⚠️ Ошибка аудита: {e}", "uk": "⚠️ Помилка аудиту: {e}", "it": "⚠️ Errore di audit: {e}"},
     "error_api_missing_data": {"lv": "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus.", "en": "⚠️ Missing API key or failed to retrieve data.", "ru": "⚠️ Отсутствует ключ API или не удалось получить данные.", "uk": "⚠️ Відсутній ключ API або не вдалося отримати дані.", "it": "⚠️ Chiave API mancante o impossibile recuperare i dati."},
 
@@ -158,7 +159,7 @@ TRANSLATIONS = {
     "btn_refresh_market_intel": {"lv": "⚡ Atjaunot Klimatu & Insaiderus", "en": "⚡ Refresh Climate & Insiders", "ru": "⚡ Обновить Климат и Инсайдеров", "uk": "⚡ Оновити Клімат та Інсайдерів", "it": "⚡ Aggiorna Clima & Insider"},
     "insider_initial_msg": {"lv": "Nospiediet pogu, lai ielādētu insaideru datus un noskaņojumu...", "en": "Press the button to load insider data and sentiment...", "ru": "Нажмите кнопку, чтобы загрузить данные инсайдеров и настроение...", "uk": "Натисніть кнопку, щоб завантажити дані інсайдеров та настрій...", "it": "Premi il pulsante per caricare i dati e il sentimento degli insider..."},
     "market_news_initial_msg": {"lv": "Gaidu datu pieprasījumu...", "en": "Awaiting data request...", "ru": "Ожидаю запрос данных...", "uk": "Очікую запит даних...", "it": "In attesa di richiesta dati..."},
-    "btn_refresh_market_intel_loading": {"lv": "⏳ Vāc makro datus & Kvarks analizē...", "en": "⏳ Collecting macro data & Quark analyzing...", "ru": "⏳ Собирает макроданные и Кварк анализирует...", "uk": "⏳ Збирає макродані та Кварк аналізує...", "it": "⏳ Raccolta dati macro & Analisi di Quark..."},
+    "btn_refresh_market_intel_loading": {"lv": "⏳ Vāc makro datus & Kvarks analizē...", "en": "⏳ Collecting macro data & Quark analyzing...", "ru": "⏳ Собирает макроданные и Кварк анализирует...", "uk": "⏳ Збирає макродані та Кварк analizē...", "it": "⏳ Raccolta dati macro & Analisi di Quark..."},
     "fng_not_available": {"lv": "Fear & Greed: Nav pieejams", "en": "Fear & Greed: Not available", "ru": "Индекс страха и жадности: Недоступен", "uk": "Страх і жадібність: Недоступно", "it": "Fear & Greed: Non disponibile"},
     "macro_liquidity_header": {"lv": "=== MAKRO & LIKVIDITĀTE ===", "en": "=== MACRO & LIQUIDITY ===", "ru": "=== МАКРО И ЛИКВИДНОСТЬ ===", "uk": "=== МАКРО ТА ЛІКВІДНІСТЬ ===", "it": "=== MACRO & LIQUIDITÀ ==="},
     "macro_us10y": {"lv": "ASV 10Y Yield", "en": "US 10Y Yield", "ru": "Доходность 10-летних облигаций США", "uk": "Прибутковість 10-річних облігацій США", "it": "Rendimento USA 10Y"},
@@ -172,16 +173,16 @@ TRANSLATIONS = {
     "insider_no_major_deals": {"lv": "⚪ Mierīgs (nav lielu darījumu)", "en": "⚪ Calm (no major deals)", "ru": "⚪ Спокойно (нет крупных сделок)", "uk": "⚪ Спокійно (немає великих угод)", "it": "⚪ Calmo (nessuna transazione importante)"},
     "insider_data_error": {"lv": "Kļūda datos", "en": "Error in data", "ru": "Ошибка в данных", "uk": "Помилка в даних", "it": "Errore nei dati"},
     "error_finnhub_key_missing": {"lv": "⚠️ config.json trūkst 'finnhub_api_key'!", "en": "⚠️ 'finnhub_api_key' missing from config.json!", "ru": "⚠️ В config.json отсутствует 'finnhub_api_key'!", "uk": "⚠️ У config.json відсутній 'finnhub_api_key'!", "it": "⚠️ 'finnhub_api_key' mancante in config.json!"},
-    "news_headlines_header": {"lv": "=== SVARĪGĀKĀS ZIŅAS ===", "en": "=== TOP HEADLINES ===", "ru": "=== ВАЖНЕЙШИЕ НОВОСТИ ===", "uk": "=== НАЙВАЖЛИВІШІ НОВИНИ ===", "it": "=== TITOLI PRINCIPALI ==="},
+    "news_headlines_header": {"lv": "=== SVARĪGĀKĀS ZIŅAS ===", "en": "=== TOP HEADLINES ===", "ru": "=== ВАЖНЕЙШИЕ НОВОСТИ ===", "uk": "=== НАЙВАЖЛІВІШІ НОВИНИ ===", "it": "=== TITOLI PRINCIPALI ==="},
     "news_no_aggressive": {"lv": "Nav agresīvu ziņu triecienu", "en": "No aggressive news strikes", "ru": "Нет агрессивных новостных ударов", "uk": "Немає агресивних новинних ударів", "it": "Nessun attacco di notizie aggressive"},
     "kvark_strategic_resolution": {"lv": "🐾 KOMANDANTA KVARKA STRATĒĢISKĀ REZOLŪCIJA:\n", "en": "🐾 COMMANDER KVARK'S STRATEGIC RESOLUTION:\n", "ru": "🐾 СТРАТЕГИЧЕСКАЯ РЕЗОЛЮЦИЯ КОМАНДИРА КВАРКА:\n", "uk": "🐾 СТРАТЕГІЧНА РЕЗОЛЮЦІЯ КОМАНДИРА КВАРКА:\n", "it": "🐾 RISOLUZIONE STRATEGICA DEL COMANDANTE QUARK:\n"},
-    "error_kvark_market_intel": {"lv": "⚠️ Kvarka kļūda: {e}", "en": "⚠️ Quark's error: {e}", "ru": "⚠️ Ошибка Кварка: {e}", "uk": "⚠️ Помилка Кварка: {e}", "it": "⚠️ Errore di Quark: {e}"},
+    "error_kvark_market_intel": {"lv": "⚠️ Kvarka kļūda: {e}", "en": "⚠️ Quark's error: {e}", "ru": "⚠️ Ошибка Кварка: {e}", "uk": "⚠️ Помилка Кварka: {e}", "it": "⚠️ Errore di Quark: {e}"},
 
     # Shared/Generic:
     "rentgen_initial_msg": {"lv": "Ievadiet tikeri un nospiediet 'Rentgens'...", "en": "Enter ticker and press 'X-Ray'...", "ru": "Введите тикер и нажмите 'Рентген'...", "uk": "Введіть тікер і натисніть 'Рентген'...", "it": "Inserisci il ticker e premi 'Raggi X'..."},
     "rentgen_generating_analysis_msg": {"lv": "Kvarks ģenerē fundamentālo analīzi...\n", "en": "Quark is generating fundamental analysis...\n", "ru": "Кварк генерирует фундаментальный анализ...\n", "uk": "Кварк генерує фундаментальний аналіз...\n", "it": "Quark sta generando l'analisi fondamentale...\n"},
     "source_changed_msg": {"lv": "Avota kanāls pārslēgts uz: {source}. Gaidu jaunu signālu 'Rentgens'!", "en": "Source channel switched to: {source}. Awaiting new 'X-Ray' signal!", "ru": "Канал источника переключен на: {source}. Ожидаю новый сигнал 'Рентген'!", "uk": "Канал джерела перемкнено на: {source}. Очікую новий сигнал 'Рентген'!", "it": "Canale sorgente cambiato in: {source}. In attesa di nuovo segnale 'Raggi X'!"},
-    "fetching_data_msg": {"lv": "Nolasa tirgus datus par {ticker} no {source}...\n", "en": "Fetching market data for {ticker} from {source}...\n", "ru": "Получение рыночных данных для {ticker} из {source}...\n", "uk": "Отримання ринкових даних для {ticker} з {source}...\n", "it": "Recupero dati di mercato per {ticker} da {source}...\n"},
+    "fetching_data_msg": {"lv": "Nolasa tirgus datus par {ticker} no {source}...\n", "en": "Fetching market data for {ticker} from {source}...\n", "ru": "Получение рыночных данных для {ticker} из {source}...\n", "uk": "Отримання риinķa datus par {ticker} no {source}...\n", "it": "Recupero dati di mercato per {ticker} da {source}...\n"},
     "ticker_info_header": {"lv": "=== {short_name} ({ticker}) ===", "en": "=== {short_name} ({ticker}) ===", "ru": "=== {short_name} ({ticker}) ===", "uk": "=== {short_name} ({ticker}) ===", "it": "=== {short_name} ({ticker}) ==="},
     "price_label": {"lv": "Cena:             {price} {currency}", "en": "Price:             {price} {currency}", "ru": "Цена:             {price} {currency}", "uk": "Ціна:             {price} {currency}", "it": "Prezzo:             {price} {currency}"},
     "52week_range_label": {"lv": "52 ned. diapazons:{low_52} - {high_52} {currency}", "en": "52 wk. range:    {low_52} - {high_52} {currency}", "ru": "Диапазон 52 нед.:{low_52} - {high_52} {currency}", "uk": "Діапазон 52 тижнів:{low_52} - {high_52} {currency}", "it": "Intervallo 52 sett.:{low_52} - {high_52} {currency}"},
@@ -190,7 +191,7 @@ TRANSLATIONS = {
     "peg_ratio_label": {"lv": "PEG koeficients:  {peg}", "en": "PEG ratio:       {peg}", "ru": "Коэффициент PEG:  {peg}", "uk": "Коефіcients PEG:  {peg}", "it": "Rapporto PEG:      {peg}"},
     "dividends_label": {"lv": "Dividendes:       {div_str}", "en": "Dividends:       {div_str}", "ru": "Дивиденды:       {div_str}", "uk": "Дивіденди:       {div_str}", "it": "Dividendi:       {div_str}"},
     "analyst_rating_label": {"lv": "Analītiķu vērt.:  {rec}", "en": "Analyst rating:  {rec}", "ru": "Оценка аналитиков:  {rec}", "uk": "Оцінка аналітиків:  {rec}", "it": "Valutazione analisti:  {rec}"},
-    "target_price_label": {"lv": "Mērķa vid. cena:  {target_mean} {currency}", "en": "Target avg. price: {target_mean} {currency}", "ru": "Целевая сред. цена: {target_mean} {currency}", "uk": "Цільова сер. ціна: {target_mean} {currency}", "it": "Prezzo medio target: {target_mean} {currency}"},
+    "target_price_label": {"lv": "Mērķa vid. cena:  {target_mean} {currency}", "en": "Target avg. price: {target_mean} {currency}", "ru": "Целевая сред. цена: {target_mean} {currency}", "uk": "Цільова сер. ціena: {target_mean} {currency}", "it": "Prezzo medio target: {target_mean} {currency}"},
     "unknown_value": {"lv": "Nezināms", "en": "Unknown", "ru": "Неизвестно", "uk": "Невідомо", "it": "Sconosciuto"},
     "error_fetching_ticker_data": {"lv": "⚠️ Kļūda nolasot {ticker}: {e}", "en": "⚠️ Error fetching {ticker}: {e}", "ru": "⚠️ Ошибка при получении {ticker}: {e}", "uk": "⚠️ Помилка pri iegūšanā {ticker}: {e}", "it": "⚠️ Errore nel recupero {ticker}: {e}"},
     "analysis_disclaimer_summary": {"lv": "Informatīvs analīzes kopsavilkums.", "en": "Informative analysis summary.", "ru": "Информативное резюме анализа.", "uk": "Інформативне резюме аналізу.", "it": "Riepilogo analitico informativo."},
@@ -697,7 +698,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         audit_summary = []
         for t_audit in tickers:
             _, payload = self._fetch_stock_data(t_audit)
-            if payload:
+            if payload and "error" not in payload:
                 audit_summary.append({
                     "ticker": t_audit,
                     "name": payload.get("name"),
@@ -1047,7 +1048,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 
             for idx, candidate in enumerate(self.growth_current_candidates_data):
                 text_to_copy_parts.append(i18n.t("growth_copy_candidate_header", idx_plus_1=idx+1, ticker=candidate.get('ticker', 'N/A'), name=candidate.get('name', 'N/A')) + "\n")
-                text_to_copy_parts.append(i18n.t("growth_copy_niche", niche=candidate.get('niche', 'N/A')) + "\n")
+                text_to_to_copy_parts.append(i18n.t("growth_copy_niche", niche=candidate.get('niche', 'N/A')) + "\n")
                 text_to_copy_parts.append(i18n.t("growth_copy_why", why=candidate.get('why_10x_100x', 'N/A')) + "\n")
                 text_to_copy_parts.append(i18n.t("growth_copy_risk", risk=candidate.get('black_swan_risk', 'N/A')) + "\n")
                 text_to_copy_parts.append("\n")
@@ -1364,7 +1365,7 @@ Sagatavo strukturētu analīzi:
         self.market_news_box.configure(state="disabled")
 
     def start_market_intel_scan(self):
-        import requests
+        # LEO ADDITION: Requests already imported at the top
         self.btn_refresh_market.configure(state="disabled", text=i18n.t("btn_refresh_market_intel_loading"))
         
         def _worker():
@@ -1511,62 +1512,305 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
     # ==========================================
     # DATU VĀKŠANA UN GEMINI METODES
     # ==========================================
+    def _get_api_keys(self):
+        cfg_file = BASE_DIR / "config.json"
+        api_keys = {
+            "alpha_vantage_api_key": "",
+            "fmp_api_key": "",
+            "finnhub_api_key": ""
+        }
+        if cfg_file.exists():
+            try:
+                with open(cfg_file, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+                    api_keys["alpha_vantage_api_key"] = cfg.get("alpha_vantage_api_key", "")
+                    api_keys["fmp_api_key"] = cfg.get("fmp_api_key", "")
+                    api_keys["finnhub_api_key"] = cfg.get("finnhub_api_key", "")
+            except Exception as e:
+                print(f"ERROR: Could not read API keys from config.json: {e}")
+        return api_keys
+
+    def _format_stats_text(self, ticker_val, data_dict):
+        # This helper formats the standard stats block, using data from any source
+        short_name = data_dict.get("name", ticker_val)
+        currency = data_dict.get("currency", "USD")
+        curr_price = data_dict.get("price", "N/A")
+        pe = data_dict.get("pe", "N/A")
+        fwd_pe = data_dict.get("forward_pe", "N/A")
+        peg = data_dict.get("peg", "N/A")
+        high52 = data_dict.get("52w_high", "N/A")
+        low52 = data_dict.get("52w_low", "N/A")
+        rec = data_dict.get("recommendation", "N/A").upper()
+        target_mean = data_dict.get("target_price", "N/A")
+        div_str = data_dict.get("dividend_yield", "0.0%")
+        source_name = data_dict.get("source", "N/A")
+
+        # Ensure numeric values are formatted nicely if they exist
+        try: curr_price = f"{float(curr_price):,.2f}" if curr_price != "N/A" and curr_price is not None else "N/A"
+        except (ValueError, TypeError): pass
+        try: pe = f"{float(pe):.2f}" if pe != "N/A" and pe is not None else "N/A"
+        except (ValueError, TypeError): pass
+        try: fwd_pe = f"{float(fwd_pe):.2f}" if fwd_pe != "N/A" and fwd_pe is not None else "N/A"
+        except (ValueError, TypeError): pass
+        try: peg = f"{float(peg):.2f}" if peg != "N/A" and peg is not None else "N/A"
+        except (ValueError, TypeError): pass
+        try: high52 = f"{float(high52):,.2f}" if high52 != "N/A" and high52 is not None else "N/A"
+        except (ValueError, TypeError): pass
+        try: low52 = f"{float(low52):,.2f}" if low52 != "N/A" and low52 is not None else "N/A"
+        except (ValueError, TypeError): pass
+        try: target_mean = f"{float(target_mean):,.2f}" if target_mean != "N/A" and target_mean is not None else "N/A"
+        except (ValueError, TypeError): pass
+        
+        # Additional fields for FMP from profile
+        beta = data_dict.get("beta", "N/A")
+        dcf = data_dict.get("dcf", "N/A")
+        market_cap = data_dict.get("market_cap", "N/A")
+
+        extra_fmp_lines = []
+        if source_name == "FMP":
+            try: beta = f"{float(beta):.2f}" if beta != "N/A" and beta is not None else "N/A"
+            except (ValueError, TypeError): pass
+            try: dcf = f"{float(dcf):,.2f}" if dcf != "N/A" and dcf is not None else "N/A"
+            except (ValueError, TypeError): pass
+            try: market_cap = f"{float(market_cap):,.0f}" if market_cap != "N/A" and market_cap is not None else "N/A"
+            except (ValueError, TypeError): pass
+
+            extra_fmp_lines.append(f"Beta:             {beta}")
+            extra_fmp_lines.append(f"DCF (novērtēts):  {dcf} {currency}")
+            extra_fmp_lines.append(f"Mkt Cap:          {market_cap} {currency}")
+
+        return (
+            f"{i18n.t('source_label')}: {source_name}\n" +
+            f"{i18n.t('ticker_info_header', short_name=short_name, ticker=ticker_val)}\n"
+            f"{i18n.t('price_label', price=curr_price, currency=currency)}\n"
+            f"{i18n.t('52week_range_label', low_52=low52, high_52=high52, currency=currency)}\n"
+            f"{i18n.t('pe_label', pe=pe)}\n"
+            f"{i18n.t('fwd_pe_label', fwd_pe=fwd_pe)}\n"
+            f"{i18n.t('peg_ratio_label', peg=peg)}\n"
+            f"{i18n.t('dividends_label', div_str=div_str)}\n"
+            f"{i18n.t('analyst_rating_label', rec=rec)}\n"
+            f"{i18n.t('target_price_label', target_mean=target_mean, currency=currency)}\n" +
+            ("\n".join(extra_fmp_lines) if extra_fmp_lines else "")
+        )
+
     def _fetch_stock_data(self, ticker):
         stats_text = ""
         payload = {}
+        api_keys = self._get_api_keys()
+        
+        # Placeholder for data from each source
+        yfinance_data = {}
+        alpha_vantage_data = {"error": "No data fetched yet."} # Initialize with error
+        fmp_data = {"error": "No data fetched yet."} # Initialize with error
+
+        # ----------------------------------------------------
+        # 1. Fetch from Yahoo Finance (always try as a baseline/fallback)
+        # ----------------------------------------------------
         try:
-            stock = yf.Ticker(ticker)
-            info = stock.info or {}
-
-            short_name = info.get("shortName", ticker)
-            currency = info.get("currency", "USD")
-            curr_price = info.get("currentPrice") or info.get("regularMarketPrice", "N/A")
-            pe = info.get("trailingPE", "N/A")
-            fwd_pe = info.get("forwardPE", "N/A")
-            peg = info.get("pegRatio", "N/A")
-            high52 = info.get("fiftyTwoWeekHigh", "N/A")
-            low52 = info.get("fiftyTwoWeekLow", "N/A")
-            rec = info.get("recommendationKey", "N/A").upper()
-            target_mean = info.get("targetMeanPrice", "N/A")
-            div_yield = info.get("dividendYield")
-            div_str = f"{round(div_yield * 100, 2)}%" if div_yield else "0.0%"
+            stock_yf = yf.Ticker(ticker)
+            info_yf = stock_yf.info or {}
             
-            # ADDED: Source to stats_text
-            stats_text = (
-                f"{i18n.t('source_label')}: {self.selected_source}\n" + # LEO ADDITION: Used new key
-                f"{i18n.t('ticker_info_header', short_name=short_name, ticker=ticker)}\n"
-                f"{i18n.t('price_label', price=curr_price, currency=currency)}\n"
-                f"{i18n.t('52week_range_label', low_52=low52, high_52=high52, currency=currency)}\n"
-                f"{i18n.t('pe_label', pe=pe)}\n"
-                f"{i18n.t('fwd_pe_label', fwd_pe=fwd_pe)}\n"
-                f"{i18n.t('peg_ratio_label', peg=peg)}\n"
-                f"{i18n.t('dividends_label', div_str=div_str)}\n"
-                f"{i18n.t('analyst_rating_label', rec=rec)}\n"
-                f"{i18n.t('target_price_label', target_mean=target_mean, currency=currency)}\n"
-            )
-
-            payload = {
+            # Populate yfinance_data
+            yfinance_data = {
                 "ticker": ticker,
-                "name": short_name,
-                "currency": currency,
-                "price": curr_price,
-                "pe": pe,
-                "forward_pe": fwd_pe,
-                "peg": peg,
-                "52w_high": high52,
-                "52w_low": low52,
-                "recommendation": rec,
-                "target_price": target_mean,
-                "dividend_yield": div_str,
-                "sector": info.get("sector", i18n.t("unknown_value")),
-                "industry": info.get("industry", i18n.t("unknown_value")), # Added industry for more specific analysis
-                "summary": info.get("longBusinessSummary", ""),
-                "source": self.selected_source # Pievienots lauks "source" atgrieztajā vārdnīcā
+                "name": info_yf.get("shortName", ticker),
+                "currency": info_yf.get("currency", "USD"),
+                "price": info_yf.get("currentPrice") or info_yf.get("regularMarketPrice", "N/A"),
+                "pe": info_yf.get("trailingPE", "N/A"),
+                "forward_pe": info_yf.get("forwardPE", "N/A"),
+                "peg": info_yf.get("pegRatio", "N/A"),
+                "52w_high": info_yf.get("fiftyTwoWeekHigh", "N/A"),
+                "52w_low": info_yf.get("fiftyTwoWeekLow", "N/A"),
+                "recommendation": info_yf.get("recommendationKey", "N/A").upper(),
+                "target_price": info_yf.get("targetMeanPrice", "N/A"),
+                "dividend_yield_raw": info_yf.get("dividendYield"),
+                "sector": info_yf.get("sector", i18n.t("unknown_value")),
+                "industry": info_yf.get("industry", i18n.t("unknown_value")),
+                "summary": info_yf.get("longBusinessSummary", ""),
+                "source": "Yahoo Finance"
             }
+            # Format dividend yield
+            div_yield_yf = yfinance_data.get("dividend_yield_raw")
+            yfinance_data["dividend_yield"] = f"{round(div_yield_yf * 100, 2)}%" if isinstance(div_yield_yf, (int, float)) and div_yield_yf > 0 else "0.0%"
+            
+            payload.update(yfinance_data) # Start payload with yfinance data
+            stats_text = self._format_stats_text(ticker, yfinance_data) # Default stats text
         except Exception as e:
-            # Also update error message with source
-            stats_text = f"{i18n.t('source_label')}: {self.selected_source}\n" + i18n.t("error_fetching_ticker_data", ticker=ticker, e=e)
-            payload = {"ticker": ticker, "name": ticker, "error": str(e), "source": self.selected_source} # Minimal payload to avoid breaking if fetch fails, include source
+            yfinance_data["error"] = str(e)
+            stats_text = f"{i18n.t('source_label')}: Yahoo Finance\n" + i18n.t("error_fetching_ticker_data", ticker=ticker, e=e)
+            payload = {"ticker": ticker, "name": ticker, "error": str(e), "source": "Yahoo Finance"} # Minimal payload if yf fails
+
+        # ----------------------------------------------------
+        # 2. Fetch from Alpha Vantage
+        # ----------------------------------------------------
+        if self.selected_source == "Alpha Vantage" or self.selected_source == "⚔️ Cross-Check":
+            av_key = api_keys.get("alpha_vantage_api_key")
+            if av_key:
+                try:
+                    av_url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={av_key}"
+                    av_res = requests.get(av_url, timeout=7)
+                    av_res.raise_for_status()
+                    av_data_raw = av_res.json()
+
+                    if av_data_raw and av_data_raw.get("Name") and not av_data_raw.get("Error Message"): # Check for valid response and no API error
+                        alpha_vantage_data = {
+                            "ticker": ticker,
+                            "name": av_data_raw.get("Name", ticker),
+                            "currency": av_data_raw.get("Currency", "USD"),
+                            "price": yfinance_data.get("price", "N/A"), # Alpha Vantage OVERVIEW doesn't have live price, use YF's
+                            "52w_high": av_data_raw.get("52WeekHigh", "N/A"),
+                            "52w_low": av_data_raw.get("52WeekLow", "N/A"),
+                            "pe": av_data_raw.get("PERatio", "N/A"),
+                            "peg": av_data_raw.get("PEGRatio", "N/A"),
+                            "forward_pe": av_data_raw.get("ForwardPE", "N/A"),
+                            "target_price": av_data_raw.get("AnalystTargetPrice", "N/A"),
+                            "dividend_yield_raw": av_data_raw.get("DividendYield"),
+                            "recommendation": av_data_raw.get("AnalystRatingStrongBuy", "N/A"), # Use an AV-specific rating if available
+                            "sector": av_data_raw.get("Sector", i18n.t("unknown_value")),
+                            "industry": av_data_raw.get("Industry", i18n.t("unknown_value")),
+                            "summary": av_data_raw.get("Description", ""),
+                            "source": "Alpha Vantage"
+                        }
+                        av_div_yield = alpha_vantage_data.get("dividend_yield_raw")
+                        if av_div_yield and av_div_yield != "None":
+                            try: alpha_vantage_data["dividend_yield"] = f"{round(float(av_div_yield) * 100, 2)}%"
+                            except (ValueError, TypeError): alpha_vantage_data["dividend_yield"] = f"{av_div_yield}%"
+                        else: alpha_vantage_data["dividend_yield"] = "0.0%"
+
+                        if self.selected_source == "Alpha Vantage":
+                            payload.update(alpha_vantage_data)
+                            stats_text = self._format_stats_text(ticker, alpha_vantage_data)
+                    else: # AV key present but no valid data or API error
+                        alpha_vantage_data["error"] = av_data_raw.get("Error Message", i18n.t("error_api_missing_data"))
+                        if self.selected_source == "Alpha Vantage":
+                            stats_text = f"{i18n.t('source_label')}: Alpha Vantage\n" + alpha_vantage_data["error"] + f" ({i18n.t('source_label')}: Yahoo Finance Fallback)"
+                            payload.update(yfinance_data) # Fallback to YF data
+                            payload["source"] = "Yahoo Finance (Fallback)"
+                except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+                    alpha_vantage_data["error"] = str(e)
+                    if self.selected_source == "Alpha Vantage":
+                        stats_text = f"{i18n.t('source_label')}: Alpha Vantage\n" + i18n.t("error_fetching_ticker_data", ticker=ticker, e=e) + f" ({i18n.t('source_label')}: Yahoo Finance Fallback)"
+                        payload.update(yfinance_data) # Fallback to YF data
+                        payload["source"] = "Yahoo Finance (Fallback)"
+            elif self.selected_source == "Alpha Vantage": # AV key missing
+                stats_text = f"{i18n.t('source_label')}: Alpha Vantage\n" + i18n.t("error_api_key_unavailable") + f" ({i18n.t('source_label')}: Yahoo Finance Fallback)"
+                payload.update(yfinance_data) # Fallback to YF data
+                payload["source"] = "Yahoo Finance (Fallback)"
+
+        # ----------------------------------------------------
+        # 3. Fetch from FMP
+        # ----------------------------------------------------
+        if self.selected_source == "FMP" or self.selected_source == "⚔️ Cross-Check":
+            fmp_key = api_keys.get("fmp_api_key")
+            if fmp_key:
+                try:
+                    fmp_profile_url = f"https://financialmodelingprep.com/api/v3/profile/{ticker}?apikey={fmp_key}"
+                    fmp_profile_res = requests.get(fmp_profile_url, timeout=7)
+                    fmp_profile_res.raise_for_status()
+                    fmp_profile_list = fmp_profile_res.json()
+
+                    if fmp_profile_list and isinstance(fmp_profile_list, list) and len(fmp_profile_list) > 0:
+                        profile = fmp_profile_list[0]
+                        fmp_data = {
+                            "ticker": ticker,
+                            "name": profile.get("companyName", ticker),
+                            "currency": profile.get("currency", "USD"),
+                            "price": profile.get("price", "N/A"),
+                            "52w_high": profile.get("yearHigh", "N/A"),
+                            "52w_low": profile.get("yearLow", "N/A"),
+                            "sector": profile.get("sector", i18n.t("unknown_value")),
+                            "industry": profile.get("industry", i18n.t("unknown_value")),
+                            "summary": profile.get("description", ""),
+                            "beta": profile.get("beta", "N/A"),
+                            "dcf": profile.get("dcf", "N/A"),
+                            "market_cap": profile.get("mktCap", "N/A"),
+                            "source": "FMP",
+                            # Defaults, will try to enrich from key-metrics
+                            "pe": "N/A", "peg": "N/A", "forward_pe": "N/A", "dividend_yield": "0.0%", "recommendation": "N/A",
+                        }
+
+                        # Attempt to enrich with key metrics
+                        try:
+                            fmp_metrics_url = f"https://financialmodelingprep.com/api/v3/key-metrics-ttm/{ticker}?apikey={fmp_key}"
+                            fmp_metrics_res = requests.get(fmp_metrics_url, timeout=7)
+                            fmp_metrics_res.raise_for_status()
+                            fmp_metrics_list = fmp_metrics_res.json()
+                            if fmp_metrics_list and isinstance(fmp_metrics_list, list) and len(fmp_metrics_list) > 0:
+                                metrics = fmp_metrics_list[0]
+                                fmp_data["pe"] = metrics.get("peRatioTTM", "N/A")
+                                fmp_data["peg"] = metrics.get("pegRatioTTM", "N/A")
+                                fmp_data["dividend_yield_raw"] = metrics.get("dividendYieldTTM")
+                                div_yield_fmp = fmp_data.get("dividend_yield_raw")
+                                if isinstance(div_yield_fmp, (int, float)) and div_yield_fmp > 0:
+                                    fmp_data["dividend_yield"] = f"{round(div_yield_fmp * 100, 2)}%"
+                        except (requests.exceptions.RequestException, json.JSONDecodeError):
+                            # Silently fail, keep defaults for metrics
+                            pass
+                        
+                        if self.selected_source == "FMP":
+                            payload.update(fmp_data)
+                            stats_text = self._format_stats_text(ticker, fmp_data)
+                    else: # FMP key present but no valid data
+                        fmp_data["error"] = i18n.t("error_api_missing_data")
+                        if self.selected_source == "FMP":
+                            stats_text = f"{i18n.t('source_label')}: FMP\n" + fmp_data["error"] + f" ({i18n.t('source_label')}: Yahoo Finance Fallback)"
+                            payload.update(yfinance_data) # Fallback to YF data
+                            payload["source"] = "Yahoo Finance (Fallback)"
+                except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+                    fmp_data["error"] = str(e)
+                    if self.selected_source == "FMP":
+                        stats_text = f"{i18n.t('source_label')}: FMP\n" + i18n.t("error_fetching_ticker_data", ticker=ticker, e=e) + f" ({i18n.t('source_label')}: Yahoo Finance Fallback)"
+                        payload.update(yfinance_data) # Fallback to YF data
+                        payload["source"] = "Yahoo Finance (Fallback)"
+            elif self.selected_source == "FMP": # FMP key missing
+                stats_text = f"{i18n.t('source_label')}: FMP\n" + i18n.t("error_api_key_unavailable") + f" ({i18n.t('source_label')}: Yahoo Finance Fallback)"
+                payload.update(yfinance_data) # Fallback to YF data
+                payload["source"] = "Yahoo Finance (Fallback)"
+
+        # ----------------------------------------------------
+        # 4. Cross-Check Logic
+        # ----------------------------------------------------
+        if self.selected_source == "⚔️ Cross-Check":
+            cross_check_summary_lines = [f"{i18n.t('source_label')}: ⚔️ Cross-Check\n"]
+            cross_check_payload = {
+                "ticker": ticker,
+                "name": yfinance_data.get("name", ticker), # Use YF name as primary for summary
+                "summary": yfinance_data.get("summary", ""), # Use YF summary as primary
+                "data_sources": []
+            }
+
+            # Add data from each source if available and without errors
+            if "error" not in yfinance_data:
+                cross_check_summary_lines.append(f"=== Yahoo Finance ===")
+                cross_check_summary_lines.append(f"  Cena: {yfinance_data.get('price', 'N/A')} {yfinance_data.get('currency', 'USD')}")
+                cross_check_summary_lines.append(f"  P/E: {yfinance_data.get('pe', 'N/A')}")
+                cross_check_payload["data_sources"].append(yfinance_data)
+            else:
+                cross_check_summary_lines.append(f"=== Yahoo Finance (Kļūda: {yfinance_data['error']}) ===")
+
+            if alpha_vantage_data and "error" not in alpha_vantage_data:
+                cross_check_summary_lines.append(f"=== Alpha Vantage ===")
+                cross_check_summary_lines.append(f"  Cena: {alpha_vantage_data.get('price', 'N/A')} {alpha_vantage_data.get('currency', 'USD')}")
+                cross_check_summary_lines.append(f"  P/E: {alpha_vantage_data.get('pe', 'N/A')}")
+                cross_check_payload["data_sources"].append(alpha_vantage_data)
+            else:
+                cross_check_summary_lines.append(f"=== Alpha Vantage (Kļūda vai atslēga trūkst: {alpha_vantage_data.get('error', i18n.t('error_api_key_unavailable'))}) ===")
+
+            if fmp_data and "error" not in fmp_data:
+                cross_check_summary_lines.append(f"=== FMP ===")
+                cross_check_summary_lines.append(f"  Cena: {fmp_data.get('price', 'N/A')} {fmp_data.get('currency', 'USD')}")
+                cross_check_summary_lines.append(f"  P/E: {fmp_data.get('pe', 'N/A')}")
+                cross_check_payload["data_sources"].append(fmp_data)
+            else:
+                cross_check_summary_lines.append(f"=== FMP (Kļūda vai atslēga trūkst: {fmp_data.get('error', i18n.t('error_api_key_unavailable'))}) ===")
+
+            payload = cross_check_payload
+            payload["source"] = "⚔️ Cross-Check"
+            stats_text = "\n".join(cross_check_summary_lines)
+        
+        # Ensure 'source' is always in payload for Gemini's prompt and disclaimer
+        if "source" not in payload: # This should ideally not happen now due to default/fallback logic
+            payload["source"] = self.selected_source # Default to selected, will be overridden by fallback if that happens
 
         return stats_text, payload
 
@@ -1576,10 +1820,24 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
             try:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
-                # Get language instruction (NEW)
                 current_lang_instruction = i18n.t("llm_default_lang_instruction")
 
-                prompt = f"""Tu esi stingrs, profesionāls investīciju analītiķis un Komandants Kvarks.
+                if summary_payload.get("source") == "⚔️ Cross-Check":
+                    # Special prompt for Cross-Check
+                    prompt = f"""Tu esi stingrs, profesionāls investīciju analītiķis un Komandants Kvarks.
+{current_lang_instruction}
+Sniedz kodolīgu, praktisku analīzi par uzņēmumu {summary_payload.get('ticker', 'N/A')}, salīdzinot datus no dažādiem avotiem.
+Lūk, apkopotie dati no vairākiem avotiem:
+{json.dumps(summary_payload.get('data_sources', []), ensure_ascii=False, indent=2)}
+
+Analīzes blokam izmanto šādu formatējumu:
+1. 🟢 Datu Avotu Salīdzinājums: Izcel atšķirības cenās un P/E rādītājos starp avotiem, mēģinot paskaidrot potenciālos iemeslus vai iesakot uzticamāko.
+2. 🚩 Sarkanie karogi un riski: Vai dati atšķiras pārāk daudz? Vai ir pretrunas?
+3. ⚖️ Komandanta Kvarka Rezolūcija: Vispārējs secinājums par datu uzticamību un ieteikums ieguldītājam (Turēt / Pārdot / Nogaidīt, pamatojoties uz datu konsekvenci).
+"""
+                else:
+                    # Original prompt for single source
+                    prompt = f"""Tu esi stingrs, profesionāls investīciju analītiķis un Komandants Kvarks.
 {current_lang_instruction}
 Sniedz kodolīgu, praktisku analīzi par šo uzņēmumu/fondu, pamatojoties uz šādiem rādītājiem:
 {json.dumps(summary_payload, ensure_ascii=False, indent=2)}
@@ -1588,15 +1846,17 @@ Strukturē atbildi precīzi šādās 3 sadaļās:
 1. 🟢 Biznesa veselība un stiprās puses.
 2. 🚩 Sarkanie karogi un riski (vai nav pārvērtēts burbulis).
 3. ⚖️ Komandanta Kvarka rezolūcija (konkrēts kopsavilkums ilgtermiņa ieguldītājam: Turēt / Pārdot / Nogaidīt)."""
+                
                 resp = model.generate_content(prompt)
                 
                 # Pievienota atruna (disclaimer)
-                disclaimer = f"\n\n---\n📌 {i18n.t('source_label')}: {self.selected_source}. {i18n.t('analysis_disclaimer_summary')}"
+                disclaimer = f"\n\n---\n📌 {i18n.t('source_label')}: {summary_payload.get('source', self.selected_source)}. {i18n.t('analysis_disclaimer_summary')}"
                 return resp.text.strip() + disclaimer
             except Exception as e:
                 # Pievienota atruna (disclaimer) arī kļūdas gadījumā
-                disclaimer_on_error = f"\n\n---\n📌 {i18n.t('source_label')}: {self.selected_source}. {i18n.t('analysis_disclaimer_summary')}"
+                disclaimer_on_error = f"\n\n---\n📌 {i18n.t('source_label')}: {summary_payload.get('source', self.selected_source)}. {i18n.t('analysis_disclaimer_summary')}"
                 return i18n.t("error_gemini_analysis", e=str(e)) + disclaimer_on_error # LEO ADDITION: Used new key
+        
         # Pievienota atruna (disclaimer) arī fallback gadījumā
-        disclaimer_fallback = f"\n\n---\n📌 {i18n.t('source_label')}: {self.selected_source}. {i18n.t('analysis_disclaimer_summary')}"
+        disclaimer_fallback = f"\n\n---\n📌 {i18n.t('source_label')}: {summary_payload.get('source', self.selected_source)}. {i18n.t('analysis_disclaimer_summary')}"
         return stats_fallback + disclaimer_fallback
