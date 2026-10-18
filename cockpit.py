@@ -88,7 +88,7 @@ UI_TEXTS = {
         "lbl_my_name": "Компанія / Ім'я платника:",
         "lbl_time": "🕒 Час вечірнього брифінгу Коменданта (HH:MM):",
         "lbl_kw": "📡 Ключові слова радара (через кому):",
-        "lbl_desc": "Електронні листи, що містять ці слова у темі або тексті, автоматично стають завданнями.",
+        "lbl_desc": "Електронні листи, що містять ці слова у темі або тексте, автоматично стають завданнями.",
         "btn_save": "💾 Зберегти налаштування",
         "saved_msg": "✅ Налаштування збережено! (Брифінг: {time})",
         "lbl_output_lang_header": "📄 Мова генерування звітів та документів:",
@@ -251,6 +251,18 @@ class CockpitWindow(ctk.CTkToplevel):
         )
         self.warranty_module.pack(fill="both", expand=True)
 
+        # JAUNUMS: Izveido kartēšanu no tab rāmja uz moduļa instanci
+        self.frame_to_module_map = {
+            self.tab_offers: self.offer_module,
+            self.tab_hp: self.hp_module,
+            self.tab_bank: self.bank_module,
+            self.tab_voice: self.voice_module,
+            self.tab_docs: self.docs_module,
+            self.tab_warranty: self.warranty_module,
+            self.tab_invest: self.invest_module,
+            self.tab_settings: self # 'self' (CockpitWindow) apstrādā iestatījumu cilni
+        }
+
         self.setup_settings_tab()
         self.update_settings_labels() # Pārliecināmies, ka visas iestatījumu cilnes etiķetes ir atjauninātas
 
@@ -301,6 +313,13 @@ class CockpitWindow(ctk.CTkToplevel):
 
         # 5. Atjaunina Iestatījumu cilnes uzrakstus
         self.update_settings_labels()
+
+        # JAUNUMS: Pārbauda aktīvo kadru un izsauc tā 'refresh_ui' metodi, ja tāda pastāv.
+        active_frame_widget = self.tabview._current_visible_child
+        if active_frame_widget:
+            active_module = self.frame_to_module_map.get(active_frame_widget)
+            if active_module and hasattr(active_module, "refresh_ui"):
+                active_module.refresh_ui()
 
     def update_settings_labels(self):
         """Atjaunina visus teksta uzrakstus Iestatījumu cilnē."""
