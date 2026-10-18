@@ -102,6 +102,33 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self._setup_dividends_tab()
         self._setup_market_tab()
 
+    def refresh_ui(self):
+        """
+        Refreshes all localizable UI widget texts based on the current i18n language.
+        This method should be called when the UI language changes.
+        """
+        # Update elements in Rentgen tab
+        if hasattr(self, 'lbl_ticker_title'):
+            self.lbl_ticker_title.configure(text=t("lbl_ticker_analysis"))
+        if hasattr(self, 'btn_analyze'):
+            # Only update text if not in a loading state, otherwise, the loading text would be overwritten
+            current_btn_text = self.btn_analyze.cget("text")
+            if not current_btn_text.startswith("⏳"): # Check if it's currently a loading state
+                self.btn_analyze.configure(text=t("btn_rentgens"))
+        
+        # Update elements in Growth tab
+        if hasattr(self, 'btn_scan_all_growth'):
+            current_btn_text = self.btn_scan_all_growth.cget("text")
+            if not current_btn_text.startswith("⏳"): # Check if it's currently a loading state
+                self.btn_scan_all_growth.configure(text=t("btn_hunt_unicorns"))
+        if hasattr(self, 'btn_export_word'):
+            self.btn_export_word.configure(text=t("btn_save_word"))
+        
+        # Note: Other labels (e.g., lbl_resolution) are not instance attributes and cannot be reconfigured directly.
+        # Dynamic content in textboxes or scrollable frames (e.g., stats_box, analysis_box, growth_results_container)
+        # would require re-running their content generation logic if they contained fixed strings.
+        # This refresh focuses on static widget properties as requested.
+
     # ==========================================
     # 1. CILNE: VIENA TIKERA RENTGENS
     # ==========================================
@@ -117,7 +144,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
         right = ctk.CTkFrame(f, fg_color="#131b2e", corner_radius=10)
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(left, text=t("lbl_ticker_analysis"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
+        # Assigned to self.lbl_ticker_title for refresh_ui method
+        self.lbl_ticker_title = ctk.CTkLabel(left, text=t("lbl_ticker_analysis"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8")
+        self.lbl_ticker_title.pack(anchor="w", padx=15, pady=(15, 6))
 
         # NEW: Data Source Selection Segmented Button
         self.source_selector = ctk.CTkSegmentedButton(
@@ -455,7 +484,7 @@ Lietotāja eToro pozīcijas un brīvie līdzekļi {cash} USD:
 Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
 1. 🟢 TURĒT / PAPILDINĀT: kuri uzņēmumi atbilst šai stratēģijai.
 2. ✂️ PĀRDOT / LIKVIDĒT: kuri aktīvi neatbilst šim riska profilam vai bremzē portfeli.
-3. 🎯 BRĪVĀS NAUDAS ({cash} USD) SADALE: precīzs plāns, kur kur ieguldīt brīvos līdzekļus.""" # This prompt is sent to LLM for localized response
+3. 🎯 BRĪVĀS NAUDAS ({cash} USD) SADALE: precīzs plāns, kur kur ieguldīt brīvos līdzekļus."""
                 
                 resp = model.generate_content(prompt)
                 reply = resp.text.strip()
@@ -658,7 +687,7 @@ JSON atbildē ir jābūt diviem laukiem:
     UZMANĪBU: Pārliecinies, ka sarakstā ir tieši 10 unikāli kandidāti, kas atbilst dažādām nozarēm, ja iespējams.
 2. `sector_concentration_warning`: "Sarkano Karogu" brīdinājums par pārmērīgu sektora koncentrāciju, ja Kvarks to pamana (piemēram, vairāk nekā 50% kandidātu ir no vienas nozares), vai tukša stringa, ja brīdinājuma nav.
 
-Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus.""" # This prompt is sent to LLM for localized response
+Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."""
                 
                 resp = model.generate_content(prompt)
                 json_response_raw_text = resp.text.strip()
@@ -1086,7 +1115,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 Sagatavo strukturētu analīzi:
 1. 💵 PASĪVĀS NAUDAS ČEMPIONI: Kuri no šiem uzņēmumiem nodrošina stabilāko un drošāko dividenču atdevi.
 2. ⚠️ ILGTSPĒJAS RISKI: Vai kādam uzņēmumam dividende nav mākslīgi uzpūsta vai apdraudēta (piemēram, naftas vai cikliskajos sektoros).
-3. 🔄 REINVESTĒŠANAS STRATĒĢIJA: Kā visefektīvāk izmantot ienākošās dividendes, lai portfelis augtu eksponenciāli.""" # This prompt is sent to LLM for localized response
+3. 🔄 REINVESTĒŠANAS STRATĒĢIJA: Kā visefektīvāk izmantot ienākošās dividendes, lai portfelis augtu eksponenciāli."""
                 resp = model.generate_content(prompt)
                 reply = resp.text.strip()
             except Exception as e:
@@ -1134,7 +1163,7 @@ Sagatavo strukturētu analīzi:
             left, 
             text="⚡ Atjaunot Klimatu & Insaiderus", 
             height=34, 
-            fg_color="#0284c7", 
+            fg_color="#0284c2", 
             hover_color="#0369a1", 
             font=ctk.CTkFont(size=12, weight="bold"),
             command=self.start_market_intel_scan
@@ -1271,7 +1300,7 @@ Jaunākās ziņas: {'; '.join(top_headlines) if top_headlines else 'Nav agresīv
 Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
 1. Makro fons: ko saka 10 gadu likmes, zelts un BTC par naudas plūsmu tirgū.
 2. Insaideru un sentimenta vērtējums.
-3. Galīgā kaujas pavēle šodienai: uzbrukt (pirkt), nocietināties (turēt) vai atkāpties skaidrā naudā.""" # This prompt is sent to LLM for localized response
+3. Galīgā kaujas pavēle šodienai: uzbrukt (pirkt), nocietināties (turēt) vai atkāpties skaidrā naudā."""
                     res = model.generate_content(prompt)
                     news_output.append("🐾 KOMANDANTA KVARKA STRATĒĢISKĀ REZOLŪCIJA:\n") # This string was not specified for localization.
                     news_output.append(res.text.strip())
@@ -1377,7 +1406,7 @@ Sniedz kodolīgu, praktisku analīzi par šo uzņēmumu/fondu, pamatojoties uz �
 Strukturē atbildi precīzi šādās 3 sadaļās:
 1. 🟢 Biznesa veselība un stiprās puses.
 2. 🚩 Sarkanie karogi un riski (vai nav pārvērtēts burbulis).
-3. ⚖️ Komandanta Kvarka rezolūcija (konkrēts kopsavilkums ilgtermiņa ieguldītājam: Turēt / Pārdot / Nogaidīt).""" # This prompt is sent to LLM for localized response
+3. ⚖️ Komandanta Kvarka rezolūcija (konkrēts kopsavilkums ilgtermiņa ieguldītājam: Turēt / Pārdot / Nogaidīt)."""
                 resp = model.generate_content(prompt)
                 
                 # Pievienota atruna (disclaimer)
