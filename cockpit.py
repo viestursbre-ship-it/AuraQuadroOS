@@ -314,12 +314,23 @@ class CockpitWindow(ctk.CTkToplevel):
         # 5. Atjaunina Iestatījumu cilnes uzrakstus
         self.update_settings_labels()
 
-        # JAUNUMS: Pārbauda aktīvo kadru un izsauc tā 'refresh_ui' metodi, ja tāda pastāv.
-        active_frame_widget = self.tabview._current_visible_child
-        if active_frame_widget:
-            active_module = self.frame_to_module_map.get(active_frame_widget)
-            if active_module and hasattr(active_module, "refresh_ui"):
-                active_module.refresh_ui()
+        # REPLACED: Iterē cauri visiem reģistrētajiem moduļiem un izsauc to 'refresh_ui' metodi, ja tāda pastāv.
+        modules_to_refresh = [
+            self.offer_module,
+            self.hp_module,
+            self.bank_module,
+            self.voice_module,
+            self.docs_module,
+            self.invest_module,
+            self.warranty_module,
+        ]
+
+        for module in modules_to_refresh:
+            if module and hasattr(module, "refresh_ui"):
+                try:
+                    module.refresh_ui()
+                except Exception as e:
+                    print(f"Kļūda 'refresh_ui' izsaukumā modulī {type(module).__name__}: {e}")
 
     def update_settings_labels(self):
         """Atjaunina visus teksta uzrakstus Iestatījumu cilnē."""
