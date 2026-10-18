@@ -618,7 +618,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
 
             lang_instruction = get_llm_language_instruction() # Use the helper function
 
@@ -871,7 +871,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1029,7 +1029,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def _hunt_unicorns_worker(self):
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1369,7 +1369,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1605,7 +1605,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-1.5-flash') # Replaced 'gemini-pro' with 'gemini-1.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
 
             lang_instruction = get_llm_language_instruction()
 
