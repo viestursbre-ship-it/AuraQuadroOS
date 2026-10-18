@@ -379,13 +379,7 @@ class OfferStudioFrame(ctk.CTkFrame):
         self.entry_margin.insert(0, "12")
         self.entry_margin.pack(side="left", padx=(0, 10))
 
-        self.lbl_lang_text = ctk.CTkLabel(mode_bar, text="Valoda:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#cbd5e1")
-        self.lbl_lang_text.pack(side="left", padx=(5, 5))
-
-        # Updated segmented button values for 5 languages
-        self.seg_lang = ctk.CTkSegmentedButton(mode_bar, values=["Auto", "LV", "EN", "RU", "DE"], width=200, height=30)
-        self.seg_lang.set("Auto")
-        self.seg_lang.pack(side="left", padx=(0, 12))
+        # Removed language selection UI elements as per task 1
 
         self.btn_calculate = ctk.CTkButton(
             mode_bar, text="⚡ Aprēķināt & Noformēt", width=180, height=32,
@@ -482,7 +476,9 @@ class OfferStudioFrame(ctk.CTkFrame):
         except ValueError:
             margin = 12.0
 
-        target_lang = self.seg_lang.get()
+        # Replace self.seg_lang.get() with global language function (Task 2)
+        target_lang = i18n.get_output_language() if hasattr(i18n, "get_output_language") else i18n.get_ui_language()
+        
         api_key = self.get_gemini_key_fn() if self.get_gemini_key_fn else os.environ.get("GEMINI_API_KEY", "")
         self.lbl_status.configure(text=i18n.t("status_gemini_processing"))
         self.btn_calculate.configure(state="disabled")
@@ -492,6 +488,7 @@ class OfferStudioFrame(ctk.CTkFrame):
             email_out = ""
             status_msg = i18n.t("status_ready")
             try:
+                # target_lang is passed to generate_client_offer_structured (Task 2)
                 data = generate_client_offer_structured(client_text, dist_text, margin, target_lang, api_key)
                 email_out = data.get("email_text", "")
                 final_lang = data.get("final_lang", "LV")
@@ -539,20 +536,15 @@ class OfferStudioFrame(ctk.CTkFrame):
         if lang is None:
             lang = i18n.get_ui_language()
 
-        # Update the segmented button value
-        if hasattr(self, "seg_lang"):
-            self.seg_lang.set(lang)
-
-        # Reconfigure all widget texts dynamically, calling i18n.t(key)
+        # Reconfigure all widget texts dynamically, calling i18n.t(key) (Task 3)
+        self.lbl_margin_text.configure(text=i18n.t("lbl_margin"))
         self.btn_calculate.configure(text=i18n.t("btn_calculate"))
         self.btn_open_excel.configure(text=i18n.t("btn_open_excel"))
         self.btn_copy.configure(text=i18n.t("btn_copy_email"))
-        self.lbl_margin_text.configure(text=i18n.t("lbl_margin"))
-        self.lbl_lang_text.configure(text=i18n.t("lbl_language"))
         self.lbl_client_header.configure(text=i18n.t("lbl_client_rfq"))
         self.btn_load_client.configure(text=i18n.t("btn_load_file"))
         self.lbl_dist_header.configure(text=i18n.t("lbl_supplier_costs"))
-        self.btn_load_dist.configure(text=i18n.t("btn_load_file") + " (.xlsx)") # Specific suffix
+        self.btn_load_dist.configure(text=i18n.t("btn_load_file") + " (.xlsx)")
         self.lbl_result_header.configure(text=i18n.t("lbl_commercial_offer"))
 
     def refresh_ui(self):
