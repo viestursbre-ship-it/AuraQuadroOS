@@ -32,38 +32,215 @@ try:
     HAS_I18N = True
 except ImportError:
     HAS_I18N = False
-    # Define dummy functions if i18n is not available to prevent crashes
-    class DummyI18nModule: # Create a dummy class to emulate the module
-        def get_ui_language(self): return "lv" # Default to Latvian
-    i18n = DummyI18nModule() # Instantiate the dummy module
-    def get_llm_language_instruction(): return "Respond in Latvian." # Default instruction for Latvian
 
 BASE_DIR = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(__file__).resolve().parent
 PORTFOLIO_FILE = BASE_DIR / "portfolio.json"
 OUTBOX_DIR = BASE_DIR / "storage" / "outbox"
 OUTBOX_DIR.mkdir(parents=True, exist_ok=True) # Ensure outbox directory exists
 
-# Global translations dictionary (NEW)
+# Global translations dictionary (NEW) - This structure is kept for the dummy i18n and initial definition.
 TRANSLATIONS = {
+    # Existing Keys
     "lbl_ticker_analysis": {"lv": "TIKERA ANALĪZE", "ru": "АНАЛИЗ ТИКЕРА", "uk": "АНАЛІЗ ТИКЕРА", "en": "TICKER ANALYSIS", "it": "ANALISI TICKER"},
     "btn_rentgens": {"lv": "Rentgens", "ru": "Рентген", "uk": "Рентген", "en": "X-Ray", "it": "Raggi X"},
-    "lbl_resolution": {"lv": "KOMANDANTA KVARKA REZOLŪCIJA", "ru": "РЕЗОЛЮЦИЯ КОМАНДАНТЕ КВАРКА", "uk": "РЕЗОЛЮЦІЯ КОМАНДАНТЕ КВАРКА", "en": "COMMANDER KVARK RESOLUTION", "it": "RISOLUZIONE DEL COMANDANTE KVARKS"},
+    "lbl_inv_resolution_title": {"lv": "KOMANDANTA KVARKA REZOLŪCIJA", "ru": "РЕЗОЛЮЦИЯ КОМАНДАНТЕ КВАРКА", "uk": "РЕЗОЛЮЦІЯ КОМАНДАНТЕ КВАРКА", "en": "COMMANDER KVARK RESOLUTION", "it": "RISOLUZIONE DEL COMANDANTE KVARKS"}, # Renamed from lbl_resolution for clarity with specific instruction
     "txt_waiting": {"lv": "Gaidu pieprasījumu...", "ru": "Ожидаю запрос...", "uk": "Очікую запит...", "en": "Awaiting request...", "it": "In attesa della richiesta..."},
     "lbl_potential_radar": {"lv": "POTENCIĀLA RADARS", "ru": "РАДАР ПОТЕНЦИАЛА", "uk": "РАДАР ПОТЕНЦІАЛУ", "en": "POTENTIAL RADAR", "it": "RADAR DEL POTENZIALE"},
     "btn_hunt_unicorns": {"lv": "Medīt Jaunos Vienradžus", "ru": "Охота на Единорогов", "uk": "Полювання на Єдинорогів", "en": "Hunt New Unicorns", "it": "Caccia agli Unicorni"},
     "btn_check": {"lv": "Pārbaudīt", "ru": "Проверить", "uk": "Перевірити", "en": "Check", "it": "Verifica"},
-    "btn_save_word": {"lv": "Saglabāt Word (.docx)", "ru": "Сохранить Word (.docx)", "uk": "Зберегти Word (.docx)", "en": "Save Word (.docx)", "it": "Salva Word (.docx)"}
+    "btn_save_word": {"lv": "Saglabāt Word (.docx)", "ru": "Сохранить Word (.docx)", "uk": "Зберегти Word (.docx)", "en": "Save Word (.docx)", "it": "Salva Word (.docx)"},
+
+    # New Keys for Tabs and Titles (Instruction 3 & 2)
+    "tab_inv_single": {"lv": "🔍 Viena Tikera Rentgens", "en": "🔍 Single Ticker X-Ray", "ru": "🔍 Рентген Тикера", "uk": "🔍 Рентген Тікера", "it": "🔍 Raggi X singolo titolo"},
+    "tab_inv_etoro": {"lv": "💼 Mans eToro Portfelis & Audits", "en": "💼 My eToro Portfolio & Audit", "ru": "💼 Мой Портфель eToro и Аудит", "uk": "💼 Мій Портфель eToro та Аудит", "it": "💼 Mio Portfolio eToro & Audit"},
+    "tab_inv_unicorns": {"lv": "🚀 Kvarka Izaugsmes Mednieks", "en": "🚀 Quark's Growth Hunter", "ru": "🚀 Охотник за Ростом Кварка", "uk": "🚀 Мисливець за Зростанням Кварка", "it": "🚀 Caccia alla Crescita di Quark"},
+    "tab_inv_dividends": {"lv": "💰 Dividendes & Naudas Plūsma", "en": "💰 Dividends & Cash Flow", "ru": "💰 Дивиденды и Денежный Поток", "uk": "💰 Дивіденди та Грошовий Потік", "it": "💰 Dividendi & Flusso di Cassa"},
+    "tab_inv_insiders": {"lv": "🕵️ Tirgus Klimats & Insaideri", "en": "🕵️ Market Climate & Insiders", "ru": "🕵️ Климат Рынка и Инсайдеры", "uk": "🕵️ Ринок та Інсайдери", "it": "🕵️ Clima di Mercato & Insider"},
+    "lbl_inv_growth_resolution_title": {"lv": "🎯 IZAUGSMES REZOLŪCIJA & RISKA NOVĒRTĒJUMS", "en": "🎯 GROWTH RESOLUTION & RISK ASSESSMENT", "ru": "🎯 РЕЗОЛЮЦИЯ ПО РОСТУ И ОЦЕНКА РИСКА", "uk": "🎯 РЕЗОЛЮЦІЯ З РОСТУ ТА ОЦІНКА РИЗИКУ", "it": "🎯 RISOLUZIONE DI CRESCITA & VALUTAZIONE DEL RISCHIO"},
+    "lbl_inv_dividends_resolution_title": {"lv": "📅 KVARKA DIVIDENŽU KALENDĀRS & REZOLŪCIJA", "en": "📅 QUARK'S DIVIDEND CALENDAR & RESOLUTION", "ru": "📅 КАЛЕНДАРЬ ДИВИДЕНДОВ КВАРКА И РЕЗОЛЮЦИЯ", "uk": "📅 КАЛЕНДАР ДИВІДЕНДІВ КВАРКА ТА РЕЗОЛЮЦІЯ", "it": "📅 CALENDARIO DIVIDENDI DI QUARK & RISOLUZIONE"},
+    "lbl_inv_market_news_title": {"lv": "📰 JAUNĀKĀS ZIŅAS & KVARKA TAKTIKA", "en": "📰 LATEST NEWS & QUARK'S TACTICS", "ru": "📰 ПОСЛЕДНИЕ НОВОСТИ И ТАКТИКА КВАРКА", "uk": "📰 ОСТАННІ НОВИНИ ТА ТАКТИКА КВАРКА", "it": "📰 ULTIME NOTIZIE & TATTICHE DI QUARK"},
+
+    # Portfolio Tab
+    "lbl_portfolio_title": {"lv": "💼 MANAS ETORO AKCIJAS", "en": "💼 MY ETORO STOCKS", "ru": "💼 МОИ АКЦИИ ETORO", "uk": "💼 МОЇ АКЦІЇ ETORO", "it": "💼 LE MIE AZIONI ETORO"},
+    "lbl_portfolio_tickers_desc": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (через кому або новий рядок):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"},
+    "lbl_portfolio_cash_balance": {"lv": "💵 Brīvais atlikums (USD):", "en": "💵 Free Balance (USD):", "ru": "💵 Свободный остаток (USD):", "uk": "💵 Вільний залишок (USD):", "it": "💵 Saldo disponibile (USD):"},
+    "lbl_portfolio_risk_strategy": {"lv": "🎯 Riska Stratēģija:", "en": "🎯 Risk Strategy:", "ru": "🎯 Стратегия риска:", "uk": "🎯 Стратегія ризику:", "it": "🎯 Strategia di rischio:"},
+    "seg_risk_conservative": {"lv": "🛡️ Konservatīvs (5-10%)", "en": "🛡️ Conservative (5-10%)", "ru": "🛡️ Консервативный (5-10%)", "uk": "🛡️ Консервативний (5-10%)", "it": "🛡️ Conservativo (5-10%)"},
+    "seg_risk_venture_growth": {"lv": "🚀 Venture & Growth", "en": "🚀 Venture & Growth", "ru": "🚀 Венчур и Рост", "uk": "🚀 Венчур та Зростання", "it": "🚀 Venture & Crescita"},
+    "btn_save_portfolio": {"lv": "💾 Saglabāt", "en": "💾 Save", "ru": "💾 Сохранить", "uk": "💾 Зберегти", "it": "💾 Salva"},
+    "btn_audit_portfolio": {"lv": "🐾 Kvarka Audits", "en": "🐾 Quark's Audit", "ru": "🐾 Аудит Кварка", "uk": "🐾 Аудит Кварка", "it": "🐾 Audit di Quark"},
+    "status_portfolio_saved": {"lv": "✅ Portfelis saglabāts!", "en": "✅ Portfolio saved!", "ru": "✅ Портфель сохранен!", "uk": "✅ Портфель збережено!", "it": "✅ Portfolio salvato!"},
+    "error_portfolio_save": {"lv": "⚠️ Kļūda: {e}", "en": "⚠️ Error: {e}", "ru": "⚠️ Ошибка: {e}", "uk": "⚠️ Помилка: {e}", "it": "⚠️ Errore: {e}"},
+    "feedback_added_to_portfolio": {"lv": "✅ {ticker} pievienots portfelim!", "en": "✅ {ticker} added to portfolio!", "ru": "✅ {ticker} добавлен в портфель!", "uk": "✅ {ticker} додано до портфеля!", "it": "✅ {ticker} aggiunto al portfolio!"},
+    "feedback_already_in_portfolio": {"lv": "ℹ️ {ticker} jau ir portfelī.", "en": "ℹ️ {ticker} is already in the portfolio.", "ru": "ℹ️ {ticker} уже в портфеле.", "uk": "ℹ️ {ticker} вже є в портфелі.", "it": "ℹ️ {ticker} è già nel portfolio."},
+    "audit_copy_header": {"lv": "🐾 *KOMANDANTA KVARKA INVESTĪCIJU AUDITS* 🐾", "en": "🐾 *COMMANDER KVARK'S INVESTMENT AUDIT* 🐾", "ru": "🐾 *АУДИТ ИНВЕСТИЦИЙ КОМАНДИРА КВАРКА* 🐾", "uk": "🐾 *АУДИТ ІНВЕСТИЦІЙ КОМАНДИРА КВАРКА* 🐾", "it": "🐾 *AUDIT DI INVESTIMENTO DEL COMANDANTE KVARKS* 🐾"},
+    "audit_copy_strategy": {"lv": "🎯 Stratēģija:", "en": "🎯 Strategy:", "ru": "🎯 Стратегия:", "uk": "🎯 Стратегія:", "it": "🎯 Strategia:"},
+    "audit_copy_footer": {"lv": "⚡ Ģenerēts ar AQ-OS Investor Studio", "en": "⚡ Generated with AQ-OS Investor Studio", "ru": "⚡ Сгенерировано AQ-OS Investor Studio", "uk": "⚡ Згенеровано AQ-OS Investor Studio", "it": "⚡ Generato con AQ-OS Investor Studio"},
+    "btn_copy_summary": {"lv": "📋 Kopēt kopsavilkumu", "en": "📋 Copy Summary", "ru": "📋 Копировать сводку", "uk": "📋 Копіювати зведення", "it": "📋 Copia riepilogo"},
+    "status_copied": {"lv": "✅ Nokopēts!", "en": "✅ Copied!", "ru": "✅ Скопировано!", "uk": "✅ Скопійовано!", "it": "✅ Copiato!"},
+    "error_copying": {"lv": "⚠️ Kļūda kopējot: {e}", "en": "⚠️ Error copying: {e}", "ru": "⚠️ Ошибка при копировании: {e}", "uk": "⚠️ Помилка копіювання: {e}", "it": "⚠️ Errore durante la copia: {e}"},
+    "btn_audit_loading": {"lv": "⏳ Auditē...", "en": "⏳ Auditing...", "ru": "⏳ Аудит...", "uk": "⏳ Аудит...", "it": "⏳ Audit..."},
+    "audit_loading_msg": {"lv": "Komandants Kvarks caurskata {len_tickers} pozīcijas un finanšu rādītājus...\n", "en": "Commander Quark reviews {len_tickers} positions and financial indicators...\n", "ru": "Командир Кварк просматривает {len_tickers} позиций и финансовые показатели...\n", "uk": "Командир Кварк переглядає {len_tickers} позицій та фінансові показники...\n", "it": "Il Comandante Quark esamina {len_tickers} posizioni e indicatori finanziari...\n"},
+    "audit_initial_msg": {"lv": "Ievadiet savas akcijas un nospiediet 'Kvarka Audits'...\nKvarks noteiks, kurus 'sīkuļus' likvidēt un kur gudri ieguldīt līdzekļus!", "en": "Enter your stocks and press 'Quark's Audit'...\nQuark will determine which 'minnows' to liquidate and where to invest wisely!", "ru": "Введите свои акции и нажмите 'Аудит Кварка'...\nКварк определит, какие 'мелкие' позиции ликвидировать и куда разумно вложить средства!", "uk": "Введіть свої акції та натисніть 'Аудит Кварка'...\nКварк визначить, які 'дрібниці' ліквідувати і куди розумно вкласти кошти!", "it": "Inserisci i tuoi titoli e premi 'Audit di Quark'...\nQuark determinerà quali 'pesci piccoli' liquidare e dove investire saggiamente!"},
+    "strategy_venture_desc": {"lv": "STRATĒĢIJA: VENTURE & GROWTH HUNTER (Agresīvs riska kapitāls).\n- Vērtē aktīvus no nākotnes tirgus dominances, monopolstāvokļa un AI/tehnoloģiju lēciena prizmas.\n- Augsts P/E vai īslaicīgs peļņas trūkums nav šķērslis, ja ieņēmumu lēciens un infrastruktūras nozīme ir milzīga (piemēram, ARM, SNOW, PLTR).\n- Izbrāķē tikai stagnējošus un lēnus uzņēmumus bez tehnoloģiskas nākotnes.", "en": "STRATEGY: VENTURE & GROWTH HUNTER (Aggressive Venture Capital).\n- Values assets from the perspective of future market dominance, monopoly position, and AI/technology leap.\n- High P/E or temporary lack of profit is not an obstacle if revenue growth and infrastructure importance are enormous (e.g., ARM, SNOW, PLTR).\n- Only rejects stagnant and slow companies without a technological future.", "ru": "СТРАТЕГИЯ: ВЕНЧУРНЫЙ ОХОТНИК ЗА РОСТОМ (Агрессивный венчурный капитал).\n- Оценивает активы с точки зрения будущего доминирования на рынке, монопольного положения и технологического скачка AI.\n- Высокий P/E или временное отсутствие прибыли не является препятствием, если рост выручки и значимость инфраструктуры огромны (например, ARM, SNOW, PLTR).\n- Отбрасывает только стагнирующие и медленные компании без технологического будущего.", "uk": "СТРАТЕГІЯ: ВЕНЧУРНИЙ МИСЛИВЕЦЬ ЗА ЗРОСТАННЯМ (Агресивний венчурний капітал).\n- Оцінює активи з позиції майбутнього домінування на ринку, монопольного становища та стрибка AI/технологій.\n- Високий P/E або тимчасова відсутність прибутку не є перешкодою, якщо стрибок доходів та значення інфраструктури величезні (наприклад, ARM, SNOW, PLTR).\n- Відкидає лише стагнуючі та повільні компанії без технологічного майбутнього.", "it": "STRATEGIA: Cacciatore di Venture & Crescita (Capitale di rischio aggressivo).\n- Valuta gli asset dal punto di vista del dominio futuro del mercato, della posizione di monopolio e del salto tecnologico AI.\n- Un P/E elevato o una temporanea mancanza di profitto non sono un ostacolo se la crescita dei ricavi e l'importanza dell'infrastruttura sono enormi (es. ARM, SNOW, PLTR).\n- Rifiuta solo le aziende stagnanti e lente senza un futuro tecnologico."},
+    "strategy_conservative_desc": {"lv": "STRATĒĢIJA: KONSERVATĪVS (Zems risks, 5-10% stabils pieaugums gadā).\n- Vērtē aktīvus pēc reālas naudas plūsmas, veselīga P/E (< 30-35), dividenžu stabilitātes un zemiem riskiem.\n- Ja uzņēmuma P/E ir pārmērīgs (> 80-100) vai nav peļņas un PEG > 2, norādi to kā bīstamu burbuli un iesaki samazināt pozīciju.\n- Dod priekšroku tirgus indeksiem (VOO/SPY) un stabiliem industrijas milžiem.", "en": "STRATEGY: CONSERVATIVE (Low risk, 5-10% stable annual growth).\n- Values assets by real cash flow, healthy P/E (< 30-35), dividend stability, and low risks.\n- If a company's P/E is excessive (> 80-100) or has no profit and PEG > 2, indicate it as a dangerous bubble and recommend reducing the position.\n- Prefers market indices (VOO/SPY) and stable industry giants.", "ru": "СТРАТЕГИЯ: КОНСЕРВАТИВНАЯ (Низкий риск, 5-10% стабильного роста в год).\n- Оценивает активы по реальному денежному потоку, здоровому P/E (< 30-35), стабильности дивидендов и низким рискам.\n- Если P/E компании чрезмерен (> 80-100) или нет прибыли, а PEG > 2, укажите это как опасный пузырь и рекомендуйте уменьшить позицию.\n- Отдает предпочтение рыночным индексам (VOO/SPY) и стабильным промышленным гигантам.", "uk": "СТРАТЕГІЯ: КОНСЕРВАТИВНА (Низький ризик, 5-10% стабільний річний приріст).\n- Оцінює активи за реальним грошовим потоком, здоровим P/E (< 30-35), стабільністю дивідендів та низькими ризиками.\n- Якщо P/E компанії надмірний (> 80-100) або немає прибутку, а PEG > 2, вкажіть це як небезпечний міхур і рекомендуйте зменшити позицію.\n- Віддає перевагу ринковим індексам (VOO/SPY) та стабільним промисловим гігантам.", "it": "STRATEGIA: CONSERVATIVA (Basso rischio, 5-10% crescita annua stabile).\n- Valuta gli asset in base al flusso di cassa reale, un P/E sano (< 30-35), la stabilità dei dividendi e i bassi rischi.\n- Se il P/E di un'azienda è eccessivo (> 80-100) o non c'è profitto e il PEG > 2, indicalo come una bolla pericolosa e consiglia di ridurre la posizione.\n- Preferisce gli indici di mercato (VOO/SPY) e i giganti del settore stabili."},
+    "error_audit_gemini": {"lv": "⚠️ Audita kļūda: {e}", "en": "⚠️ Audit error: {e}", "ru": "⚠️ Ошибка аудита: {e}", "uk": "⚠️ Помилка аудиту: {e}", "it": "⚠️ Errore di audit: {e}"},
+    "error_api_missing_data": {"lv": "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus.", "en": "⚠️ Missing API key or failed to retrieve data.", "ru": "⚠️ Отсутствует ключ API или не удалось получить данные.", "uk": "⚠️ Відсутній ключ API або не вдалося отримати дані.", "it": "⚠️ Chiave API mancante o impossibile recuperare i dati."},
+
+    # Growth Tab
+    "lbl_growth_description": {"lv": "Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", "en": "Quark scans future markets and hunts for TOP 10 unicorns (AI, medicine, energy, space, etc.):", "ru": "Кварк сканирует будущие рынки и ищет ТОП-10 единорогов (ИИ, медицина, энергетика, космос и др.):", "uk": "Кварк сканує майбутні ринки та полює на ТОП-10 єдинорогів (ШІ, медицина, енергетика, космос тощо):", "it": "Quark scansiona i mercati futuri e cerca i TOP 10 unicorni (AI, medicina, energia, spazio, ecc.):"},
+    "growth_no_candidates": {"lv": "Nav atlasīti vienradžu kandidāti.", "en": "No unicorn candidates selected.", "ru": "Не выбрано ни одного кандидата-единорога.", "uk": "Не вибрано жодного кандидата-єдинорога.", "it": "Nessun candidato unicorno selezionato."},
+    "growth_status_initial": {"lv": "Gaidu Komandanta Kvarka rīkojumus...", "en": "Awaiting Commander Quark's orders...", "ru": "Ожидаю приказов Командира Кварка...", "uk": "Очікую наказів Командира Кварка...", "it": "In attesa degli ordini del Comandante Quark..."},
+    "btn_hunt_unicorns_loading": {"lv": "⏳ {btn_text}...", "en": "⏳ {btn_text}...", "ru": "⏳ {btn_text}...", "uk": "⏳ {btn_text}...", "it": "⏳ {btn_text}..."},
+    "growth_scanning_candidates": {"lv": "🔍 Kvarks skenē... Gaidiet jaunus kandidātus!", "en": "🔍 Quark is scanning... Awaiting new candidates!", "ru": "🔍 Кварк сканирует... Ожидайте новых кандидатов!", "uk": "🔍 Кварк сканує... Чекайте нових кандидатів!", "it": "🔍 Quark sta scansionando... In attesa di nuovi candidati!"},
+    "growth_scan_progress1": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о единорогах...", "uk": "🔍 Кварк сканує ринок та збирає дані про єдинорогів...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sugli unicorni..."},
+    "growth_scan_progress2": {"lv": "📊 Atlasa jaunos vienradžus ar AI analīzi...", "en": "📊 Selecting new unicorns with AI analysis...", "ru": "📊 Выбирает новых единорогов с помощью AI анализа...", "uk": "📊 Вибирає нових єдинорогів за допомогою AI аналізу...", "it": "📊 Seleziona nuovi unicorni con analisi AI..."},
+    "growth_initial_results": {"lv": "Izvēlieties uzņēmumu vai nospiediet '🚀 Medīt Jaunos Vienradžus', lai Kvarks atlasa nākamo lielo lēcienu...", "en": "Select a company or press '🚀 Hunt New Unicorns' for Quark to select the next big leap...", "ru": "Выберите компанию или нажмите '🚀 Искать новых единорогов', чтобы Кварк выбрал следующий большой скачок...", "uk": "Виберіть компанію або натисніть '🚀 Шукати нових єдинорогів', щоб Кварк вибрав наступний великий стрибок...", "it": "Seleziona un'azienda o premi '🚀 Caccia agli Unicorni' per far sì che Quark selezioni il prossimo grande salto..."},
+    "btn_copy_analysis": {"lv": "📋 Kopēt analīzi", "en": "📋 Copy Analysis", "ru": "📋 Копировать анализ", "uk": "📋 Копіювати аналіз", "it": "📋 Copia analisi"},
+    "growth_no_unicorns_fallback": {"lv": "Kvarks neatrada piemērotus vienradžus vai radās kļūda.", "en": "Quark found no suitable unicorns or an error occurred.", "ru": "Кварк не нашел подходящих единорогов или произошла ошибка.", "uk": "Кварк не знайшов відповідних єдинорогів або сталася помилка.", "it": "Quark non ha trovato unicorni adatti o si è verificato un errore."},
+    "error_gemini_parsing": {"lv": "⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {e}. Daļa: {partial_response}...", "en": "⚠️ Gemini returned unstructured response or parsing error: {e}. Part: {partial_response}...", "ru": "⚠️ Gemini вернул неструктурированный ответ или ошибка парсинга: {e}. Часть: {partial_response}...", "uk": "⚠️ Gemini повернув неструктуровану відповідь або помилка парсингу: {e}. Частина: {partial_response}...", "it": "⚠️ Gemini ha restituito una risposta non strutturata o errore di parsing: {e}. Parte: {partial_response}..."},
+    "error_ai_unparsable": {"lv": "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API.", "en": "⚠️ AI response unparsable. Try again or check API.", "ru": "⚠️ Ответ ИИ не поддается парсингу. Попробуйте еще раз или проверьте API.", "uk": "⚠️ Відповідь ШІ не піддається парсингу. Спробуйте ще раз або перевірте API.", "it": "⚠️ Risposta AI non parsabile. Riprova o controlla l'API."},
+    "error_gemini_api_contact": {"lv": "⚠️ Kļūda sazinoties ar Gemini: {e}", "en": "⚠️ Error communicating with Gemini: {e}", "ru": "⚠️ Ошибка связи с Gemini: {e}", "uk": "⚠️ Помилка зв'язку з Gemini: {e}", "it": "⚠️ Errore di comunicazione con Gemini: {e}"},
+    "growth_analysis_complete": {"lv": "✅ Analīze pabeigta!", "en": "✅ Analysis complete!", "ru": "✅ Анализ завершен!", "uk": "✅ Аналіз завершено!", "it": "✅ Analisi completata!"},
+    "warning_red_flag": {"lv": "🚩 Sarkanais Karogs: {warning_message}", "en": "🚩 Red Flag: {warning_message}", "ru": "🚩 Красный Флаг: {warning_message}", "uk": "🚩 Червоний Прапор: {warning_message}", "it": "🚩 Bandiera Rossa: {warning_message}"},
+    "lbl_niche": {"lv": "Slepenais ierocis (Niša):", "en": "Secret Weapon (Niche):", "ru": "Секретное оружие (Ниша):", "uk": "Секретна зброя (Ніша):", "it": "Arma Segreta (Nicchia):"},
+    "lbl_why_10x_100x": {"lv": "Kāpēc 10x-100x:", "en": "Why 10x-100x:", "ru": "Почему 10x-100x:", "uk": "Чому 10x-100x:", "it": "Perché 10x-100x:"},
+    "lbl_black_swan": {"lv": "Melnais Gulbis (risks):", "en": "Black Swan (risk):", "ru": "Черный Лебедь (риск):", "uk": "Чорний Лебідь (ризик):", "it": "Cigno Nero (rischio):"},
+    "btn_add_to_portfolio": {"lv": "➕ Pievienot manam eToro sarakstam", "en": "➕ Add to my eToro list", "ru": "➕ Добавить в мой список eToro", "uk": "➕ Додати до мого списку eToro", "it": "➕ Aggiungi alla mia lista eToro"},
+    "growth_copy_header": {"lv": "🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀", "en": "🚀 COMMANDER KVARK'S UNICORN HUNT RESULTS 🚀", "ru": "🚀 РЕЗУЛЬТАТЫ ОХОТЫ НА ЕДИНОРОГОВ КОМАНДИРА КВАРКА 🚀", "uk": "🚀 РЕЗУЛЬТАТИ ПОЛЮВАННЯ НА ЄДИНОРОГІВ КОМАНДИРА КВАРКА 🚀", "it": "🚀 RISULTATI DELLA CACCIA AGLI UNICORNI DEL COMANDANTE QUARK 🚀"},
+    "growth_copy_candidate_header": {"lv": "--- Kandidāts {idx_plus_1}: {ticker} - {name} ---", "en": "--- Candidate {idx_plus_1}: {ticker} - {name} ---", "ru": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "uk": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "it": "--- Candidato {idx_plus_1}: {ticker} - {name} ---"},
+    "growth_copy_niche": {"lv": "   Slepenais ierocis (Niša): {niche}", "en": "   Secret Weapon (Niche): {niche}", "ru": "   Секретное оружие (Ниша): {niche}", "uk": "   Секретна зброя (Ніша): {niche}", "it": "   Arma Segreta (Nicchia): {niche}"},
+    "growth_copy_why": {"lv": "   Kāpēc 10x-100x: {why}", "en": "   Why 10x-100x: {why}", "ru": "   Почему 10x-100x: {why}", "uk": "   Чому 10x-100x: {why}", "it": "   Perché 10x-100x: {why}"},
+    "growth_copy_risk": {"lv": "   Melnais Gulbis (risks): {risk}", "en": "   Black Swan (risk): {risk}", "ru": "   Черный Лебедь (риск): {risk}", "uk": "   Чорний Лебідь (ризик): {risk}", "it": "   Cigno Nero (rischio): {risk}"},
+    "growth_no_analysis_to_copy": {"lv": "Nav atrasta neviena analīze, ko kopēt.", "en": "No analysis found to copy.", "ru": "Не найдено анализа для копирования.", "uk": "Не знайдено аналізу для копіювання.", "it": "Nessuna analisi trovata da copiare."},
+    "error_title": {"lv": "Kļūda", "en": "Error", "ru": "Ошибка", "uk": "Помилка", "it": "Errore"},
+    "error_docx_missing": {"lv": "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.", "en": "To export to Word, the 'python-docx' library is required.\nInstall it with 'pip install python-docx'.", "ru": "Для экспорта в Word требуется библиотека 'python-docx'.\nУстановите ее с помощью 'pip install python-docx'.", "uk": "Для експорту в Word потрібна бібліотека 'python-docx'.\nВстановіть її за допомогою 'pip install python-docx'.", "it": "Per esportare in Word è necessaria la libreria 'python-docx'.\nInstallala con 'pip install python-docx'."},
+    "info_title": {"lv": "Info", "en": "Info", "ru": "Информация", "uk": "Інформація", "it": "Info"},
+    "info_no_data_to_export": {"lv": "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.", "en": "No data to export. Run 'Hunt New Unicorns' first.", "ru": "Нет данных для экспорта. Сначала запустите 'Искать новых единорогов'.", "uk": "Немає даних для експорту. Спочатку запустіть 'Полювання на Єдинорогів'.", "it": "Nessun dato da esportare. Avvia prima 'Caccia agli Unicorni'."},
+    "success_title": {"lv": "Saglabāts!", "en": "Saved!", "ru": "Сохранено!", "uk": "Збережено!", "it": "Salvato!"},
+    "error_saving_word_title": {"lv": "Kļūda saglabājot Word failu", "en": "Error saving Word file", "ru": "Ошибка при сохранении файла Word", "uk": "Помилка збереження файлу Word", "it": "Errore nel salvataggio del file Word"},
+
+    # Word Export specific strings
+    "word_report_title": {"lv": "🚀 Komandanta Kvarka Vienradžu Medību Atskaite", "uk": "🚀 Звіт про Полювання на Єдинорогів Командира Кварка", "ru": "🚀 Отчет об Охоте на Единорогов Командира Кварка", "it": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark", "en": "🚀 Commander Quark's Unicorn Hunt Report"},
+    "word_generated_on": {"lv": "Ģenerēts: ", "uk": "Згенеровано: ", "ru": "Сгенерировано: ", "it": "Generato il: ", "en": "Generated: "},
+    "word_analysis_basis": {"lv": "Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.", "uk": "Аналіз згенеровано на основі 4 золотих критеріїв Командира Кварка.", "ru": "Анализ сгенерирован на основе 4 золотых критериев Командира Кварка.", "it": "Analisi generata in base ai 4 criteri d'oro del Comandante Quark.", "en": "Analysis generated based on Commander Quark's 4 golden criteria."},
+    "word_red_flag": {"lv": "🚩 Sarkanais Karogs: ", "uk": "🚩 Червоний Прапор: ", "ru": "🚩 Красный Флаг: ", "it": "🚩 Bandiera Rossa: ", "en": "🚩 Red Flag: "},
+    "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): ", "uk": "Секретна зброя (Ніша): ", "ru": "Секретное оружие (Ниша): ", "it": "Arma Segreta (Nicchia): ", "en": "Secret Weapon (Niche): "},
+    "word_why_10x_100x": {"lv": "Kāpēc 10x-100x: ", "uk": "Чому 10x-100x: ", "ru": "Почему 10x-100x: ", "it": "Perché 10x-100x: ", "en": "Why 10x-100x: "},
+    "word_black_swan": {"lv": "Melnais Gulbis (risks): ", "uk": "Чорний Лебідь (ризик): ", "ru": "Черный Лебедь (риск): ", "it": "Cigno Nero (rischio): ", "en": "Black Swan (risk): "},
+    "word_output_filename_prefix": {"lv": "Kvarka_Vienradzu_Medibas_", "uk": "Kvar_Yedinorih_Polyuvannya_", "ru": "Kvar_Ohot_Yedinorog_", "it": "Quark_Caccia_Unicorni_", "en": "Quarks_Unicorn_Hunt_"},
+    "word_success_message": {"lv": "Atskaite saglabāta:\n", "uk": "Звіт збережено:\n", "ru": "Отчет сохранен в:\n", "it": "Rapporto salvato in:\n", "en": "Report saved to:\n"},
+    "word_error_saving_message": {"lv": "Radās kļūda saglabājot Word failu: ", "uk": "Виникла помилка під час збереження файlu Word: ", "ru": "Произошла ошибка при сохранении файла Word: ", "it": "Error saving Word file: ", "en": "Error saving Word file: "},
+
+    # Dividends Tab:
+    "lbl_cashflow_radar_title": {"lv": "💰 NAUDAS PLŪSMAS RADARS", "en": "💰 CASH FLOW RADAR", "ru": "💰 РАДАР ДЕНЕЖНОГО ПОТОКА", "uk": "💰 РАДАР ГРОШОВОГО ПОТОКУ", "it": "💰 RADAR DEL FLUSSO DI CASSA"},
+    "lbl_cashflow_radar_desc": {"lv": "Aprēķina pasīvo dividenžu ienesīgumu no portfeļa akcijām.", "en": "Calculates passive dividend yield from portfolio stocks.", "ru": "Рассчитывает пассивную дивидендную доходность от акций портфеля.", "uk": "Розраховує пасивний дивідендний дохід від акцій портфеля.", "it": "Calcola il rendimento da dividendi passivi dalle azioni del portafoglio."},
+    "btn_calc_dividends": {"lv": "⚡ Aprēķināt Dividenžu Plūsmu", "en": "⚡ Calculate Dividend Flow", "ru": "⚡ Рассчитать Дивидендный Поток", "uk": "⚡ Розрахувати Дивідендний Потік", "it": "⚡ Calcola Flusso Dividendi"},
+    "dividends_initial_msg": {"lv": "Nospiediet pogu, lai nolasītu dividenžu datus...", "en": "Press the button to fetch dividend data...", "ru": "Нажмите кнопку, чтобы получить данные о дивидендах...", "uk": "Натисніть кнопку, щоб отримати дані про дивіденди...", "it": "Premi il pulsante per recuperare i dati sui dividendi..."},
+    "dividends_initial_analysis_msg": {"lv": "Gaidu dividenžu skenēšanas palaišanu...", "en": "Awaiting dividend scan initiation...", "ru": "Ожидаю запуск сканирования дивидендов...", "uk": "Очікую запуск сканування дивідендів...", "it": "In attesa dell'avvio della scansione dei dividendi..."},
+    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Збирає дані про дивіденди...", "it": "⏳ Raccolta dati dividendi..."},
+    "dividends_scan_progress1": {"lv": "Pārbauda {len_tickers} aktīvus tirgū...\n", "en": "Checking {len_tickers} assets in the market...\n", "ru": "Проверяет {len_tickers} активов на рынке...\n", "uk": "Перевіряє {len_tickers} активів на ринку...\n", "it": "Controllando {len_tickers} asset sul mercato...\n"},
+    "dividends_scan_progress2": {"lv": "Kvarks apkopo naudas plūsmas kalendāru...\n", "en": "Quark compiles the cash flow calendar...\n", "ru": "Кварк составляет календарь денежного потока...\n", "uk": "Кварк складає календар грошового потоку...\n", "it": "Quark compila il calendario dei flussi di cassa...\n"},
+    "dividends_summary_header": {"lv": "=== DIVIDENŽU PĀRSKATS ===", "en": "=== DIVIDEND OVERVIEW ===", "ru": "=== ОБЗОР ДИВИДЕНДОВ ===", "uk": "=== ОГЛЯД ДИВІДЕНДІВ ===", "it": "=== RIEPILOGO DIVIDENDI ==="},
+    "dividends_date_na": {"lv": "Nav norādīts", "en": "Not specified", "ru": "Не указано", "uk": "Не вказано", "it": "Non specificato"},
+    "dividends_not_paying": {"lv": "Dividendes nemaksā", "en": "Does not pay dividends", "ru": "Дивиденды не выплачивает", "uk": "Дивіденди не виплачує", "it": "Non paga dividendi"},
+    "dividends_error_fetching": {"lv": "Kļūda: {e}", "en": "Error: {e}", "ru": "Ошибка: {e}", "uk": "Помилка: {e}", "it": "Errore: {e}"},
+    "dividends_champions": {"lv": "💵 PASĪVĀS NAUDAS ČEMPIONI", "en": "💵 PASSIVE CASH CHAMPIONS", "ru": "💵 ЧЕМПИОНЫ ПО ПАССИВНЫМ ДЕНЬГАМ", "uk": "💵 ЧЕМПІОНИ З ПАСИВНИХ ГРОШЕЙ", "it": "💵 CAMPIONI DEL FLUSSO DI CASSA PASSIVO"},
+    "dividends_sustainability_risks": {"lv": "⚠️ ILGTSPĒJAS RISKI", "en": "⚠️ SUSTAINABILITY RISKS", "ru": "⚠️ РИСКИ УСТОЙЧИВОСТИ", "uk": "⚠️ РИЗИКИ СТАЛОСТІ", "it": "⚠️ RISCHI DI SOSTENIBILITÀ"},
+    "dividends_reinvestment_strategy": {"lv": "🔄 REINVESTĒŠANAS STRATĒĢIJA", "en": "🔄 REINVESTMENT STRATEGY", "ru": "🔄 СТРАТЕГИЯ РЕИНВЕСТИРОВАНИЯ", "uk": "🔄 СТРАТЕГІЯ РЕІНВЕСТУВАННЯ", "it": "🔄 STRATEGIA DI REINVESTIMENTO"},
+    "error_gemini_dividends": {"lv": "⚠️ Gemini kļūda: {e}", "en": "⚠️ Gemini error: {e}", "ru": "⚠️ Ошибка Gemini: {e}", "uk": "⚠️ Помилка Gemini: {e}", "it": "⚠️ Errore Gemini: {e}"},
+    "dividends_no_companies": {"lv": "Portfelī nav atrasts neviens uzņēmums, kas maksā dividendes.", "en": "No dividend-paying companies found in portfolio.", "ru": "В портфеле не найдено ни одной компании, выплачивающей дивиденды.", "uk": "У портфелі не знайдено жодної компанії, яка виплачує дивіденди.", "it": "Nessuna azienda che paga dividendi trovata nel portfolio."},
+    "error_api_key_unavailable": {"lv": "Nav pieejama API atslēga.", "en": "API key not available.", "ru": "Ключ API недоступен.", "uk": "Ключ API недоступний.", "it": "Chiave API non disponibile."},
+
+    # Market Tab:
+    "lbl_market_sentiment_title": {"lv": "🌡️ TIRGUS NOSKAŅOJUMS", "en": "🌡️ MARKET SENTIMENT", "ru": "🌡️ НАСТРОЕНИЕ РЫНКА", "uk": "🌡️ НАСТРІЙ РИНКУ", "it": "🌡️ SENTIMENTO DI MERCATO"},
+    "lbl_fng_loading": {"lv": "Fear & Greed: Ielādē...", "en": "Fear & Greed: Loading...", "ru": "Индекс страха и жадности: Загрузка...", "uk": "Страх і жадібність: Завантаження...", "it": "Fear & Greed: Caricamento..."},
+    "btn_refresh_market_intel": {"lv": "⚡ Atjaunot Klimatu & Insaiderus", "en": "⚡ Refresh Climate & Insiders", "ru": "⚡ Обновить Климат и Инсайдеров", "uk": "⚡ Оновити Клімат та Інсайдерів", "it": "⚡ Aggiorna Clima & Insider"},
+    "insider_initial_msg": {"lv": "Nospiediet pogu, lai ielādētu insaideru datus un noskaņojumu...", "en": "Press the button to load insider data and sentiment...", "ru": "Нажмите кнопку, чтобы загрузить данные инсайдеров и настроение...", "uk": "Натисніть кнопку, щоб завантажити дані інсайдерів та настрій...", "it": "Premi il pulsante per caricare i dati e il sentimento degli insider..."},
+    "market_news_initial_msg": {"lv": "Gaidu datu pieprasījumu...", "en": "Awaiting data request...", "ru": "Ожидаю запрос данных...", "uk": "Очікую запит даних...", "it": "In attesa di richiesta dati..."},
+    "btn_refresh_market_intel_loading": {"lv": "⏳ Vāc makro datus & Kvarks analizē...", "en": "⏳ Collecting macro data & Quark analyzing...", "ru": "⏳ Собирает макроданные и Кварк анализирует...", "uk": "⏳ Збирає макродані та Кварк аналізує...", "it": "⏳ Raccolta dati macro & Analisi di Quark..."},
+    "fng_not_available": {"lv": "Fear & Greed: Nav pieejams", "en": "Fear & Greed: Not available", "ru": "Индекс страха и жадности: Недоступен", "uk": "Страх і жадібність: Недоступно", "it": "Fear & Greed: Non disponibile"},
+    "macro_liquidity_header": {"lv": "=== MAKRO & LIKVIDITĀTE ===", "en": "=== MACRO & LIQUIDITY ===", "ru": "=== МАКРО И ЛИКВИДНОСТЬ ===", "uk": "=== МАКРО ТА ЛІКВІДНІСТЬ ===", "it": "=== MACRO & LIQUIDITÀ ==="},
+    "macro_us10y": {"lv": "ASV 10Y Yield", "en": "US 10Y Yield", "ru": "Доходность 10-летних облигаций США", "uk": "Прибутковість 10-річних облігацій США", "it": "Rendimento USA 10Y"},
+    "macro_gold": {"lv": "Zelts (Gold)", "en": "Gold", "ru": "Золото (Gold)", "uk": "Золото (Gold)", "it": "Oro (Gold)"},
+    "macro_bitcoin": {"lv": "Bitcoin (BTC)", "en": "Bitcoin (BTC)", "ru": "Биткойн (BTC)", "uk": "Біткойн (BTC)", "it": "Bitcoin (BTC)"},
+    "macro_na": {"lv": "N/A", "en": "N/A", "ru": "Н/Д", "uk": "Н/Д", "it": "N/D"},
+    "insider_transactions_header": {"lv": "\n=== INSAIDERU TRANSAKCIJAS (Finnhub) ===", "en": "\n=== INSIDER TRANSACTIONS (Finnhub) ===", "ru": "\n=== ИНСАЙДЕРСКИЕ СДЕЛКИ (Finnhub) ===", "uk": "\n=== ІНСАЙДЕРСЬКІ ОПЕРАЦІЇ (Finnhub) ===", "it": "\n=== TRANSAZIONI INSIDER (Finnhub) ==="},
+    "insider_buy": {"lv": "🟢 PĒRK", "en": "🟢 BUY", "ru": "🟢 ПОКУПАЕТ", "uk": "🟢 КУПУЄ", "it": "🟢 ACQUISTA"},
+    "insider_sell": {"lv": "🔴 PĀRDOD", "en": "🔴 SELL", "ru": "🔴 ПРОДАЕТ", "uk": "🔴 ПРОДАЄ", "it": "🔴 VENDE"},
+    "insider_neutral": {"lv": "⚪ NEITRĀLS", "en": "⚪ NEUTRAL", "ru": "⚪ НЕЙТРАЛЬНО", "uk": "⚪ НЕЙТРАЛЬНО", "it": "⚪ NEUTRALE"},
+    "insider_no_major_deals": {"lv": "⚪ Mierīgs (nav lielu darījumu)", "en": "⚪ Calm (no major deals)", "ru": "⚪ Спокойно (нет крупных сделок)", "uk": "⚪ Спокійно (немає великих угод)", "it": "⚪ Calmo (nessuna transazione importante)"},
+    "insider_data_error": {"lv": "Kļūda datos", "en": "Error in data", "ru": "Ошибка в данных", "uk": "Помилка в даних", "it": "Errore nei dati"},
+    "error_finnhub_key_missing": {"lv": "⚠️ config.json trūkst 'finnhub_api_key'!", "en": "⚠️ 'finnhub_api_key' missing from config.json!", "ru": "⚠️ В config.json отсутствует 'finnhub_api_key'!", "uk": "⚠️ У config.json відсутній 'finnhub_api_key'!", "it": "⚠️ 'finnhub_api_key' mancante in config.json!"},
+    "news_headlines_header": {"lv": "=== SVARĪGĀKĀS ZIŅAS ===", "en": "=== TOP HEADLINES ===", "ru": "=== ВАЖНЕЙШИЕ НОВОСТИ ===", "uk": "=== НАЙВАЖЛИВІШІ НОВИНИ ===", "it": "=== TITOLI PRINCIPALI ==="},
+    "news_no_aggressive": {"lv": "Nav agresīvu ziņu triecienu", "en": "No aggressive news strikes", "ru": "Нет агрессивных новостных ударов", "uk": "Немає агресивних новинних ударів", "it": "Nessun attacco di notizie aggressive"},
+    "kvark_strategic_resolution": {"lv": "🐾 KOMANDANTA KVARKA STRATĒĢISKĀ REZOLŪCIJA:\n", "en": "🐾 COMMANDER KVARK'S STRATEGIC RESOLUTION:\n", "ru": "🐾 СТРАТЕГИЧЕСКАЯ РЕЗОЛЮЦИЯ КОМАНДИРА КВАРКА:\n", "uk": "🐾 СТРАТЕГІЧНА РЕЗОЛЮЦІЯ КОМАНДИРА КВАРКА:\n", "it": "🐾 RISOLUZIONE STRATEGICA DEL COMANDANTE QUARK:\n"},
+    "error_kvark_market_intel": {"lv": "⚠️ Kvarka kļūda: {e}", "en": "⚠️ Quark's error: {e}", "ru": "⚠️ Ошибка Кварка: {e}", "uk": "⚠️ Помилка Кварка: {e}", "it": "⚠️ Errore di Quark: {e}"},
+
+    # Shared/Generic:
+    "rentgen_initial_msg": {"lv": "Ievadiet tikeri un nospiediet 'Rentgens'...", "en": "Enter ticker and press 'X-Ray'...", "ru": "Введите тикер и нажмите 'Рентген'...", "uk": "Введіть тікер і натисніть 'Рентген'...", "it": "Inserisci il ticker e premi 'Raggi X'..."},
+    "rentgen_generating_analysis_msg": {"lv": "Kvarks ģenerē fundamentālo analīzi...\n", "en": "Quark is generating fundamental analysis...\n", "ru": "Кварк генерирует фундаментальный анализ...\n", "uk": "Кварк генерує фундаментальний аналіз...\n", "it": "Quark sta generando l'analisi fondamentale...\n"},
+    "source_changed_msg": {"lv": "Avota kanāls pārslēgts uz: {source}. Gaidu jaunu signālu 'Rentgens'!", "en": "Source channel switched to: {source}. Awaiting new 'X-Ray' signal!", "ru": "Канал источника переключен на: {source}. Ожидаю новый сигнал 'Рентген'!", "uk": "Канал джерела перемкнено на: {source}. Очікую новий сигнал 'Рентген'!", "it": "Canale sorgente cambiato in: {source}. In attesa di nuovo segnale 'Raggi X'!"},
+    "fetching_data_msg": {"lv": "Nolasa tirgus datus par {ticker} no {source}...\n", "en": "Fetching market data for {ticker} from {source}...\n", "ru": "Получение рыночных данных для {ticker} из {source}...\n", "uk": "Отримання ринкових даних для {ticker} з {source}...\n", "it": "Recupero dati di mercato per {ticker} da {source}...\n"},
+    "ticker_info_header": {"lv": "=== {short_name} ({ticker}) ===", "en": "=== {short_name} ({ticker}) ===", "ru": "=== {short_name} ({ticker}) ===", "uk": "=== {short_name} ({ticker}) ===", "it": "=== {short_name} ({ticker}) ==="},
+    "price_label": {"lv": "Cena:             {price} {currency}", "en": "Price:             {price} {currency}", "ru": "Цена:             {price} {currency}", "uk": "Ціна:             {price} {currency}", "it": "Prezzo:             {price} {currency}"},
+    "52week_range_label": {"lv": "52 ned. diapazons:{low_52} - {high_52} {currency}", "en": "52 wk. range:    {low_52} - {high_52} {currency}", "ru": "Диапазон 52 нед.:{low_52} - {high_52} {currency}", "uk": "Діапазон 52 тижнів:{low_52} - {high_52} {currency}", "it": "Intervallo 52 sett.:{low_52} - {high_52} {currency}"},
+    "pe_label": {"lv": "P/E (faktiskais): {pe}", "en": "P/E (actual):    {pe}", "ru": "P/E (фактический): {pe}", "uk": "P/E (фактичний): {pe}", "it": "P/E (effettivo): {pe}"},
+    "fwd_pe_label": {"lv": "P/E (prognoze):   {fwd_pe}", "en": "P/E (forecast):  {fwd_pe}", "ru": "P/E (прогноз):   {fwd_pe}", "uk": "P/E (прогноз):   {fwd_pe}", "it": "P/E (previsto):   {fwd_pe}"},
+    "peg_ratio_label": {"lv": "PEG koeficients:  {peg}", "en": "PEG ratio:       {peg}", "ru": "Коэффициент PEG:  {peg}", "uk": "Коефіцієнт PEG:  {peg}", "it": "Rapporto PEG:      {peg}"},
+    "dividends_label": {"lv": "Dividendes:       {div_str}", "en": "Dividends:       {div_str}", "ru": "Дивиденды:       {div_str}", "uk": "Дивіденди:       {div_str}", "it": "Dividendi:       {div_str}"},
+    "analyst_rating_label": {"lv": "Analītiķu vērt.:  {rec}", "en": "Analyst rating:  {rec}", "ru": "Оценка аналитиков:  {rec}", "uk": "Оцінка аналітиків:  {rec}", "it": "Valutazione analisti:  {rec}"},
+    "target_price_label": {"lv": "Mērķa vid. cena:  {target_mean} {currency}", "en": "Target avg. price: {target_mean} {currency}", "ru": "Целевая сред. цена: {target_mean} {currency}", "uk": "Цільова сер. ціна: {target_mean} {currency}", "it": "Prezzo medio target: {target_mean} {currency}"},
+    "unknown_value": {"lv": "Nezināms", "en": "Unknown", "ru": "Неизвестно", "uk": "Невідомо", "it": "Sconosciuto"},
+    "error_fetching_ticker_data": {"lv": "⚠️ Kļūda nolasot {ticker}: {e}", "en": "⚠️ Error fetching {ticker}: {e}", "ru": "⚠️ Ошибка при получении {ticker}: {e}", "uk": "⚠️ Помилка при отриманні {ticker}: {e}", "it": "⚠️ Errore nel recupero {ticker}: {e}"},
+    "analysis_disclaimer_summary": {"lv": "Informatīvs analīzes kopsavilkums.", "en": "Informative analysis summary.", "ru": "Информативное резюме анализа.", "uk": "Інформативне резюме аналізу.", "it": "Riepilogo analitico informativo."}
 }
 
-# Helper function for localization (NEW)
-def t(key):
-    # Default to Latvian if i18n not available or for fallback
-    # Normalize language code to lowercase (Task 1)
-    current_lang = str(i18n.get_ui_language()).lower().strip() if HAS_I18N else "lv"
-    # Return translation for the current language, or fallback to 'lv' if current_lang not found, or key itself if not found
-    return TRANSLATIONS.get(key, {}).get(current_lang, TRANSLATIONS.get(key, {}).get("lv", key))
+# Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
+# This should only happen ONCE upon module load.
+if HAS_I18N:
+    i18n_locales_data = {}
+    for key, translations_for_key in TRANSLATIONS.items():
+        for lang_code, text in translations_for_key.items():
+            if lang_code not in i18n_locales_data:
+                i18n_locales_data[lang_code] = {}
+            i18n_locales_data[lang_code][key] = text
+    i18n.set_dictionary(i18n_locales_data)
+    if not i18n.get('locale'): # Set default if not externally configured by master app
+        i18n.set('locale', 'lv') # Default to Latvian
+    i18n.set('fallback', 'en') # Fallback language, useful for missing keys
+    i18n.set('skip_locale_root_data', True) # This is important to allow flat key structure directly under locale
+else:
+    # Define dummy functions if i18n is not available to prevent crashes
+    class DummyI18nModule: # Create a dummy class to emulate the module
+        def get_ui_language(self): return "lv" # Default to Latvian
+        def t(self, key, **kwargs): # Dummy t function uses global TRANSLATIONS
+            # This logic mimics the old custom t for fallback behavior
+            current_lang = "lv"
+            # Attempt to format if kwargs are provided
+            translated_text = TRANSLATIONS.get(key, {}).get(current_lang, TRANSLATIONS.get(key, {}).get("en", key))
+            if kwargs:
+                try:
+                    return translated_text.format(**kwargs)
+                except KeyError:
+                    return translated_text + f" (Formatting error for key '{key}')"
+            return translated_text
 
-# Existing GROWTH_WATCHLIST - will be used as initial suggestions for AI
+        def set_dictionary(self, data): pass # Dummy
+        def get(self, key): # Dummy for get('locale')
+            if key == 'locale': return "lv"
+            return None
+        def set(self, key, value): pass # Dummy for i18n.set method
+
+    i18n = DummyI18nModule() # Instantiate the dummy module
+    def get_llm_language_instruction(): return "Respond in Latvian." # Default instruction for Latvian
+
+# Helper function for localization, now just an alias to i18n.t (NEW)
+# No longer defines a custom 't' function as per instructions to use i18n.t
+# All calls to 't(key)' will now be replaced with 'i18n.t(key)'
+# The direct i18n.t() calls can accept kwargs for formatting.
+
+
 GROWTH_WATCHLIST = [
     {"ticker": "PLTR", "name": "Palantir (Enterprise AI / Defense)"},
     {"ticker": "ARM", "name": "ARM Holdings (AI & Mobile Chips)"},
@@ -90,11 +267,12 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.tabview = ctk.CTkTabview(self, fg_color="#0f172a", segmented_button_fg_color="#1e293b")
         self.tabview.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.tab_rentgen = self.tabview.add("🔍 Viena Tikera Rentgens")
-        self.tab_portfolio = self.tabview.add("💼 Mans eToro Portfelis & Audits")
-        self.tab_growth = self.tabview.add("🚀 Kvarka Izaugsmes Mednieks")
-        self.tab_dividends = self.tabview.add("💰 Dividendes & Naudas Plūsma")
-        self.tab_market = self.tabview.add("🕵️ Tirgus Klimats & Insaideri")
+        # Tab creation using i18n.t for initial names (NEW)
+        self.tab_rentgen = self.tabview.add(i18n.t("tab_inv_single"))
+        self.tab_portfolio = self.tabview.add(i18n.t("tab_inv_etoro"))
+        self.tab_growth = self.tabview.add(i18n.t("tab_inv_unicorns"))
+        self.tab_dividends = self.tabview.add(i18n.t("tab_inv_dividends"))
+        self.tab_market = self.tabview.add(i18n.t("tab_inv_insiders"))
 
         self._setup_rentgen_tab()
         self._setup_portfolio_tab()
@@ -107,25 +285,95 @@ class InvestorStudioFrame(ctk.CTkFrame):
         Refreshes all localizable UI widget texts based on the current i18n language.
         This method should be called when the UI language changes.
         """
+        # Update main tabview segmented buttons (NEW for Instruction 3)
+        if hasattr(self, "tabview"):
+            try:
+                # Get references to the actual buttons within the segmented_button widget
+                btns = list(self.tabview._segmented_button._buttons_dict.values())
+                keys = ["tab_inv_single", "tab_inv_etoro", "tab_inv_unicorns", "tab_inv_dividends", "tab_inv_insiders"]
+                for i, k in enumerate(keys):
+                    if i < len(btns):
+                        btns[i].configure(text=i18n.t(k))
+            except Exception as e:
+                # print(f"Error refreshing tabview buttons: {e}") # Debugging
+                pass
+
         # Update elements in Rentgen tab
         if hasattr(self, 'lbl_ticker_title'):
-            self.lbl_ticker_title.configure(text=t("lbl_ticker_analysis"))
+            self.lbl_ticker_title.configure(text=i18n.t("lbl_ticker_analysis"))
         if hasattr(self, 'btn_analyze'):
-            # Only update text if not in a loading state, otherwise, the loading text would be overwritten
             current_btn_text = self.btn_analyze.cget("text")
-            if not current_btn_text.startswith("⏳"): # Check if it's currently a loading state
-                self.btn_analyze.configure(text=t("btn_rentgens"))
-        
+            if not current_btn_text.startswith("⏳"):
+                self.btn_analyze.configure(text=i18n.t("btn_rentgens"))
+        if hasattr(self, "lbl_resolution_title"): # NEW for Instruction 3
+            self.lbl_resolution_title.configure(text=i18n.t("lbl_inv_resolution_title"))
+
+        # Update elements in Portfolio tab
+        if hasattr(self, 'lbl_portfolio_title'):
+            self.lbl_portfolio_title.configure(text=i18n.t("lbl_portfolio_title"))
+        if hasattr(self, 'lbl_portfolio_tickers_desc'):
+            self.lbl_portfolio_tickers_desc.configure(text=i18n.t("lbl_portfolio_tickers_desc"))
+        if hasattr(self, 'lbl_portfolio_cash_balance'):
+            self.lbl_portfolio_cash_balance.configure(text=i18n.t("lbl_portfolio_cash_balance"))
+        if hasattr(self, 'lbl_portfolio_risk_strategy'):
+            self.lbl_portfolio_risk_strategy.configure(text=i18n.t("lbl_portfolio_risk_strategy"))
+        if hasattr(self, 'seg_risk'):
+            self.seg_risk.configure(values=[i18n.t("seg_risk_conservative"), i18n.t("seg_risk_venture_growth")])
+            # Re-set the selected value to ensure the text updates
+            current_selection = i18n.t("seg_risk_conservative") if "Konservatīvs" in self.seg_risk.get() else i18n.t("seg_risk_venture_growth")
+            self.seg_risk.set(current_selection)
+        if hasattr(self, 'btn_save_p'):
+            self.btn_save_p.configure(text=i18n.t("btn_save_portfolio"))
+        if hasattr(self, 'btn_audit'):
+            current_btn_text = self.btn_audit.cget("text")
+            if not current_btn_text.startswith("⏳"):
+                self.btn_audit.configure(text=i18n.t("btn_audit_portfolio"))
+        if hasattr(self, 'btn_copy_audit'):
+            self.btn_copy_audit.configure(text=i18n.t("btn_copy_summary"))
+
+
         # Update elements in Growth tab
+        if hasattr(self, 'lbl_growth_radar_title'):
+            self.lbl_growth_radar_title.configure(text=i18n.t("lbl_potential_radar")) # Re-using existing key
+        if hasattr(self, 'lbl_growth_description'):
+            self.lbl_growth_description.configure(text=i18n.t("lbl_growth_description"))
         if hasattr(self, 'btn_scan_all_growth'):
             current_btn_text = self.btn_scan_all_growth.cget("text")
-            if not current_btn_text.startswith("⏳"): # Check if it's currently a loading state
-                self.btn_scan_all_growth.configure(text=t("btn_hunt_unicorns"))
+            if not current_btn_text.startswith("⏳"):
+                self.btn_scan_all_growth.configure(text=i18n.t("btn_hunt_unicorns"))
+        if hasattr(self, 'lbl_growth_resolution_title'): # NEW for Instruction 2
+            self.lbl_growth_resolution_title.configure(text=i18n.t("lbl_inv_growth_resolution_title"))
+        if hasattr(self, 'btn_copy_growth'):
+            self.btn_copy_growth.configure(text=i18n.t("btn_copy_analysis"))
         if hasattr(self, 'btn_export_word'):
-            self.btn_export_word.configure(text=t("btn_save_word"))
+            self.btn_export_word.configure(text=i18n.t("btn_save_word"))
         
-        # Note: Other labels (e.g., lbl_resolution) are not instance attributes and cannot be reconfigured directly.
-        # Dynamic content in textboxes or scrollable frames (e.g., stats_box, analysis_box, growth_results_container)
+        # Update elements in Dividends tab
+        if hasattr(self, 'lbl_cashflow_radar_title'):
+            self.lbl_cashflow_radar_title.configure(text=i18n.t("lbl_cashflow_radar_title"))
+        if hasattr(self, 'lbl_cashflow_radar_desc'):
+            self.lbl_cashflow_radar_desc.configure(text=i18n.t("lbl_cashflow_radar_desc"))
+        if hasattr(self, 'btn_calc_dividends'):
+            current_btn_text = self.btn_calc_dividends.cget("text")
+            if not current_btn_text.startswith("⏳"):
+                self.btn_calc_dividends.configure(text=i18n.t("btn_calc_dividends"))
+        if hasattr(self, 'lbl_dividends_resolution_title'): # NEW for Instruction 2
+            self.lbl_dividends_resolution_title.configure(text=i18n.t("lbl_inv_dividends_resolution_title"))
+
+        # Update elements in Market tab
+        if hasattr(self, 'lbl_market_sentiment_title'):
+            self.lbl_market_sentiment_title.configure(text=i18n.t("lbl_market_sentiment_title"))
+        if hasattr(self, 'lbl_fng'):
+            self.lbl_fng.configure(text=i18n.t("lbl_fng_loading")) # Reset to loading state text, actual value refreshed by worker
+        if hasattr(self, 'btn_refresh_market'):
+            current_btn_text = self.btn_refresh_market.cget("text")
+            if not current_btn_text.startswith("⏳"):
+                self.btn_refresh_market.configure(text=i18n.t("btn_refresh_market_intel"))
+        if hasattr(self, 'lbl_market_news_title'): # NEW for Instruction 2
+            self.lbl_market_news_title.configure(text=i18n.t("lbl_inv_market_news_title"))
+
+
+        # Note: Dynamic content in textboxes or scrollable frames (e.g., stats_box, analysis_box, growth_results_container)
         # would require re-running their content generation logic if they contained fixed strings.
         # This refresh focuses on static widget properties as requested.
 
@@ -145,7 +393,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
         # Assigned to self.lbl_ticker_title for refresh_ui method
-        self.lbl_ticker_title = ctk.CTkLabel(left, text=t("lbl_ticker_analysis"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8")
+        self.lbl_ticker_title = ctk.CTkLabel(left, text=i18n.t("lbl_ticker_analysis"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8")
         self.lbl_ticker_title.pack(anchor="w", padx=15, pady=(15, 6))
 
         # NEW: Data Source Selection Segmented Button
@@ -168,7 +416,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.entry_ticker.pack(side="left", padx=(0, 6))
         self.entry_ticker.bind("<Return>", lambda e: self.start_single_analysis())
 
-        self.btn_analyze = ctk.CTkButton(in_row, text=t("btn_rentgens"), width=85, height=32, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_single_analysis)
+        self.btn_analyze = ctk.CTkButton(in_row, text=i18n.t("btn_rentgens"), width=85, height=32, fg_color="#0284c7", hover_color="#0369a1", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_single_analysis)
         self.btn_analyze.pack(side="left")
 
         q_frame = ctk.CTkFrame(left, fg_color="transparent")
@@ -178,13 +426,15 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         self.stats_box = ctk.CTkTextbox(left, fg_color="#0b1329", font=ctk.CTkFont(family="Consolas", size=11), corner_radius=8)
         self.stats_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.stats_box.insert("1.0", "Ievadiet tikeri un nospiediet 'Rentgens'...") # This string was not specified for localization.
+        self.stats_box.insert("1.0", i18n.t("rentgen_initial_msg"))
         self.stats_box.configure(state="disabled")
 
-        ctk.CTkLabel(right, text=t("lbl_resolution"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6))
+        # Assigned to self.lbl_resolution_title for refresh_ui method (NEW for Instruction 2)
+        self.lbl_resolution_title = ctk.CTkLabel(right, text=i18n.t("lbl_inv_resolution_title"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b")
+        self.lbl_resolution_title.pack(anchor="w", padx=15, pady=(15, 6))
         self.analysis_box = ctk.CTkTextbox(right, fg_color="#0b1329", text_color="#f8fafc", font=ctk.CTkFont(size=12), wrap="word", corner_radius=8)
         self.analysis_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.analysis_box.insert("1.0", t("txt_waiting"))
+        self.analysis_box.insert("1.0", i18n.t("txt_waiting"))
         self.analysis_box.configure(state="disabled")
 
     def _on_source_change(self, val):
@@ -192,7 +442,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.selected_source = val
         self.stats_box.configure(state="normal")
         self.stats_box.delete("1.0", "end")
-        self.stats_box.insert("1.0", f"Avota kanāls pārslēgts uz: {self.selected_source}. Gaidu jaunu signālu 'Rentgens'!") # Tactical message
+        self.stats_box.insert("1.0", i18n.t("source_changed_msg", source=self.selected_source))
         self.stats_box.configure(state="disabled")
 
     def _quick_set(self, t_ticker_btn):
@@ -204,15 +454,15 @@ class InvestorStudioFrame(ctk.CTkFrame):
         t_ticker_analysis = self.entry_ticker.get().strip().upper()
         if not t_ticker_analysis:
             return
-        self.btn_analyze.configure(state="disabled", text=f"⏳ {t('btn_rentgens')}...") # Modified for progress
+        self.btn_analyze.configure(state="disabled", text=i18n.t("btn_hunt_unicorns_loading", btn_text=i18n.t("btn_rentgens"))) # Dynamic loading text
         self.stats_box.configure(state="normal")
         self.stats_box.delete("1.0", "end")
-        self.stats_box.insert("1.0", f"Nolasa tirgus datus par {t_ticker_analysis} no {self.selected_source}...\n") # Added source to message
+        self.stats_box.insert("1.0", i18n.t("fetching_data_msg", ticker=t_ticker_analysis, source=self.selected_source))
         self.stats_box.configure(state="disabled")
 
         self.analysis_box.configure(state="normal")
         self.analysis_box.delete("1.0", "end")
-        self.analysis_box.insert("1.0", "Kvarks ģenerē fundamentālo analīzi...\n") # This string was not specified for localization.
+        self.analysis_box.insert("1.0", i18n.t("rentgen_generating_analysis_msg"))
         self.analysis_box.configure(state="disabled")
 
         threading.Thread(target=self._single_worker, args=(t_ticker_analysis,), daemon=True).start()
@@ -222,7 +472,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         ai_reply = self._ask_gemini_single(payload, stats_text)
 
         def _ui():
-            self.btn_analyze.configure(state="normal", text=t("btn_rentgens"))
+            self.btn_analyze.configure(state="normal", text=i18n.t("btn_rentgens"))
             self.stats_box.configure(state="normal")
             self.stats_box.delete("1.0", "end")
             self.stats_box.insert("1.0", stats_text)
@@ -250,35 +500,39 @@ class InvestorStudioFrame(ctk.CTkFrame):
         right = ctk.CTkFrame(f, fg_color="#131b2e", corner_radius=10)
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(left, text="💼 MANAS ETORO AKCIJAS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 4))
-        ctk.CTkLabel(left, text="Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", font=ctk.CTkFont(size=13), text_color="#94a3b8", justify="left").pack(anchor="w", padx=15, pady=(0, 6))
+        self.lbl_portfolio_title = ctk.CTkLabel(left, text=i18n.t("lbl_portfolio_title"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8")
+        self.lbl_portfolio_title.pack(anchor="w", padx=15, pady=(15, 4))
+        self.lbl_portfolio_tickers_desc = ctk.CTkLabel(left, text=i18n.t("lbl_portfolio_tickers_desc"), font=ctk.CTkFont(size=13), text_color="#94a3b8", justify="left")
+        self.lbl_portfolio_tickers_desc.pack(anchor="w", padx=15, pady=(0, 6))
 
         self.txt_my_portfolio = ctk.CTkTextbox(left, fg_color="#0b1329", font=ctk.CTkFont(size=12), height=140)
         self.txt_my_portfolio.pack(fill="x", padx=15, pady=(0, 10))
 
         cash_row = ctk.CTkFrame(left, fg_color="transparent")
         cash_row.pack(fill="x", padx=15, pady=(0, 10))
-        ctk.CTkLabel(cash_row, text="💵 Brīvais atlikums (USD):", font=ctk.CTkFont(size=12)).pack(side="left")
+        self.lbl_portfolio_cash_balance = ctk.CTkLabel(cash_row, text=i18n.t("lbl_portfolio_cash_balance"), font=ctk.CTkFont(size=12))
+        self.lbl_portfolio_cash_balance.pack(side="left")
         self.entry_cash = ctk.CTkEntry(cash_row, width=90, height=28, font=ctk.CTkFont(size=12, weight="bold"))
         self.entry_cash.pack(side="left", padx=10)
         self.entry_cash.insert(0, "373.00")
 
         # Riska profila slēdzis
-        ctk.CTkLabel(
-            left, 
-            text="🎯 Riska Stratēģija:", 
-            font=ctk.CTkFont(size=11, weight="bold"), 
+        self.lbl_portfolio_risk_strategy = ctk.CTkLabel(
+            left,
+            text=i18n.t("lbl_portfolio_risk_strategy"),
+            font=ctk.CTkFont(size=11, weight="bold"),
             text_color="#94a3b8"
-        ).pack(anchor="w", padx=15, pady=(4, 2))
+        )
+        self.lbl_portfolio_risk_strategy.pack(anchor="w", padx=15, pady=(4, 2))
 
         self.seg_risk = ctk.CTkSegmentedButton(
             left,
-            values=["🛡️ Konservatīvs (5-10%)", "🚀 Venture & Growth"],
+            values=[i18n.t("seg_risk_conservative"), i18n.t("seg_risk_venture_growth")],
             height=28,
             selected_color="#0284c7",
             selected_hover_color="#0369a1"
         )
-        self.seg_risk.set("🛡️ Konservatīvs (5-10%)")
+        self.seg_risk.set(i18n.t("seg_risk_conservative"))
         self.seg_risk.pack(fill="x", padx=15, pady=(0, 12))
 
         # Pogu rinda
@@ -286,23 +540,23 @@ class InvestorStudioFrame(ctk.CTkFrame):
         btn_row.pack(fill="x", padx=15, pady=(0, 10))
 
         self.btn_save_p = ctk.CTkButton(
-            btn_row, 
-            text="💾 Saglabāt", 
-            width=80, 
-            height=34, 
-            fg_color="#334155", 
-            hover_color="#475569", 
+            btn_row,
+            text=i18n.t("btn_save_portfolio"),
+            width=80,
+            height=34,
+            fg_color="#334155",
+            hover_color="#475569",
             command=self.save_portfolio
         )
         self.btn_save_p.pack(side="left", padx=(0, 8))
 
         self.btn_audit = ctk.CTkButton(
-            btn_row, 
-            text="🐾 Kvarka Audits", 
-            height=34, 
-            fg_color="#059669", 
-            hover_color="#10b981", 
-            font=ctk.CTkFont(size=12, weight="bold"), 
+            btn_row,
+            text=i18n.t("btn_audit_portfolio"),
+            height=34,
+            fg_color="#059669",
+            hover_color="#10b981",
+            font=ctk.CTkFont(size=12, weight="bold"),
             command=self.start_portfolio_audit
         )
         self.btn_audit.pack(side="left", fill="x", expand=True)
@@ -314,15 +568,15 @@ class InvestorStudioFrame(ctk.CTkFrame):
         header_r.pack(fill="x", padx=15, pady=(15, 6))
 
         ctk.CTkLabel(
-            header_r, 
-            text="⚖️ KVARKA AUDITS & PLĀNS", 
-            font=ctk.CTkFont(size=14, weight="bold"), 
+            header_r,
+            text=i18n.t("lbl_inv_portfolio_audit_plan"), # Placeholder or new key needed
+            font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#f59e0b"
         ).pack(side="left")
 
         self.btn_copy_audit = ctk.CTkButton(
             header_r,
-            text="📋 Kopēt kopsavilkumu",
+            text=i18n.t("btn_copy_summary"),
             width=150,
             height=28,
             fg_color="#334155",
@@ -334,7 +588,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         self.audit_box = ctk.CTkTextbox(right, fg_color="#0b1329", text_color="#f8fafc", font=ctk.CTkFont(size=12), wrap="word", corner_radius=8)
         self.audit_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.audit_box.insert("1.0", "Ievadiet savas akcijas un nospiediet 'Kvarka Audits'...\nKvarks noteiks, kurus 'sīkuļus' likvidēt un kur gudri ieguldīt līdzekļus!") # This string was not specified for localization.
+        self.audit_box.insert("1.0", i18n.t("audit_initial_msg"))
         self.audit_box.configure(state="disabled")
 
         self.load_portfolio()
@@ -347,10 +601,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
         try:
             with open(PORTFOLIO_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            self.lbl_p_status.configure(text="✅ Portfelis saglabāts!") # This string was not specified for localization.
+            self.lbl_p_status.configure(text=i18n.t("status_portfolio_saved"))
             self.after(3000, lambda: self.lbl_p_status.configure(text=""))
         except Exception as e:
-            self.lbl_p_status.configure(text=f"⚠️ Kļūda: {e}") # This string was not specified for localization.
+            self.lbl_p_status.configure(text=i18n.t("error_portfolio_save", e=e))
 
     def load_portfolio(self):
         if PORTFOLIO_FILE.exists():
@@ -377,28 +631,28 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.save_portfolio() # Save and show status
             # Provide feedback in the growth tab as well
             if hasattr(self, 'growth_results_container'):
-                feedback_label = ctk.CTkLabel(self.growth_results_container, text=f"✅ {ticker} pievienots portfelim!", text_color="#10b981") # This string was not specified for localization.
+                feedback_label = ctk.CTkLabel(self.growth_results_container, text=i18n.t("feedback_added_to_portfolio", ticker=ticker), text_color="#10b981")
                 feedback_label.pack(pady=5)
                 self.after(3000, feedback_label.destroy)
         else:
             if hasattr(self, 'growth_results_container'):
-                feedback_label = ctk.CTkLabel(self.growth_results_container, text=f"ℹ️ {ticker} jau ir portfelī.", text_color="#f59e0b") # This string was not specified for localization.
+                feedback_label = ctk.CTkLabel(self.growth_results_container, text=i18n.t("feedback_already_in_portfolio", ticker=ticker), text_color="#f59e0b")
                 feedback_label.pack(pady=5)
                 self.after(3000, feedback_label.destroy)
 
 
     def copy_audit_summary(self):
         text_to_copy = self.audit_box.get("1.0", "end").strip()
-        if not text_to_copy or "Ievadiet savas akcijas" in text_to_copy:
+        if not text_to_copy or i18n.t("audit_initial_msg") in text_to_copy:
             return
 
         msg = (
-            "🐾 *KOMANDANTA KVARKA INVESTĪCIJU AUDITS* 🐾\n" # This string was not specified for localization.
-            f"🎯 Stratēģija: {self.seg_risk.get() if hasattr(self, 'seg_risk') else 'Audits'}\n" # This string was not specified for localization.
+            i18n.t("audit_copy_header") + "\n"
+            f"{i18n.t('audit_copy_strategy')} {self.seg_risk.get() if hasattr(self, 'seg_risk') else i18n.t('btn_audit_portfolio')}\n"
             "----------------------------------------\n\n"
             f"{text_to_copy}\n\n"
             "----------------------------------------\n"
-            "⚡ Ģenerēts ar AQ-OS Investor Studio" # This string was not specified for localization.
+            f"{i18n.t('audit_copy_footer')}"
         )
 
         try:
@@ -408,11 +662,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
             orig_text = self.btn_copy_audit.cget("text")
             orig_color = self.btn_copy_audit.cget("fg_color")
-            self.btn_copy_audit.configure(text="✅ Nokopēts!", fg_color="#10b981") # This string was not specified for localization.
+            self.btn_copy_audit.configure(text=i18n.t("status_copied"), fg_color="#10b981")
 
             self.after(2000, lambda: self.btn_copy_audit.configure(text=orig_text, fg_color=orig_color))
         except Exception as e:
-            print(f"⚠️ Kļūda kopējot: {e}") # This string was not specified for localization.
+            print(i18n.t("error_copying", e=e))
 
     def start_portfolio_audit(self):
         raw = self.txt_my_portfolio.get("1.0", "end").strip()
@@ -422,16 +676,16 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if not tickers:
             return
 
-        self.btn_audit.configure(state="disabled", text="⏳ Auditē...") # This string was not specified for localization.
+        self.btn_audit.configure(state="disabled", text=i18n.t("btn_audit_loading"))
         self.audit_box.configure(state="normal")
         self.audit_box.delete("1.0", "end")
-        self.audit_box.insert("1.0", f"Komandants Kvarks caurskata {len(tickers)} pozīcijas un finanšu rādītājus...\n") # This string was not specified for localization.
+        self.audit_box.insert("1.0", i18n.t("audit_loading_msg", len_tickers=len(tickers)))
         self.audit_box.configure(state="disabled")
 
         threading.Thread(target=self._audit_worker, args=(tickers, cash), daemon=True).start()
 
     def _audit_worker(self, tickers, cash):
-        risk_mode = self.seg_risk.get() if hasattr(self, "seg_risk") else "🛡️ Konservatīvs (5-10%)"
+        risk_mode = self.seg_risk.get() if hasattr(self, "seg_risk") else i18n.t("seg_risk_conservative")
 
         audit_summary = []
         for t_audit in tickers:
@@ -456,22 +710,12 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 model = genai.GenerativeModel("gemini-2.5-flash")
 
                 # Get language instruction (NEW)
-                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction") # Using i18n.t for default
 
-                if "Venture" in risk_mode:
-                    strategy_instruction = """
-                    STRATĒĢIJA: VENTURE & GROWTH HUNTER (Agresīvs riska kapitāls).
-                    - Vērtē aktīvus no nākotnes tirgus dominances, monopolstāvokļa un AI/tehnoloģiju lēciena prizmas.
-                    - Augsts P/E vai īslaicīgs peļņas trūkums nav šķērslis, ja ieņēmumu lēciens un infrastruktūras nozīme ir milzīga (piemēram, ARM, SNOW, PLTR).
-                    - Izbrāķē tikai stagnējošus un lēnus uzņēmumus bez tehnoloģiskas nākotnes.
-                    """ # This string was not specified for localization.
+                if i18n.t("seg_risk_venture_growth") in risk_mode: # Compare translated values
+                    strategy_instruction = i18n.t("strategy_venture_desc")
                 else:
-                    strategy_instruction = """
-                    STRATĒĢIJA: KONSERVATĪVS (Zems risks, 5-10% stabils pieaugums gadā).
-                    - Vērtē aktīvus pēc reālas naudas plūsmas, veselīga P/E (< 30-35), dividenžu stabilitātes un zemiem riskiem.
-                    - Ja uzņēmuma P/E ir pārmērīgs (> 80-100) vai nav peļņas un PEG > 2, norādi to kā bīstamu burbuli un iesaki samazināt pozīciju.
-                    - Dod priekšroku tirgus indeksiem (VOO/SPY) un stabiliem industrijas milžiem.
-                    """ # This string was not specified for localization.
+                    strategy_instruction = i18n.t("strategy_conservative_desc")
 
                 prompt = f"""Tu esi Komandants Kvarks un profesionāls finanšu auditors.
 {current_lang_instruction}
@@ -482,19 +726,19 @@ Lietotāja eToro pozīcijas un brīvie līdzekļi {cash} USD:
 {json.dumps(audit_summary, ensure_ascii=False, indent=2)}
 
 Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
-1. 🟢 TURĒT / PAPILDINĀT: kuri uzņēmumi atbilst šai stratēģijai.
-2. ✂️ PĀRDOT / LIKVIDĒT: kuri aktīvi neatbilst šim riska profilam vai bremzē portfeli.
-3. 🎯 BRĪVĀS NAUDAS ({cash} USD) SADALE: precīzs plāns, kur kur ieguldīt brīvos līdzekļus."""
+1. 🟢 {i18n.t("dividends_champions")}: kuri uzņēmumi atbilst šai stratēģijai.
+2. ✂️ {i18n.t("audit_sell_liquidate")}: kuri aktīvi neatbilst šim riska profilam vai bremzē portfeli.
+3. 🎯 {i18n.t("audit_cash_allocation")} ({cash} USD) SADALE: precīzs plāns, kur kur ieguldīt brīvos līdzekļus."""
                 
                 resp = model.generate_content(prompt)
                 reply = resp.text.strip()
             except Exception as e:
-                reply = f"⚠️ Audita kļūda: {e}" # This string was not specified for localization.
+                reply = i18n.t("error_audit_gemini", e=e)
         else:
-            reply = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus." # This string was not specified for localization.
+            reply = i18n.t("error_api_missing_data")
 
         def _ui():
-            self.btn_audit.configure(state="normal", text="🐾 Kvarka Audits") # This string was not specified for localization.
+            self.btn_audit.configure(state="normal", text=i18n.t("btn_audit_portfolio"))
             self.audit_box.configure(state="normal")
             self.audit_box.delete("1.0", "end")
             self.audit_box.insert("1.0", reply)
@@ -517,10 +761,11 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
         right = ctk.CTkFrame(f, fg_color="#131b2e", corner_radius=10)
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(left, text=t("lbl_potential_radar"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6))
-        # Updated description to reflect broader sector search (Point 3)
-        ctk.CTkLabel(left, text="Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", 
-                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(0, 10)) # This string was not specified for localization.
+        self.lbl_growth_radar_title = ctk.CTkLabel(left, text=i18n.t("lbl_potential_radar"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8")
+        self.lbl_growth_radar_title.pack(anchor="w", padx=15, pady=(15, 6))
+        self.lbl_growth_description = ctk.CTkLabel(left, text=i18n.t("lbl_growth_description"),
+                     font=ctk.CTkFont(size=11), text_color="#94a3b8")
+        self.lbl_growth_description.pack(anchor="w", padx=15, pady=(0, 10))
 
         # Dynamic list of growth candidates (initially from GROWTH_WATCHLIST, then from AI)
         self.growth_candidates_container = ctk.CTkScrollableFrame(left, fg_color="#0b1329", height=240)
@@ -528,7 +773,7 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
         self._populate_growth_watchlist(GROWTH_WATCHLIST) # Initial population
 
         # Progress bar and status label for Growth Hunter
-        self.growth_status_label = ctk.CTkLabel(left, text="Gaidu Komandanta Kvarka rīkojumus...", font=ctk.CTkFont(size=11), text_color="#94a3b8") # This string was not specified for localization.
+        self.growth_status_label = ctk.CTkLabel(left, text=i18n.t("growth_status_initial"), font=ctk.CTkFont(size=11), text_color="#94a3b8")
         self.growth_status_label.pack(anchor="w", padx=15, pady=(5, 0))
         self.growth_progress_bar = ctk.CTkProgressBar(left, mode="determinate", height=10, corner_radius=5)
         self.growth_progress_bar.set(0)
@@ -537,11 +782,13 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
         self.growth_progress_bar.pack_forget() # Hide initially
 
         # RENAMED BUTTON
-        self.btn_scan_all_growth = ctk.CTkButton(left, text=t("btn_hunt_unicorns"), height=34, fg_color="#d97706", hover_color="#b45309", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_growth_hunter)
+        self.btn_scan_all_growth = ctk.CTkButton(left, text=i18n.t("btn_hunt_unicorns"), height=34, fg_color="#d97706", hover_color="#b45309", font=ctk.CTkFont(size=12, weight="bold"), command=self.start_growth_hunter)
         self.btn_scan_all_growth.pack(fill="x", padx=15, pady=(0, 15))
 
         # Right pane: AI Growth Resolution
-        ctk.CTkLabel(right, text="🎯 IZAUGSMES REZOLŪCIJA & RISKA NOVĒRTĒJUMS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6)) # This string was not specified for localization.
+        # Assigned to self.lbl_growth_resolution_title for refresh_ui method (NEW for Instruction 2)
+        self.lbl_growth_resolution_title = ctk.CTkLabel(right, text=i18n.t("lbl_inv_growth_resolution_title"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b")
+        self.lbl_growth_resolution_title.pack(anchor="w", padx=15, pady=(15, 6))
         
         # Action buttons for right pane results
         growth_action_buttons_frame = ctk.CTkFrame(right, fg_color="transparent")
@@ -549,7 +796,7 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
 
         self.btn_copy_growth = ctk.CTkButton(
             growth_action_buttons_frame,
-            text="📋 Kopēt analīzi", # This string was not specified for localization.
+            text=i18n.t("btn_copy_analysis"),
             width=130,
             height=28,
             fg_color="#334155",
@@ -561,7 +808,7 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
 
         self.btn_export_word = ctk.CTkButton(
             growth_action_buttons_frame,
-            text=t("btn_save_word"),
+            text=i18n.t("btn_save_word"),
             width=180,
             height=28,
             fg_color="#334155",
@@ -574,8 +821,8 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
         self.growth_results_container = ctk.CTkScrollableFrame(right, fg_color="#0b1329", corner_radius=8)
         self.growth_results_container.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         
-        initial_label = ctk.CTkLabel(self.growth_results_container, text="Izvēlieties uzņēmumu vai nospiediet '🚀 Medīt Jaunos Vienradžus', lai Kvarks atlasa nākamo lielo lēcienu...",
-                                     font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400) # This string was not specified for localization.
+        initial_label = ctk.CTkLabel(self.growth_results_container, text=i18n.t("growth_initial_results"),
+                                     font=ctk.CTkFont(size=12), text_color="#f8fafc", wraplength=400)
         initial_label.pack(fill="x", padx=10, pady=10)
 
         self.growth_current_candidates_data = [] # To store the AI generated candidates for copy/export
@@ -586,7 +833,7 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
             widget.destroy()
 
         if not items:
-            ctk.CTkLabel(self.growth_candidates_container, text="Nav atlasīti vienradžu kandidāti.", font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5) # This string was not specified for localization.
+            ctk.CTkLabel(self.growth_candidates_container, text=i18n.t("growth_no_candidates"), font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5)
             return
 
         for item in items:
@@ -594,15 +841,15 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
             card.pack(fill="x", pady=4, padx=2)
             ctk.CTkLabel(card, text=item.get("ticker", "N/A"), font=ctk.CTkFont(size=12, weight="bold"), text_color="#38bdf8").pack(side="left", padx=8, pady=4)
             ctk.CTkLabel(card, text=item.get("name", "N/A"), font=ctk.CTkFont(size=10), text_color="#cbd5e1").pack(side="left", padx=4)
-            ctk.CTkButton(card, text=t("btn_check"), width=65, height=22, fg_color="#0284c7", font=ctk.CTkFont(size=10), command=lambda t_ticker_check=item.get("ticker"): self._inspect_growth(t_ticker_check)).pack(side="right", padx=6)
+            ctk.CTkButton(card, text=i18n.t("btn_check"), width=65, height=22, fg_color="#0284c7", font=ctk.CTkFont(size=10), command=lambda t_ticker_check=item.get("ticker"): self._inspect_growth(t_ticker_check)).pack(side="right", padx=6)
 
 
     def _inspect_growth(self, ticker):
-        self.tabview.set("🔍 Viena Tikera Rentgens") # This string was not specified for localization.
+        self.tabview.set(i18n.t("tab_inv_single")) # Set tab using translated name
         self._quick_set(ticker)
 
     def start_growth_hunter(self):
-        self.btn_scan_all_growth.configure(state="disabled", text=f"⏳ {t('btn_hunt_unicorns')}...") # Modified for progress
+        self.btn_scan_all_growth.configure(state="disabled", text=i18n.t("btn_hunt_unicorns_loading", btn_text=i18n.t("btn_hunt_unicorns")))
         
         # Clear previous results and show loading message
         for widget in self.growth_results_container.winfo_children():
@@ -611,13 +858,13 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
         # Clear left candidate list for new ones
         for widget in self.growth_candidates_container.winfo_children():
             widget.destroy()
-        ctk.CTkLabel(self.growth_candidates_container, text="🔍 Kvarks skenē... Gaidiet jaunus kandidātus!", 
-                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5) # This string was not specified for localization.
+        ctk.CTkLabel(self.growth_candidates_container, text=i18n.t("growth_scanning_candidates"),
+                     font=ctk.CTkFont(size=11), text_color="#94a3b8").pack(fill="x", padx=10, pady=5)
 
 
         self.growth_progress_bar.set(0)
         self.growth_progress_bar.pack(fill="x", padx=15, pady=(0, 10))
-        self.growth_status_label.configure(text="🔍 Kvarks skenē tirgu un vāc datus par vienradžiem...") # This string was not specified for localization.
+        self.growth_status_label.configure(text=i18n.t("growth_scan_progress1"))
 
         threading.Thread(target=self._growth_worker, daemon=True).start()
 
@@ -631,14 +878,14 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
                 growth_data.append(payload)
             self.after(0, lambda: self.growth_progress_bar.set(self.growth_progress_bar.get() + 0.8 / len(GROWTH_WATCHLIST)))
         
-        self.after(0, lambda: self.growth_status_label.configure(text="📊 Atlasa jaunos vienradžus ar AI analīzi...")) # This string was not specified for localization.
+        self.after(0, lambda: self.growth_status_label.configure(text=i18n.t("growth_scan_progress2")))
         self.after(0, lambda: self.growth_progress_bar.set(0.9))
 
         api_key = self.get_gemini_key() if self.get_gemini_key else os.environ.get("GEMINI_API_KEY", "")
         
         unicorn_candidates = []
         sector_concentration_warning = ""
-        reply_fallback = "Kvarks neatrada piemērotus vienradžus vai radās kļūda." # This string was not specified for localization.
+        reply_fallback = i18n.t("growth_no_unicorns_fallback")
 
         if api_key and HAS_GENAI and growth_data:
             try:
@@ -646,18 +893,17 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
                 model = genai.GenerativeModel("gemini-2.5-flash")
 
                 # Get language instruction (NEW)
-                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction")
 
+                # Kvark's criteria (localizable if needed, but treated as fixed for now)
                 kvark_criteria_prompt = """
                 Komandanta Kvarka 4 zelta kritēriji Jauno Vienradžu medībām:
                 1.  **Revenue Growth > 30-50%**: Spēcīga ieņēmumu izaugsme (vismaz virs 30%, ideāli virs 50%). Novērtēt pēc "summary" vai vispārējās tirgus izpratnes.
                 2.  **Milzīgs TAM (Total Addressable Market)**: Uzņēmumam jādarbojas tirgū ar gigantisku nākotnes potenciālu (piemēram, AI, kvantu skaitļošana, kosmosa ekonomika, nākamās paaudzes kiberdrošība). Novērtēt pēc "summary" un sektora.
                 3.  **Moat (Konkurences grāvis)**: Spēcīgas konkurences priekšrocības (patentēta tehnoloģija, tīkla efekti, zīmols, augstas maiņas izmaksas klientiem). Novērtēt pēc "summary".
                 4.  **Founder-led (Dibinātāja vadīts)**: Vēlams, ka uzņēmumu joprojām vada tā dibinātājs vai spēcīga, ilgtermiņā domājoša vadošā komanda ar skaidru vīziju. Novērtēt pēc "summary" (var būt netieši).
-                """ # This string was not specified for localization.
+                """ # These are fixed instructions in the prompt, not UI text.
 
-                # MODIFIED PROMPT for Points 2, 3, 4
-                # Added explicit language instruction for JSON field values (Task 2)
                 prompt = f"""Tu esi agresīvs izaugsmes investīciju eksperts un Komandants Kvarks.
 {current_lang_instruction}
 Tavs uzdevums ir atrast tieši 10 "Jaunos Vienradžus" - uzņēmumus ar 10x-100x izaugsmes potenciālu.
@@ -693,7 +939,6 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 json_response_raw_text = resp.text.strip()
                 
                 # CRITICAL FIX: Clean the response from markdown blocks (Task 1)
-                # This part was mostly correct, but now combined with regex for robustness.
                 json_cleaned_from_md = json_response_raw_text
                 if json_cleaned_from_md.startswith("```json"):
                     json_cleaned_from_md = json_cleaned_from_md[len("```json"):].strip()
@@ -714,28 +959,28 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                     else:
                         raise json.JSONDecodeError("No JSON block found in AI response after markdown cleanup.", json_response_raw_text, 0)
                 except json.JSONDecodeError as jde:
-                    reply_fallback = f"⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {jde}. Daļa: {json_response_raw_text[:500]}..." # This string was not specified for localization.
+                    reply_fallback = i18n.t("error_gemini_parsing", e=jde, partial_response=json_response_raw_text[:500])
                     unicorn_candidates = []
-                    sector_concentration_warning = "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API." # This string was not specified for localization.
+                    sector_concentration_warning = i18n.t("error_ai_unparsable")
                     self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
 
             except Exception as e:
-                reply_fallback = f"⚠️ Kļūda sazinoties ar Gemini: {e}" # This string was not specified for localization.
-                sector_concentration_warning = f"⚠️ Kļūda sazinoties ar Gemini: {e}" # This string was not specified for localization.
+                reply_fallback = i18n.t("error_gemini_api_contact", e=e)
+                sector_concentration_warning = i18n.t("error_gemini_api_contact", e=e)
                 self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
         else:
-            reply_fallback = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus." # This string was not specified for localization.
-            sector_concentration_warning = "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus." # This string was not specified for localization.
+            reply_fallback = i18n.t("error_api_missing_data")
+            sector_concentration_warning = i18n.t("error_api_missing_data")
             self.last_sector_concentration_warning = sector_concentration_warning # Store error as warning
 
         self.growth_current_candidates_data = unicorn_candidates # Store for copy/export
 
         def _ui():
-            self.btn_scan_all_growth.configure(state="normal", text=t("btn_hunt_unicorns"))
+            self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns"))
             self.growth_progress_bar.set(1.0)
             self.growth_progress_bar.pack_forget() # Hide progress bar
-            self.growth_status_label.configure(text="✅ Analīze pabeigta!") # This string was not specified for localization.
-            self.after(3000, lambda: self.growth_status_label.configure(text="Gaidu Komandanta Kvarka rīkojumus...")) # This string was not specified for localization.
+            self.growth_status_label.configure(text=i18n.t("growth_analysis_complete"))
+            self.after(3000, lambda: self.growth_status_label.configure(text=i18n.t("growth_status_initial")))
 
             # Clear all widgets in the right container
             for widget in self.growth_results_container.winfo_children():
@@ -745,8 +990,8 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
             self._populate_growth_watchlist(unicorn_candidates) # Uses AI-selected candidates for left pane
 
             if self.last_sector_concentration_warning: # Check the instance variable (FIXED for Point 1, 3)
-                warning_label = ctk.CTkLabel(self.growth_results_container, text=f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}", 
-                                             font=ctk.CTkFont(size=12, weight="bold"), text_color="#dc2626", wraplength=400) # This string was not specified for localization.
+                warning_label = ctk.CTkLabel(self.growth_results_container, text=i18n.t("warning_red_flag", warning_message=self.last_sector_concentration_warning),
+                                             font=ctk.CTkFont(size=12, weight="bold"), text_color="#dc2626", wraplength=400)
                 warning_label.pack(fill="x", padx=10, pady=5)
             
             if unicorn_candidates:
@@ -754,28 +999,28 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                     card = ctk.CTkFrame(self.growth_results_container, fg_color="#1e293b", corner_radius=10, border_width=2, border_color="#334155")
                     card.pack(fill="x", padx=10, pady=8)
 
-                    ctk.CTkLabel(card, text=f"{idx+1}. {candidate.get('ticker', 'N/A')} - {candidate.get('name', 'N/A')}", 
+                    ctk.CTkLabel(card, text=f"{idx+1}. {candidate.get('ticker', 'N/A')} - {candidate.get('name', 'N/A')}",
                                  font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(10, 2))
                     
-                    ctk.CTkLabel(card, text=f"Slepenais ierocis (Niša):", 
-                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0)) # This string was not specified for localization.
-                    ctk.CTkLabel(card, text=candidate.get('niche', 'N/A'), 
+                    ctk.CTkLabel(card, text=i18n.t("lbl_niche"),
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                    ctk.CTkLabel(card, text=candidate.get('niche', 'N/A'),
                                  font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
                     
-                    ctk.CTkLabel(card, text=f"Kāpēc 10x-100x:", 
-                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0)) # This string was not specified for localization.
-                    ctk.CTkLabel(card, text=candidate.get('why_10x_100x', 'N/A'), 
+                    ctk.CTkLabel(card, text=i18n.t("lbl_why_10x_100x"),
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                    ctk.CTkLabel(card, text=candidate.get('why_10x_100x', 'N/A'),
                                  font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
                     
-                    ctk.CTkLabel(card, text=f"Melnais Gulbis (risks):", 
-                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0)) # This string was not specified for localization.
-                    ctk.CTkLabel(card, text=candidate.get('black_swan_risk', 'N/A'), 
+                    ctk.CTkLabel(card, text=i18n.t("lbl_black_swan"),
+                                 font=ctk.CTkFont(size=11, weight="bold"), text_color="#94a3b8").pack(anchor="w", padx=15, pady=(5, 0))
+                    ctk.CTkLabel(card, text=candidate.get('black_swan_risk', 'N/A'),
                                  font=ctk.CTkFont(size=11), text_color="#cbd5e1", wraplength=450, justify="left").pack(anchor="w", padx=15)
                     
-                    add_button = ctk.CTkButton(card, text="➕ Pievienot manam eToro sarakstam", 
-                                               width=220, height=30, fg_color="#059669", hover_color="#10b981", 
-                                               font=ctk.CTkFont(size=12, weight="bold"), 
-                                               command=lambda t_add=candidate.get('ticker'): self._add_ticker_to_portfolio(t_add)) # This string was not specified for localization.
+                    add_button = ctk.CTkButton(card, text=i18n.t("btn_add_to_portfolio"),
+                                               width=220, height=30, fg_color="#059669", hover_color="#10b981",
+                                               font=ctk.CTkFont(size=12, weight="bold"),
+                                               command=lambda t_add=candidate.get('ticker'): self._add_ticker_to_portfolio(t_add))
                     add_button.pack(anchor="w", padx=15, pady=(10, 10))
             else:
                 fallback_label = ctk.CTkLabel(self.growth_results_container, text=reply_fallback,
@@ -787,35 +1032,35 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
     def copy_growth_analysis(self):
         text_to_copy_parts = []
         if hasattr(self, 'growth_current_candidates_data') and self.growth_current_candidates_data:
-            text_to_copy_parts.append("🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀\n") # This string was not specified for localization.
+            text_to_copy_parts.append(i18n.t("growth_copy_header") + "\n")
             
             # Use the stored instance variable for warning (FIXED for Point 1, 3)
             if hasattr(self, 'last_sector_concentration_warning') and self.last_sector_concentration_warning:
-                 text_to_copy_parts.append(f"🚩 Sarkanais Karogs: {self.last_sector_concentration_warning}\n") # This string was not specified for localization.
+                 text_to_copy_parts.append(i18n.t("warning_red_flag", warning_message=self.last_sector_concentration_warning) + "\n")
 
             for idx, candidate in enumerate(self.growth_current_candidates_data):
-                text_to_copy_parts.append(f"--- Kandidāts {idx+1}: {candidate.get('ticker', 'N/A')} - {candidate.get('name', 'N/A')} ---\n") # This string was not specified for localization.
-                text_to_copy_parts.append(f"   Slepenais ierocis (Niša): {candidate.get('niche', 'N/A')}\n") # This string was not specified for localization.
-                text_to_copy_parts.append(f"   Kāpēc 10x-100x: {candidate.get('why_10x_100x', 'N/A')}\n") # This string was not specified for localization.
-                text_to_copy_parts.append(f"   Melnais Gulbis (risks): {candidate.get('black_swan_risk', 'N/A')}\n") # This string was not specified for localization.
+                text_to_copy_parts.append(i18n.t("growth_copy_candidate_header", idx_plus_1=idx+1, ticker=candidate.get('ticker', 'N/A'), name=candidate.get('name', 'N/A')) + "\n")
+                text_to_copy_parts.append(i18n.t("growth_copy_niche", niche=candidate.get('niche', 'N/A')) + "\n")
+                text_to_copy_parts.append(i18n.t("growth_copy_why", why=candidate.get('why_10x_100x', 'N/A')) + "\n")
+                text_to_copy_parts.append(i18n.t("growth_copy_risk", risk=candidate.get('black_swan_risk', 'N/A')) + "\n")
                 text_to_copy_parts.append("\n")
             text_to_copy_parts.append("----------------------------------------\n")
-            text_to_copy_parts.append("⚡ Ģenerēts ar AQ-OS Investor Studio") # This string was not specified for localization.
+            text_to_copy_parts.append(i18n.t("audit_copy_footer"))
         else:
             if self.growth_results_container.winfo_children():
                 # Attempt to get text from the first child if no structured data
                 first_child_text = self.growth_results_container.winfo_children()[0].cget("text")
-                if "Izvēlieties uzņēmumu" not in first_child_text and "Nav atrasta neviena analīze" not in first_child_text: # These strings were not specified for localization.
+                if i18n.t("growth_initial_results") not in first_child_text and i18n.t("growth_no_analysis_to_copy") not in first_child_text:
                     text_to_copy_parts.append(first_child_text)
                 else:
-                    text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.") # This string was not specified for localization.
+                    text_to_copy_parts.append(i18n.t("growth_no_analysis_to_copy"))
             else:
-                text_to_copy_parts.append("Nav atrasta neviena analīze, ko kopēt.") # This string was not specified for localization.
+                text_to_copy_parts.append(i18n.t("growth_no_analysis_to_copy"))
 
 
         text_to_copy = "\n".join(text_to_copy_parts).strip()
 
-        if not text_to_copy or "Izvēlieties uzņēmumu" in text_to_copy or "Nav atrasta neviena analīze" in text_to_copy: # These strings were not specified for localization.
+        if not text_to_copy or i18n.t("growth_initial_results") in text_to_copy or i18n.t("growth_no_analysis_to_copy") in text_to_copy:
             return
 
         try:
@@ -825,137 +1070,59 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 
             orig_text = self.btn_copy_growth.cget("text")
             orig_color = self.btn_copy_growth.cget("fg_color")
-            self.btn_copy_growth.configure(text="✅ Nokopēts!", fg_color="#10b981") # This string was not specified for localization.
+            self.btn_copy_growth.configure(text=i18n.t("status_copied"), fg_color="#10b981")
 
             self.after(2000, lambda: self.btn_copy_growth.configure(text=orig_text, fg_color=orig_color))
         except Exception as e:
-            print(f"⚠️ Kļūda kopējot: {e}") # This string was not specified for localization.
+            print(i18n.t("error_copying", e=e))
 
     def export_growth_to_word(self):
         if not HAS_DOCX:
-            # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showwarning("Kļūda", "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.") # These strings were not specified for localization.
+            messagebox.showwarning(i18n.t("error_title"), i18n.t("error_docx_missing"))
             return
 
         if not hasattr(self, 'growth_current_candidates_data') or not self.growth_current_candidates_data:
-            # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.") # These strings were not specified for localization.
+            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export"))
             return
-
-        # NEW: Localized strings for Word export (Task 2)
-        current_lang = str(i18n.get_ui_language()).lower().strip() if HAS_I18N else "lv" # Use normalized current language
-
-        localized_strings = {
-            "lv": {
-                "report_title": "🚀 Komandanta Kvarka Vienradžu Medību Atskaite",
-                "generated_on": "Ģenerēts: ",
-                "analysis_basis": "Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.",
-                "red_flag": "🚩 Sarkanais Karogs: ",
-                "secret_weapon": "Slepenais ierocis (Niša): ",
-                "why_10x_100x": "Kāpēc 10x-100x: ",
-                "black_swan": "Melnais Gulbis (risks): ",
-                "output_filename_prefix": "Kvarka_Vienradzu_Medibas_",
-                "success_message": "Atskaite saglabāta:\n",
-                "error_saving_message": "Radās kļūda saglabājot Word failu: "
-            },
-            "uk": { # Example for Ukrainian
-                "report_title": "🚀 Звіт про Полювання на Єдинорогів Командира Кварка",
-                "generated_on": "Згенеровано: ",
-                "analysis_basis": "Аналіз згенеровано на основі 4 золотих критеріїв Командира Кварка.",
-                "red_flag": "🚩 Червоний Прапор: ",
-                "secret_weapon": "Секретна зброя (Ніша): ",
-                "why_10x_100x": "Чому 10x-100x: ",
-                "black_swan": "Чорний Лебідь (ризик): ",
-                "output_filename_prefix": "Kvar_Yedinorih_Polyuvannya_",
-                "success_message": "Звіт збережено:\n",
-                "error_saving_message": "Виникла помилка під час збереження файlu Word: "
-            },
-            "ru": { # Added for Russian (consistent with prompt's UI translations)
-                "report_title": "🚀 Отчет об Охоте на Единорогов Командира Кварка",
-                "generated_on": "Сгенерировано: ",
-                "analysis_basis": "Анализ сгенерирован на основе 4 золотых критериев Командира Кварка.",
-                "red_flag": "🚩 Красный Флаг: ",
-                "secret_weapon": "Секретное оружие (Ниша): ",
-                "why_10x_100x": "Почему 10x-100x: ",
-                "black_swan": "Черный Лебедь (риск): ",
-                "output_filename_prefix": "Kvar_Ohot_Yedinorog_",
-                "success_message": "Отчет сохранен в:\n",
-                "error_saving_message": "Произошла ошибка при сохранении файла Word: "
-            },
-            "it": { # Example for Italian
-                "report_title": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark",
-                "generated_on": "Generato il: ",
-                "analysis_basis": "Analisi generata in base ai 4 criteri d'oro del Comandante Quark.",
-                "red_flag": "🚩 Bandiera Rossa: ",
-                "secret_weapon": "Arma Segreta (Nicchia): ",
-                "why_10x_100x": "Perché 10x-100x: ",
-                "black_swan": "Cigno Nero (rischio): ",
-                "output_filename_prefix": "Quark_Caccia_Unicorni_",
-                "success_message": "Rapporto salvato in:\n",
-                "error_saving_message": "Error saving Word file: "
-            },
-            "en": { # Default English fallback
-                "report_title": "🚀 Commander Quark's Unicorn Hunt Report",
-                "generated_on": "Generated: ",
-                "analysis_basis": "Analysis generated based on Commander Quark's 4 golden criteria.",
-                "red_flag": "🚩 Red Flag: ",
-                "secret_weapon": "Secret Weapon (Niche): ",
-                "why_10x_100x": "Why 10x-100x: ",
-                "black_swan": "Black Swan (risk): ",
-                "output_filename_prefix": "Quarks_Unicorn_Hunt_",
-                "success_message": "Report saved to:\n",
-                "error_saving_message": "Error saving Word file: "
-            }
-        }
         
-        # Get strings for current language, fallback to English if current_lang is not found, then Latvian.
-        lang_strings = localized_strings.get(current_lang, localized_strings.get("en", localized_strings["lv"]))
-
         try:
             document = Document()
-            document.add_heading(lang_strings["report_title"], level=1) # Use localized string
-            document.add_paragraph(f"{lang_strings['generated_on']}{datetime.now().strftime('%d.%m.%Y %H:%M')}") # Use localized string
-            document.add_paragraph(lang_strings["analysis_basis"]) # Use localized string
+            document.add_heading(i18n.t("word_report_title"), level=1)
+            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%d.%m.%Y %H:%M')}")
+            document.add_paragraph(i18n.t("word_analysis_basis"))
 
             # Use the stored instance variable for warning (FIXED for Point 1, 3)
             if hasattr(self, 'last_sector_concentration_warning') and self.last_sector_concentration_warning:
                  p_warning = document.add_paragraph()
-                 p_warning.add_run(lang_strings["red_flag"]).bold = True # Use localized string
+                 p_warning.add_run(i18n.t("word_red_flag")).bold = True
                  p_warning.add_run(self.last_sector_concentration_warning)
 
 
             for idx, candidate in enumerate(self.growth_current_candidates_data):
                 document.add_heading(f"{idx+1}. {candidate.get('name', 'N/A')} ({candidate.get('ticker', 'N/A')})", level=2)
                 
-                # Using add_run and bold property for inline bolding
                 p_niche = document.add_paragraph()
-                p_niche.add_run(lang_strings["secret_weapon"]).bold = True # Use localized string
+                p_niche.add_run(i18n.t("word_secret_weapon")).bold = True
                 p_niche.add_run(candidate.get('niche', 'N/A'))
 
                 p_why = document.add_paragraph()
-                p_why.add_run(lang_strings["why_10x_100x"]).bold = True # Use localized string
+                p_why.add_run(i18n.t("word_why_10x_100x")).bold = True
                 p_why.add_run(candidate.get('why_10x_100x', 'N/A'))
                 
                 p_risk = document.add_paragraph()
-                p_risk.add_run(lang_strings["black_swan"]).bold = True # Use localized string
+                p_risk.add_run(i18n.t("word_black_swan")).bold = True
                 p_risk.add_run(candidate.get('black_swan_risk', 'N/A'))
                 
-                # Original line 776, this is fine but not an f-string related to the error
-                document.add_paragraph("") # Add a blank line for spacing. Changed from "\n" to "" as paragraph handles spacing.
+                document.add_paragraph("") # Add a blank line for spacing.
 
-            output_filename = f"{lang_strings['output_filename_prefix']}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use localized string prefix
+            output_filename = f"{i18n.t('word_output_filename_prefix')}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
             output_filepath = OUTBOX_DIR / output_filename
             document.save(output_filepath)
             
-            # CRITICAL SYNTAX FIX (Bruno VETO at ~line 773 implies this pattern)
-            # Avoid placing backslash literally within f-string expression parts.
-            # Prepare the message content by concatenating strings.
-            success_message_content = lang_strings['success_message'] + str(output_filepath)
-            # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showinfo("Saglabāts!", success_message_content) # This string was not specified for localization.
+            success_message_content = i18n.t('word_success_message') + str(output_filepath)
+            messagebox.showinfo(i18n.t("success_title"), success_message_content)
         except Exception as e:
-            # FIX 1: Replace ctk.CTkMessagebox with tkinter.messagebox
-            messagebox.showerror("Kļūda saglabājot Word failu", f"{lang_strings['error_saving_message']}{e}") # This string was not specified for localization.
+            messagebox.showerror(i18n.t("error_saving_word_title"), f"{i18n.t('word_error_saving_message')}{e}")
 
     # ==========================================
     # 4. CILNE: DIVIDENDES & NAUDAS PLŪSMA
@@ -972,25 +1139,27 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
         right = ctk.CTkFrame(f, fg_color="#131b2e", corner_radius=10)
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(
-            left, 
-            text="💰 NAUDAS PLŪSMAS RADARS", # This string was not specified for localization.
-            font=ctk.CTkFont(size=14, weight="bold"), 
+        self.lbl_cashflow_radar_title = ctk.CTkLabel(
+            left,
+            text=i18n.t("lbl_cashflow_radar_title"),
+            font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#38bdf8"
-        ).pack(anchor="w", padx=15, pady=(15, 4))
+        )
+        self.lbl_cashflow_radar_title.pack(anchor="w", padx=15, pady=(15, 4))
 
-        ctk.CTkLabel(
-            left, 
-            text="Aprēķina pasīvo dividenžu ienesīgumu no portfeļa akcijām.", 
-            font=ctk.CTkFont(size=11), 
-            text_color="#94a3b8", 
-            wraplength=280, 
+        self.lbl_cashflow_radar_desc = ctk.CTkLabel(
+            left,
+            text=i18n.t("lbl_cashflow_radar_desc"),
+            font=ctk.CTkFont(size=11),
+            text_color="#94a3b8",
+            wraplength=280,
             justify="left"
-        ).pack(anchor="w", padx=15, pady=(0, 12)) # This string was not specified for localization.
+        )
+        self.lbl_cashflow_radar_desc.pack(anchor="w", padx=15, pady=(0, 12))
 
         self.btn_calc_dividends = ctk.CTkButton(
             left,
-            text="⚡ Aprēķināt Dividenžu Plūsmu", # This string was not specified for localization.
+            text=i18n.t("btn_calc_dividends"),
             height=34,
             fg_color="#0284c7",
             hover_color="#0369a1",
@@ -1000,32 +1169,34 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
         self.btn_calc_dividends.pack(fill="x", padx=15, pady=(0, 15))
 
         self.div_summary_box = ctk.CTkTextbox(
-            left, 
-            fg_color="#0b1329", 
-            font=ctk.CTkFont(family="Consolas", size=11), 
+            left,
+            fg_color="#0b1329",
+            font=ctk.CTkFont(family="Consolas", size=11),
             corner_radius=8
         )
         self.div_summary_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.div_summary_box.insert("1.0", "Nospiediet pogu, lai nolasītu dividenžu datus...") # This string was not specified for localization.
+        self.div_summary_box.insert("1.0", i18n.t("dividends_initial_msg"))
         self.div_summary_box.configure(state="disabled")
 
-        ctk.CTkLabel(
-            right, 
-            text="📅 KVARKA DIVIDENŽU KALENDĀRS & REZOLŪCIJA", # This string was not specified for localization.
-            font=ctk.CTkFont(size=14, weight="bold"), 
+        # Assigned to self.lbl_dividends_resolution_title for refresh_ui method (NEW for Instruction 2)
+        self.lbl_dividends_resolution_title = ctk.CTkLabel(
+            right,
+            text=i18n.t("lbl_inv_dividends_resolution_title"),
+            font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#f59e0b"
-        ).pack(anchor="w", padx=15, pady=(15, 6))
+        )
+        self.lbl_dividends_resolution_title.pack(anchor="w", padx=15, pady=(15, 6))
 
         self.div_analysis_box = ctk.CTkTextbox(
-            right, 
-            fg_color="#0b1329", 
-            text_color="#f8fafc", 
-            font=ctk.CTkFont(size=12), 
-            wrap="word", 
+            right,
+            fg_color="#0b1329",
+            text_color="#f8fafc",
+            font=ctk.CTkFont(size=12),
+            wrap="word",
             corner_radius=8
         )
         self.div_analysis_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.div_analysis_box.insert("1.0", "Gaidu dividenžu skenēšanas palaišanu...") # This string was not specified for localization.
+        self.div_analysis_box.insert("1.0", i18n.t("dividends_initial_analysis_msg"))
         self.div_analysis_box.configure(state="disabled")
 
     def start_dividend_scan(self):
@@ -1034,22 +1205,22 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
         if not tickers:
             return
 
-        self.btn_calc_dividends.configure(state="disabled", text="⏳ Vāc dividenžu datus...") # This string was not specified for localization.
+        self.btn_calc_dividends.configure(state="disabled", text=i18n.t("btn_calc_dividends_loading"))
         self.div_summary_box.configure(state="normal")
         self.div_summary_box.delete("1.0", "end")
-        self.div_summary_box.insert("1.0", f"Pārbauda {len(tickers)} aktīvus tirgū...\n") # This string was not specified for localization.
+        self.div_summary_box.insert("1.0", i18n.t("dividends_scan_progress1", len_tickers=len(tickers)))
         self.div_summary_box.configure(state="disabled")
 
         self.div_analysis_box.configure(state="normal")
         self.div_analysis_box.delete("1.0", "end")
-        self.div_analysis_box.insert("1.0", "Kvarks apkopo naudas plūsmas kalendāru...\n") # This string was not specified for localization.
+        self.div_analysis_box.insert("1.0", i18n.t("dividends_scan_progress2"))
         self.div_analysis_box.configure(state="disabled")
 
         threading.Thread(target=self._dividend_worker, args=(tickers,), daemon=True).start()
 
     def _dividend_worker(self, tickers):
         div_data = []
-        summary_lines = ["=== DIVIDENŽU PĀRSKATS ==="] # This string was not specified for localization.
+        summary_lines = [i18n.t("dividends_summary_header")]
 
         for t_div in tickers:
             try:
@@ -1060,7 +1231,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 ex_div = info.get("exDividendDate")
 
                 # 1. Droša datuma apstrāde un pārvēršana uz DD.MM.YYYY
-                ex_date_str = "Nav norādīts" # This string was not specified for localization.
+                ex_date_str = i18n.t("dividends_date_na")
                 if ex_div:
                     try:
                         # If a number (Unix timestamp in seconds or milliseconds)
@@ -1091,11 +1262,11 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                         "rate": div_rate,
                         "ex_date": ex_date_str
                     })
-                    summary_lines.append(f"{t_div:6} | {yield_pct:5.2f}% | Izmaksa: {div_rate} | Dat: {ex_date_str}") # This string was not specified for localization.
+                    summary_lines.append(f"{t_div:6} | {yield_pct:5.2f}% | Izmaksa: {div_rate} | Dat: {ex_date_str}")
                 else:
-                    summary_lines.append(f"{t_div:6} | 0.00%  | Dividendes nemaksā") # This string was not specified for localization.
+                    summary_lines.append(f"{t_div:6} | 0.00%  | {i18n.t('dividends_not_paying')}")
             except Exception as e:
-                summary_lines.append(f"{t_div:6} | Kļūda: {e}") # This string was not specified for localization.
+                summary_lines.append(f"{t_div:6} | {i18n.t('dividends_error_fetching', e=e)}")
 
         # Gemini rezolūcija
         api_key = self.get_gemini_key() if self.get_gemini_key else os.environ.get("GEMINI_API_KEY", "")
@@ -1105,7 +1276,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
                 # Get language instruction (NEW)
-                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction")
 
                 prompt = f"""Tu esi dividenžu un pasīvās naudas plūsmas eksperts Komandants Kvarks.
 {current_lang_instruction}
@@ -1113,20 +1284,20 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
 {json.dumps(div_data, ensure_ascii=False, indent=2)}
 
 Sagatavo strukturētu analīzi:
-1. 💵 PASĪVĀS NAUDAS ČEMPIONI: Kuri no šiem uzņēmumiem nodrošina stabilāko un drošāko dividenču atdevi.
-2. ⚠️ ILGTSPĒJAS RISKI: Vai kādam uzņēmumam dividende nav mākslīgi uzpūsta vai apdraudēta (piemēram, naftas vai cikliskajos sektoros).
-3. 🔄 REINVESTĒŠANAS STRATĒĢIJA: Kā visefektīvāk izmantot ienākošās dividendes, lai portfelis augtu eksponenciāli."""
+1. {i18n.t('dividends_champions')}: Kuri no šiem uzņēmumiem nodrošina stabilāko un drošāko dividenču atdevi.
+2. {i18n.t('dividends_sustainability_risks')}: Vai kādam uzņēmumam dividende nav mākslīgi uzpūsta vai apdraudēta (piemēram, naftas vai cikliskajos sektoros).
+3. {i18n.t('dividends_reinvestment_strategy')}: Kā visefektīvāk izmantot ienākošās dividendes, lai portfelis augtu eksponenciāli."""
                 resp = model.generate_content(prompt)
                 reply = resp.text.strip()
             except Exception as e:
-                reply = f"⚠️ Gemini kļūda: {e}" # This string was not specified for localization.
+                reply = i18n.t("error_gemini_dividends", e=e)
         elif not div_data:
-            reply = "Portfelī nav atrasts neviens uzņēmums, kas maksā dividendes." # This string was not specified for localization.
+            reply = i18n.t("dividends_no_companies")
         else:
-            reply = "Nav pieejama API atslēga." # This string was not specified for localization.
+            reply = i18n.t("error_api_key_unavailable")
 
         def _ui():
-            self.btn_calc_dividends.configure(state="normal", text="⚡ Aprēķināt Dividenžu Plūsmu") # This string was not specified for localization.
+            self.btn_calc_dividends.configure(state="normal", text=i18n.t("btn_calc_dividends"))
             self.div_summary_box.configure(state="normal")
             self.div_summary_box.delete("1.0", "end")
             self.div_summary_box.insert("1.0", "\n".join(summary_lines))
@@ -1154,43 +1325,46 @@ Sagatavo strukturētu analīzi:
         right = ctk.CTkFrame(f, fg_color="#131b2e", corner_radius=10)
         right.grid(row=0, column=1, padx=(5, 5), pady=5, sticky="nsew")
 
-        ctk.CTkLabel(left, text="🌡️ TIRGUS NOSKAŅOJUMS", font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8").pack(anchor="w", padx=15, pady=(15, 6)) # This string was not specified for localization.
+        self.lbl_market_sentiment_title = ctk.CTkLabel(left, text=i18n.t("lbl_market_sentiment_title"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#38bdf8")
+        self.lbl_market_sentiment_title.pack(anchor="w", padx=15, pady=(15, 6))
 
-        self.lbl_fng = ctk.CTkLabel(left, text="Fear & Greed: Ielādē...", font=ctk.CTkFont(size=13, weight="bold"), text_color="#f59e0b") # This string was not specified for localization.
+        self.lbl_fng = ctk.CTkLabel(left, text=i18n.t("lbl_fng_loading"), font=ctk.CTkFont(size=13, weight="bold"), text_color="#f59e0b")
         self.lbl_fng.pack(anchor="w", padx=15, pady=(0, 10))
 
         self.btn_refresh_market = ctk.CTkButton(
-            left, 
-            text="⚡ Atjaunot Klimatu & Insaiderus", 
-            height=34, 
-            fg_color="#0284c2", 
-            hover_color="#0369a1", 
+            left,
+            text=i18n.t("btn_refresh_market_intel"),
+            height=34,
+            fg_color="#0284c2",
+            hover_color="#0369a1",
             font=ctk.CTkFont(size=12, weight="bold"),
             command=self.start_market_intel_scan
-        ) # This string was not specified for localization.
+        )
         self.btn_refresh_market.pack(fill="x", padx=15, pady=(0, 15))
 
         self.insider_box = ctk.CTkTextbox(left, fg_color="#0b1329", font=ctk.CTkFont(family="Consolas", size=11), corner_radius=8)
         self.insider_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.insider_box.insert("1.0", "Nospiediet pogu, lai ielādētu insaideru datus un noskaņojumu...") # This string was not specified for localization.
+        self.insider_box.insert("1.0", i18n.t("insider_initial_msg"))
         self.insider_box.configure(state="disabled")
 
-        ctk.CTkLabel(right, text="📰 JAUNĀKĀS ZIŅAS & KVARKA TAKTIKA", font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b").pack(anchor="w", padx=15, pady=(15, 6)) # This string was not specified for localization.
+        # Assigned to self.lbl_market_news_title for refresh_ui method (NEW for Instruction 2)
+        self.lbl_market_news_title = ctk.CTkLabel(right, text=i18n.t("lbl_inv_market_news_title"), font=ctk.CTkFont(size=14, weight="bold"), text_color="#f59e0b")
+        self.lbl_market_news_title.pack(anchor="w", padx=15, pady=(15, 6))
         
         self.market_news_box = ctk.CTkTextbox(right, fg_color="#0b1329", text_color="#f8fafc", font=ctk.CTkFont(size=12), wrap="word", corner_radius=8)
         self.market_news_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.market_news_box.insert("1.0", "Gaidu datu pieprasījumu...") # This string was not specified for localization.
+        self.market_news_box.insert("1.0", i18n.t("market_news_initial_msg"))
         self.market_news_box.configure(state="disabled")
 
     def start_market_intel_scan(self):
         import requests
-        self.btn_refresh_market.configure(state="disabled", text="⏳ Vāc makro datus & Kvarks analizē...") # This string was not specified for localization.
+        self.btn_refresh_market.configure(state="disabled", text=i18n.t("btn_refresh_market_intel_loading"))
         
         def _worker():
             # 1. Fear & Greed indekss
             fng_val = "50"
             fng_status = "Neutral"
-            fng_text = "Fear & Greed: Nav pieejams" # This string was not specified for localization.
+            fng_text = i18n.t("fng_not_available")
             try:
                 res = requests.get("https://api.alternative.me/fng/?limit=1", timeout=5).json()
                 item = res["data"][0]
@@ -1202,9 +1376,9 @@ Sagatavo strukturētu analīzi:
 
             # 2. Makro & Likviditātes rādītāji (yfinance)
             macro_summary = []
-            macro_lines = ["=== MAKRO & LIKVIDITĀTE ==="] # This string was not specified for localization.
+            macro_lines = [i18n.t("macro_liquidity_header")]
             try:
-                macro_tickers = {"^TNX": "ASV 10Y Yield", "GC=F": "Zelts (Gold)", "BTC-USD": "Bitcoin (BTC)"} # These strings were not specified for localization.
+                macro_tickers = {"^TNX": i18n.t("macro_us10y"), "GC=F": i18n.t("macro_gold"), "BTC-USD": i18n.t("macro_bitcoin")}
                 for sym, label in macro_tickers.items():
                     try:
                         tk = yf.Ticker(sym)
@@ -1217,7 +1391,7 @@ Sagatavo strukturētu analīzi:
                             macro_lines.append(f"• {label:14}: {p:,.2f} {curr}")
                             macro_summary.append(f"{label}: {p:,.2f} {curr}")
                     except Exception:
-                        macro_lines.append(f"• {label:14}: N/A")
+                        macro_lines.append(f"• {label:14}: {i18n.t('macro_na')}")
             except Exception:
                 pass
 
@@ -1238,7 +1412,7 @@ Sagatavo strukturētu analīzi:
                 except Exception:
                     pass
 
-            insider_lines = ["\n=== INSAIDERU TRANSAKCIJAS (Finnhub) ==="] # This string was not specified for localization.
+            insider_lines = [i18n.t("insider_transactions_header")]
             top_headlines = []
 
             if finnhub_key:
@@ -1250,12 +1424,12 @@ Sagatavo strukturētu analīzi:
                         if d:
                             lat = d[-1]
                             m = lat.get("mspr", 0)
-                            sig = "🟢 PĒRK" if m > 0 else "🔴 PĀRDOD" if m < 0 else "⚪ NEITRĀLS" # These strings were not specified for localization.
+                            sig = i18n.t("insider_buy") if m > 0 else i18n.t("insider_sell") if m < 0 else i18n.t("insider_neutral")
                             insider_lines.append(f"{t_insider:5} | {sig:8} | MSPR: {m:6.2f} | Net: {lat.get('change', 0)}")
                         else:
-                            insider_lines.append(f"{t_insider:5} | ⚪ Mierīgs (nav lielu darījumu)") # This string was not specified for localization.
+                            insider_lines.append(f"{t_insider:5} | {i18n.t('insider_no_major_deals')}")
                     except Exception:
-                        insider_lines.append(f"{t_insider:5} | Kļūda datos") # This string was not specified for localization.
+                        insider_lines.append(f"{t_insider:5} | {i18n.t('insider_data_error')}")
 
                 d_to = datetime.now().strftime("%Y-%m-%d")
                 d_from = (datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d")
@@ -1269,7 +1443,7 @@ Sagatavo strukturētu analīzi:
                     except Exception:
                         pass
             else:
-                insider_lines.append("⚠️ config.json trūkst 'finnhub_api_key'!") # This string was not specified for localization.
+                insider_lines.append(i18n.t("error_finnhub_key_missing"))
 
             # 5. Apvienojam kreisās puses datus (Makro + Insaideri)
             left_display_text = "\n".join(macro_lines) + "\n" + "\n".join(insider_lines)
@@ -1277,7 +1451,7 @@ Sagatavo strukturētu analīzi:
             # 6. Komandanta Kvarka (Gemini) stratēģiskais slēdziens
             news_output = []
             if top_headlines:
-                news_output.append("=== SVARĪGĀKĀS ZIŅAS ===") # This string was not specified for localization.
+                news_output.append(i18n.t("news_headlines_header"))
                 for h in top_headlines:
                     news_output.append(f"• {h}")
                 news_output.append("\n" + "="*30 + "\n")
@@ -1288,29 +1462,29 @@ Sagatavo strukturētu analīzi:
                     genai.configure(api_key=api_key)
                     model = genai.GenerativeModel("gemini-2.5-flash")
                     # Get language instruction (NEW)
-                    current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+                    current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction")
 
                     prompt = f"""Tu esi militāri ass investīciju virspavēlnieks Komandants Kvarks (resnais runcis no Liepājas štāba).
 {current_lang_instruction}
 Makro un likviditātes rādītāji: {', '.join(macro_summary)}
 Tirgus baiļu/alkatības noskaņojums: {fng_text}
 Insaideru signāli: {'; '.join(insider_lines[1:])}
-Jaunākās ziņas: {'; '.join(top_headlines) if top_headlines else 'Nav agresīvu ziņu triecienu'}
+Jaunākās ziņas: {'; '.join(top_headlines) if top_headlines else i18n.t('news_no_aggressive')}
 
 Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
 1. Makro fons: ko saka 10 gadu likmes, zelts un BTC par naudas plūsmu tirgū.
 2. Insaideru un sentimenta vērtējums.
 3. Galīgā kaujas pavēle šodienai: uzbrukt (pirkt), nocietināties (turēt) vai atkāpties skaidrā naudā."""
                     res = model.generate_content(prompt)
-                    news_output.append("🐾 KOMANDANTA KVARKA STRATĒĢISKĀ REZOLŪCIJA:\n") # This string was not specified for localization.
+                    news_output.append(i18n.t("kvark_strategic_resolution"))
                     news_output.append(res.text.strip())
                 except Exception as e:
-                    news_output.append(f"⚠️ Kvarka kļūda: {e}") # This string was not specified for localization.
+                    news_output.append(i18n.t("error_kvark_market_intel", e=e))
             else:
-                news_output.append("⚠️ Gemini API atslēga nav pieejama.") # This string was not specified for localization.
+                news_output.append(i18n.t("error_api_key_unavailable"))
 
             def _ui():
-                self.btn_refresh_market.configure(state="normal", text="⚡ Atjaunot Klimatu & Insaiderus") # This string was not specified for localization.
+                self.btn_refresh_market.configure(state="normal", text=i18n.t("btn_refresh_market_intel"))
                 self.lbl_fng.configure(text=fng_text)
                 
                 self.insider_box.configure(state="normal")
@@ -1352,16 +1526,16 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
             
             # ADDED: Source to stats_text
             stats_text = (
-                f"Avots: {self.selected_source}\n" + # Pievienots lauks "source" stats_text pirmajā rindiņā
-                f"=== {short_name} ({ticker}) ===\n" # This string was not specified for localization.
-                f"Cena:             {curr_price} {currency}\n" # This string was not specified for localization.
-                f"52 ned. diapazons:{low52} - {high52} {currency}\n" # This string was not specified for localization.
-                f"P/E (faktiskais): {pe}\n" # This string was not specified for localization.
-                f"P/E (prognoze):   {fwd_pe}\n" # This string was not specified for localization.
-                f"PEG koeficients:  {peg}\n" # This string was not specified for localization.
-                f"Dividendes:       {div_str}\n" # This string was not specified for localization.
-                f"Analītiķu vērt.:  {rec}\n" # This string was not specified for localization.
-                f"Mērķa vid. cena:  {target_mean} {currency}\n" # This string was not specified for localization.
+                f"{i18n.t('source_label')}: {self.selected_source}\n" + # Assuming 'source_label' key is added to translations.
+                f"{i18n.t('ticker_info_header', short_name=short_name, ticker=ticker)}\n"
+                f"{i18n.t('price_label', price=curr_price, currency=currency)}\n"
+                f"{i18n.t('52week_range_label', low_52=low52, high_52=high52, currency=currency)}\n"
+                f"{i18n.t('pe_label', pe=pe)}\n"
+                f"{i18n.t('fwd_pe_label', fwd_pe=fwd_pe)}\n"
+                f"{i18n.t('peg_ratio_label', peg=peg)}\n"
+                f"{i18n.t('dividends_label', div_str=div_str)}\n"
+                f"{i18n.t('analyst_rating_label', rec=rec)}\n"
+                f"{i18n.t('target_price_label', target_mean=target_mean, currency=currency)}\n"
             )
 
             payload = {
@@ -1377,14 +1551,14 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
                 "recommendation": rec,
                 "target_price": target_mean,
                 "dividend_yield": div_str,
-                "sector": info.get("sector", "Nezināms"), # This string was not specified for localization.
-                "industry": info.get("industry", "Nezināms"), # Added industry for more specific analysis # This string was not specified for localization.
+                "sector": info.get("sector", i18n.t("unknown_value")),
+                "industry": info.get("industry", i18n.t("unknown_value")), # Added industry for more specific analysis
                 "summary": info.get("longBusinessSummary", ""),
                 "source": self.selected_source # Pievienots lauks "source" atgrieztajā vārdnīcā
             }
         except Exception as e:
             # Also update error message with source
-            stats_text = f"Avots: {self.selected_source}\n" + f"⚠️ Kļūda nolasot {ticker}: {e}" # This string was not specified for localization.
+            stats_text = f"{i18n.t('source_label')}: {self.selected_source}\n" + i18n.t("error_fetching_ticker_data", ticker=ticker, e=e)
             payload = {"ticker": ticker, "name": ticker, "error": str(e), "source": self.selected_source} # Minimal payload to avoid breaking if fetch fails, include source
 
         return stats_text, payload
@@ -1396,7 +1570,7 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
                 # Get language instruction (NEW)
-                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else "Respond in Latvian."
+                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction")
 
                 prompt = f"""Tu esi stingrs, profesionāls investīciju analītiķis un Komandants Kvarks.
 {current_lang_instruction}
@@ -1410,14 +1584,12 @@ Strukturē atbildi precīzi šādās 3 sadaļās:
                 resp = model.generate_content(prompt)
                 
                 # Pievienota atruna (disclaimer)
-                disclaimer = f"\n\n---\n📌 Datu avots: {self.selected_source}. Informatīvs analīzes kopsavilkums."
+                disclaimer = f"\n\n---\n📌 {i18n.t('source_label')}: {self.selected_source}. {i18n.t('analysis_disclaimer_summary')}"
                 return resp.text.strip() + disclaimer
             except Exception as e:
-                # Fix: Changed f-string to concatenation to prevent potential "unterminated string literal"
-                # if the exception message `e` contained an unescaped quote matching f-string's delimiter.
                 # Pievienota atruna (disclaimer) arī kļūdas gadījumā
-                disclaimer_on_error = f"\n\n---\n📌 Datu avots: {self.selected_source}. Informatīvs analīzes kopsavilkums."
-                return "⚠️ Gemini analīzes kļūda: " + str(e) + disclaimer_on_error
+                disclaimer_on_error = f"\n\n---\n📌 {i18n.t('source_label')}: {self.selected_source}. {i18n.t('analysis_disclaimer_summary')}"
+                return i18n.t("error_gemini_analysis", e=str(e)) + disclaimer_on_error
         # Pievienota atruna (disclaimer) arī fallback gadījumā
-        disclaimer_fallback = f"\n\n---\n📌 Datu avots: {self.selected_source}. Informatīvs analīzes kopsavilkums."
+        disclaimer_fallback = f"\n\n---\n📌 {i18n.t('source_label')}: {self.selected_source}. {i18n.t('analysis_disclaimer_summary')}"
         return stats_fallback + disclaimer_fallback
