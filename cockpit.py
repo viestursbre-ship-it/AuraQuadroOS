@@ -2,6 +2,7 @@
 import os
 import json
 import customtkinter as ctk
+import i18n # JAUNUMS: Importējam i18n bibliotēku
 
 from hp_expert import HPExpertFrame
 from voice_studio import VoiceStudioFrame
@@ -280,17 +281,6 @@ class CockpitWindow(ctk.CTkToplevel):
     def on_ui_language_change(self, display_text):
         """
         Pārslēdz UI valodu, atjaunina ciļņu pogas un sinhronizē moduļus.
-        
-        1. Tīra valodas koda iegūšana un tūlītēja atjaunošana:
-           - Iegūsti tīro kodu: noņem karodziņus, atstarpes, un ņem pēdējos 2 burtus (piem., "🇺🇦 UA" -> "ua", "LV" -> "lv").
-           - Ja kods ir "ua", pārvērt to par "uk" (vai otrādi atbilstoši i18n standartam).
-           - UZREIZ atjaunini instances mainīgo: self.current_lang = clean_lang.
-           - UZREIZ izsauc i18n.set_ui_language(clean_lang) un saglabā to config.json failā.
-        2. Moduļu tūlītēja atsvaidzināšana ar JAUNO valodu:
-           - Iterē cauri visiem moduļiem (self.offer_module, self.investor_module, u.c.):
-             - Ja modulim ir refresh_ui(), izsauc: module.refresh_ui()
-             - Ja modulim ir set_ui_language(), izsauc: module.set_ui_language(clean_lang)
-           - Pārliecinies, ka netiek padota vecā self.current_lang vērtība, bet tieši tikko izvēlētā jaunā vērtība!
         """
         
         # 1. Tīra valodas koda iegūšana un tūlītēja atjaunošana
@@ -305,11 +295,28 @@ class CockpitWindow(ctk.CTkToplevel):
         if config_lang_code == "ua":
             config_lang_code = "uk" # Pārvēršam "ua" uz "uk" atbilstoši i18n standartam
 
-        t = UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])
+        # JAUNUMS: Izsauc i18n.set_ui_language ar jauniegūto kodu
+        i18n.set_ui_language(config_lang_code)
 
+        # JAUNUMS: Saglabā izvēli config.json (i18n standarta valodas kods)
+        cfg = {}
+        if os.path.exists("config.json"):
+            try:
+                with open("config.json", "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+            except Exception:
+                pass
+        cfg["ui_language"] = config_lang_code # Saglabājam i18n standarta kodu
+        try:
+            with open("config.json", "w", encoding="utf-8") as f:
+                json.dump(cfg, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+        
+        # Atjaunina galvenā loga nosaukumu un ciļņu pogu tekstus
+        t = UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])
         self.title(t["title"])
 
-        # Atjaunina ciļņu pogu tekstus. Secībai JĀSAKRĪT ar ciļņu izveides secību.
         tab_key_order = ["tab_offers", "tab_hp", "tab_bank", "tab_voice", "tab_docs", "tab_warranty", "tab_settings", "tab_invest"]
         
         button_list = list(self.tabview._segmented_button._buttons_dict.values())
@@ -327,13 +334,15 @@ class CockpitWindow(ctk.CTkToplevel):
         for module in all_modules:
             if module:
                 if hasattr(module, "set_ui_language"):
-                    # Nododam i18n standarta valodas kodu moduļiem
-                    module.set_ui_language(config_lang_code) 
+                    try: # JAUNUMS: Pievienots try-except bloks
+                        module.set_ui_language(config_lang_code) 
+                    except Exception as e:
+                        print(f"Kļūda set_ui_language modulī {type(module).__name__}: {e}")
                 if hasattr(module, "refresh_ui"):
                     try:
                         module.refresh_ui()
                     except Exception as e:
-                        print(f"Kļūda 'refresh_ui' izsaukumā modulī {type(module).__name__}: {e}")
+                        print(f"Kļūda refresh_ui modulī {type(module).__name__}: {e}")
 
         # 3. Paziņo Radaram (master logam), ja tam ir valodas metode
         if self.master and hasattr(self.master, "set_ui_language"):
@@ -343,22 +352,7 @@ class CockpitWindow(ctk.CTkToplevel):
             except Exception:
                 pass
 
-        # 4. Saglabā izvēli config.json (i18n standarta valodas kods)
-        cfg = {}
-        if os.path.exists("config.json"):
-            try:
-                with open("config.json", "r", encoding="utf-8") as f:
-                    cfg = json.load(f)
-            except Exception:
-                pass
-        cfg["ui_language"] = config_lang_code # Saglabājam i18n standarta kodu
-        try:
-            with open("config.json", "w", encoding="utf-8") as f:
-                json.dump(cfg, f, ensure_ascii=False, indent=2)
-        except Exception:
-            pass
-
-        # 5. Atjaunina Iestatījumu cilnes uzrakstus
+        # 4. Atjaunina Iestatījumu cilnes uzrakstus
         self.update_settings_labels()
 
     def update_settings_labels(self):
