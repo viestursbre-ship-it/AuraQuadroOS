@@ -117,7 +117,7 @@ TRANSLATIONS = {
     "error_title": {"lv": "Kļūda", "en": "Error", "ru": "Ошибка", "uk": "Помилка", "it": "Errore"},
     "error_docx_missing": {"lv": "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.", "en": "To export to Word, the 'python-docx' library is required.\nInstall it with 'pip install python-docx'.", "ru": "Для экспорта в Word требуется библиотека 'python-docx'.\nУстановите ее с помощью 'pip install python-docx'.", "uk": "Для експорту в Word потрібна бібліотека 'python-docx'.\nВстановіть її за допомогою 'pip install python-docx'.", "it": "Per esportare in Word è necessaria la libreria 'python-docx'.\nInstallala con 'pip install python-docx'."},
     "info_title": {"lv": "Info", "en": "Info", "ru": "Информация", "uk": "Інформація", "it": "Info"},
-    "info_no_data_to_export": {"lv": "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.", "en": "No data to export. Run 'Hunt New Unicorns' first.", "ru": "Нет данных для экспорта. Сначала запустите 'Искать новых единорогов'.", "uk": "Немає даних для експорту. Спочатку запустіть 'Полювання на Єдиноrogi'.", "it": "Nessun dato da esportare. Avvia prima 'Caccia agli Unicorni'."},
+    "info_no_data_to_export": {"lv": "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.", "en": "No data to export. Run 'Hunt New Unicorns' first.", "ru": "Нет данных для экспорта. Сначала запустите 'Искать новых единорогов'.", "uk": "Немає даних для екsporu. Спочатку запустіть 'Полювання на Єдиноrogi'.", "it": "Nessun dato da esportare. Avvia prima 'Caccia agli Unicorni'."},
     "success_title": {"lv": "Saglabāts!", "en": "Saved!", "ru": "Сохранено!", "uk": "Збережено!", "it": "Salvato!"},
     "error_saving_word_title": {"lv": "Kļūda saglabājot Word failu", "en": "Error saving Word file", "ru": "Ошибка при сохранении файла Word", "uk": "Помилка збереження faila Word", "it": "Errore nel salvataggio del file Word"},
 
@@ -174,7 +174,7 @@ TRANSLATIONS = {
     "insider_data_error": {"lv": "Kļūda datos", "en": "Error in data", "ru": "Ошибка в данных", "uk": "Помилка в даних", "it": "Errore nei dati"},
     "error_finnhub_key_missing": {"lv": "⚠️ config.json trūkst 'finnhub_api_key'!", "en": "⚠️ 'finnhub_api_key' missing from config.json!", "ru": "⚠️ В config.json отсутствует 'finnhub_api_key'!", "uk": "⚠️ У config.json відсутній 'finnhub_api_key'!", "it": "⚠️ 'finnhub_api_key' mancante in config.json!"},
     "news_headlines_header": {"lv": "=== SVARĪGĀKĀS ZIŅAS ===", "en": "=== TOP HEADLINES ===", "ru": "=== ВАЖНЕЙШИЕ НОВОСТИ ===", "uk": "=== НАЙВАЖЛІВІШІ НОВИНИ ===", "it": "=== TITOLI PRINCIPALI ==="},
-    "news_no_aggressive": {"lv": "Nav agresīvu ziņu triecienu", "en": "No aggressive news strikes", "ru": "Нет агрессивных новостных ударов", "uk": "Немає агресивних новинних ударів", "it": "Nessun attacco di notizie aggressive"},
+    "news_no_aggressive": {"lv": "Nav agresīvu ziņu triecienu", "en": "No aggressive news strikes", "ru": "Нет агрессивных новостных ударов", "uk": "Немає agresīvu jaunumu streiku", "it": "Nessun attacco di notizie aggressive"},
     "kvark_strategic_resolution": {"lv": "🐾 KOMANDANTA KVARKA STRATĒĢISKĀ REZOLŪCIJA:\n", "en": "🐾 COMMANDER KVARK'S STRATEGIC RESOLUTION:\n", "ru": "🐾 СТРАТЕГИЧЕСКАЯ РЕЗОЛЮЦИЯ КОМАНДИРА КВАРКА:\n", "uk": "🐾 СТРАТЕГІЧНА РЕЗОЛЮЦІЯ КОМАНДИРА КВАРКА:\n", "it": "🐾 RISOLUZIONE STRATEGICA DEL COMANDANTE QUARK:\n"},
     "error_kvark_market_intel": {"lv": "⚠️ Kvarka kļūda: {e}", "en": "⚠️ Quark's error: {e}", "ru": "⚠️ Ошибка Кварка: {e}", "uk": "⚠️ Помилка Kvarka: {e}", "it": "⚠️ Errore di Quark: {e}"},
 
@@ -193,7 +193,7 @@ TRANSLATIONS = {
     "analyst_rating_label": {"lv": "Analītiķu vērt.:  {rec}", "en": "Analyst rating:  {rec}", "ru": "Оценка аналитиков:  {rec}", "uk": "Оцінка аналітиків:  {rec}", "it": "Valutazione analisti:  {rec}"},
     "target_price_label": {"lv": "Mērķa vid. cena:  {target_mean} {currency}", "en": "Target avg. price: {target_mean} {currency}", "ru": "Целевая сред. цена: {target_mean} {currency}", "uk": "Цільова ser. cena: {target_mean} {currency}", "it": "Prezzo medio target: {target_mean} {currency}"},
     "unknown_value": {"lv": "Nezināms", "en": "Unknown", "ru": "Неизвестно", "uk": "Невідомо", "it": "Sconosciuto"},
-    "error_fetching_ticker_data": {"lv": "⚠️ Kļūda nolasot {ticker}: {e}", "en": "⚠️ Error fetching {ticker}: {e}", "ru": "⚠️ Ошибка при получении {ticker}: {e}", "uk": "⚠️ Помилка pri iegūšanā {ticker}: {e}", "it": "⚠️ Errore nel recupero {ticker}: {e}"},
+    "error_fetching_ticker_data": {"lv": "⚠️ Kļūda nolasot {ticker}: {e}", "en": "⚠️ Error fetching {ticker}: {e}", "ru": "⚠️ Ошибка pri poluchenii {ticker}: {e}", "uk": "⚠️ Помилка pri iegūšanā {ticker}: {e}", "it": "⚠️ Errore nel recupero {ticker}: {e}"},
     "analysis_disclaimer_summary": {"lv": "Informatīvs analīzes kopsavilkums.", "en": "Informative analysis summary.", "ru": "Информативное резюме анализа.", "uk": "Інформативне резюме аналізу.", "it": "Riepilogo analitico informativo."},
 
     # Additional keys for prompts and UI (LEO ADDITION)
@@ -203,7 +203,8 @@ TRANSLATIONS = {
     "llm_default_lang_instruction": {"lv": "Atbildi latviešu valodā.", "en": "Respond in English.", "ru": "Ответь на русском языке.", "uk": "Відповідайте українською мовою.", "it": "Rispondi in italiano."},
     "source_label": {"lv": "Avots", "en": "Source", "ru": "Источник", "uk": "Джерело", "it": "Fonte"},
     "error_gemini_analysis": {"lv": "⚠️ Gemini analīzes kļūda: {e}", "en": "⚠️ Gemini analysis error: {e}", "ru": "⚠️ Oшибка анализа Gemini: {e}", "uk": "⚠️ Помилка аналізу Gemini: {e}", "it": "⚠️ Errore di analisi Gemini: {e}"},
-    "data_fetch_error": {"lv": "⚠️ Kļūda nolasot datus", "en": "⚠️ Error fetching data", "ru": "⚠️ Ошибка при получении данных", "uk": "⚠️ Помилка при отриманні даних", "it": "⚠️ Errore nel recupero dei dati"}
+    "data_fetch_error": {"lv": "⚠️ Kļūda nolasot datus", "en": "⚠️ Error fetching data", "ru": "⚠️ Ошибка pri poluchenii dannyx", "uk": "⚠️ Помилка pri otrimanni danih", "it": "⚠️ Errore nel recupero dei dati"},
+    "error_invalid_cash_balance": {"lv": "Nederīga naudas atlikuma vērtība.", "en": "Invalid cash balance value.", "ru": "Неверное значение остатка денежных средств.", "uk": "Невірна вартість залишку грошових коштів.", "it": "Valore del saldo di cassa non valido."} # New key for specific error message
 }
 
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
@@ -484,11 +485,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.resolution_box.configure(state="disabled")
             resolution_text = self._get_gemini_resolution(payload)
         elif not HAS_GENAI:
-            resolution_text = f"⚠️ {i18n.t('error_gemini_api_contact', e='Google Generative AI library not found.')}\n{i18n.t('analysis_disclaimer_summary')}"
+            resolution_text = i18n.t('error_gemini_api_contact', e='Google Generative AI library not found.') + "\n" + i18n.t('analysis_disclaimer_summary')
         elif not self.get_gemini_key():
-             resolution_text = f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}"
+             resolution_text = i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
         else:
-            resolution_text = f"⚠️ {i18n.t('error_fetching_ticker_data', ticker=ticker, e='Data unavailable for analysis.')}\n{i18n.t('analysis_disclaimer_summary')}"
+            resolution_text = i18n.t('error_fetching_ticker_data', ticker=ticker, e='Data unavailable for analysis.') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         self.resolution_box.configure(state="normal")
         self.resolution_box.delete("0.0", "end")
@@ -593,7 +594,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
     def _get_gemini_resolution(self, payload):
         if not HAS_GENAI or not self.get_gemini_key():
-            return f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}"
+            return i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         try:
             genai.configure(api_key=self.get_gemini_key())
@@ -629,7 +630,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
             return response.text.strip()
         except Exception as e:
-            return f"⚠️ {i18n.t('error_gemini_analysis', e=e)}\n{i18n.t('analysis_disclaimer_summary')}"
+            return i18n.t('error_gemini_analysis', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
 
     # ==========================================
     # 2. CILNE: MANA eToro PORTFELIS & AUDITS
@@ -649,13 +650,13 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.portfolio_tickers_input = ctk.CTkTextbox(f, height=100, wrap="word",
                                                        fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
         self.portfolio_tickers_input.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
-        self._load_portfolio() # Load existing portfolio on startup
+        # self._load_portfolio() # MOVED TO THE END OF THIS METHOD TO ENSURE WIDGETS ARE INITIALIZED
 
         self.lbl_portfolio_cash_balance = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_cash_balance"))
         self.lbl_portfolio_cash_balance.grid(row=3, column=0, padx=10, pady=(5, 0), sticky="w")
         self.cash_balance_input = ctk.CTkEntry(f, placeholder_text="10000", fg_color="#1e293b", border_color="#334155")
         self.cash_balance_input.grid(row=3, column=1, padx=10, pady=(5, 0), sticky="ew")
-        self._load_cash_balance()
+        # self._load_cash_balance() # REDUNDANT, REMOVED CALL
 
         self.lbl_portfolio_risk_strategy = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_risk_strategy"))
         self.lbl_portfolio_risk_strategy.grid(row=4, column=0, padx=10, pady=5, sticky="w")
@@ -664,7 +665,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
                                               unselected_color="#334155", unselected_hover_color="#475569")
         self.seg_risk.set(i18n.t("seg_risk_conservative"))
         self.seg_risk.grid(row=4, column=1, padx=10, pady=5, sticky="ew")
-        self._load_risk_strategy()
+        # self._load_risk_strategy() # REDUNDANT, REMOVED CALL
+
+        # Ensure self.portfolio_tickers_input, self.cash_balance_input, and self.seg_risk are defined
+        # before attempting to load data into them.
+        self._load_portfolio()
 
         self.btn_save_p = ctk.CTkButton(f, text=i18n.t("btn_save_portfolio"), command=self._save_portfolio,
                                          fg_color="#0e7490", hover_color="#086078")
@@ -701,17 +706,16 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     self.cash_balance_input.delete(0, "end")
                     self.cash_balance_input.insert(0, str(cash_balance))
                     # Ensure the loaded risk strategy matches the localized values
-                    if risk_strategy == "Conservative (5-10%)" or risk_strategy == "🛡️ Konservatīvs (5-10%)":
+                    if risk_strategy == "Conservative (5-10%)" or risk_strategy == i18n.t("seg_risk_conservative"):
                         self.seg_risk.set(i18n.t("seg_risk_conservative"))
-                    elif risk_strategy == "Venture & Growth" or risk_strategy == "🚀 Venture & Growth":
+                    elif risk_strategy == "Venture & Growth" or risk_strategy == i18n.t("seg_risk_venture_growth"):
                         self.seg_risk.set(i18n.t("seg_risk_venture_growth"))
                     else: # Fallback
                         self.seg_risk.set(i18n.t("seg_risk_conservative"))
 
             except Exception as e:
-                print(f"Error loading portfolio: {e}")
-                # FIX: Change to f-string formatting as per instructions
-                messagebox.showerror(i18n.t("error_title"), f"{i18n.t('error_portfolio_save')}: {e}")
+                # FIX: Change to f-string formatting using i18n.t with 'e' parameter
+                messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=e))
 
     def _load_cash_balance(self):
         # This function is redundant now as _load_portfolio loads both.
@@ -744,10 +748,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.audit_log_box.insert("0.0", i18n.t("status_portfolio_saved"))
             self.audit_log_box.configure(state="disabled")
         except ValueError:
-            messagebox.showerror(i18n.t("error_title"), f"{i18n.t('error_portfolio_save').replace('{e}', '').strip()}: Invalid cash balance.")
+            # FIX: Change to f-string formatting using i18n.t with 'e' parameter and new translation key
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=i18n.t("error_invalid_cash_balance")))
         except Exception as e:
-            # FIX: Change to f-string formatting as per instructions
-            messagebox.showerror(i18n.t("error_title"), f"{i18n.t('error_portfolio_save')}: {e}")
+            # FIX: Change to f-string formatting using i18n.t with 'e' parameter
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=e))
 
 
     def _add_ticker_to_portfolio(self, ticker):
@@ -789,7 +794,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
         try:
             cash_balance = float(cash_balance_str)
         except ValueError:
-            messagebox.showerror(i18n.t("error_title"), f"{i18n.t('error_portfolio_save').replace('{e}', '').strip()}: Invalid cash balance.")
+            # FIX: Change to f-string formatting using i18n.t with 'e' parameter and new translation key
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=i18n.t("error_invalid_cash_balance")))
             return
 
         self.btn_audit.configure(state="disabled", text=i18n.t("btn_audit_loading"))
@@ -813,11 +819,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if HAS_GENAI and self.get_gemini_key():
             audit_resolution = self._get_gemini_audit_resolution(full_stock_data, cash_balance, risk_strategy)
         elif not HAS_GENAI:
-            audit_resolution = f"⚠️ {i18n.t('error_gemini_api_contact', e='Google Generative AI library not found.')}\n{i18n.t('analysis_disclaimer_summary')}"
+            audit_resolution = i18n.t('error_gemini_api_contact', e='Google Generative AI library not found.') + "\n" + i18n.t('analysis_disclaimer_summary')
         elif not self.get_gemini_key():
-            audit_resolution = f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}"
+            audit_resolution = i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
         else:
-            audit_resolution = f"⚠️ {i18n.t('error_audit_gemini', e='Failed to fetch data for all tickers.')}\n{i18n.t('analysis_disclaimer_summary')}"
+            audit_resolution = i18n.t('error_audit_gemini', e='Failed to fetch data for all tickers.') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         final_audit_text = "\n".join(audit_results) + "\n\n" + audit_resolution
         self.master.after(0, self._update_audit_log_final, final_audit_text)
@@ -837,7 +843,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
     def _get_gemini_audit_resolution(self, stock_data_list, cash_balance, risk_strategy):
         if not HAS_GENAI or not self.get_gemini_key():
-            return f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}"
+            return i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         try:
             genai.configure(api_key=self.get_gemini_key())
@@ -854,7 +860,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     f"P/E (Forward): {data.get('fwd_pe')}\n"
                     f"PEG Ratio: {data.get('peg')}\n"
                     f"52-Week High: {data.get('52_high')} {data.get('currency')}\n"
-                    f"52-Week Low: {data.get('52_low')} {data.get('currency')}\n"
+                    f"- 52-Week Low: {data.get('52_low')} {data.get('currency')}\n"
                     f"- Target Mean Price: {data.get('target_mean')} {data.get('currency')}\n\n"
                 )
             
@@ -883,7 +889,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
             return f"{i18n.t('audit_copy_header')}\n\n{i18n.t('audit_copy_strategy')} {risk_strategy}\n\n{response.text.strip()}\n\n{i18n.t('audit_copy_footer')}"
         except Exception as e:
-            return f"⚠️ {i18n.t('error_audit_gemini', e=e)}\n{i18n.t('analysis_disclaimer_summary')}"
+            return i18n.t('error_audit_gemini', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
 
     def _copy_audit_summary(self):
         try:
@@ -893,8 +899,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.audit_log_box.insert("0.0", i18n.t("status_copied") + "\n\n" + self.audit_log_box.get("0.0", "end"))
             self.audit_log_box.configure(state="disabled") # Re-disable
         except Exception as e:
-            # FIX: Change to f-string formatting as per instructions
-            messagebox.showerror(i18n.t("error_title"), f"{i18n.t('error_copying')}: {e}")
+            # FIX: Change to f-string formatting using i18n.t with 'e' parameter
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
     # ==========================================
     # 3. CILNE: KVARKA IZAUGSMES MEDNIEKS
@@ -960,7 +966,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             display_text = ""
             display_text += f"--- {selected_candidate.get('name')} ({selected_candidate.get('ticker')}) ---\n"
             if selected_candidate.get('red_flag'):
-                display_text += f"{i18n.t('warning_red_flag', warning_message=selected_candidate['red_flag'])}\n"
+                display_text += i18n.t('warning_red_flag', warning_message=selected_candidate['red_flag']) + "\n"
             display_text += f"{i18n.t('lbl_niche')} {selected_candidate.get('niche')}\n"
             display_text += f"{i18n.t('lbl_why_10x_100x')} {selected_candidate.get('why_10x_100x')}\n"
             display_text += f"{i18n.t('lbl_black_swan')} {selected_candidate.get('black_swan')}\n"
@@ -981,7 +987,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if not HAS_GENAI or not self.get_gemini_key():
             self.growth_analysis_box.configure(state="normal")
             self.growth_analysis_box.delete("0.0", "end")
-            self.growth_analysis_box.insert("0.0", f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}")
+            self.growth_analysis_box.insert("0.0", i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary'))
             self.growth_analysis_box.configure(state="disabled")
             return
 
@@ -1092,13 +1098,13 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         except json.JSONDecodeError as jde:
             partial_response = raw_unicorns_json[:500] if 'raw_unicorns_json' in locals() else raw_analysis_json[:500] if 'raw_analysis_json' in locals() else "N/A"
-            self.master.after(0, self._update_growth_analysis_log, f"⚠️ {i18n.t('error_gemini_parsing', e=jde, partial_response=partial_response)}")
+            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_parsing', e=jde, partial_response=partial_response))
             self.master.after(0, lambda: self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns")))
         except ValueError as ve:
-            self.master.after(0, self._update_growth_analysis_log, f"⚠️ {i18n.t('error_ai_unparsable')}: {ve}")
+            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_ai_unparsable', e=ve))
             self.master.after(0, lambda: self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns")))
         except Exception as e:
-            self.master.after(0, self._update_growth_analysis_log, f"⚠️ {i18n.t('error_gemini_api_contact', e=e)}")
+            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_api_contact', e=e))
             self.master.after(0, lambda: self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns")))
 
 
@@ -1132,20 +1138,20 @@ class InvestorStudioFrame(ctk.CTkFrame):
         try:
             summary_text = f"{i18n.t('growth_copy_header')}\n\n"
             for idx, candidate in enumerate(self.growth_candidates_data):
-                summary_text += f"{i18n.t('growth_copy_candidate_header', idx_plus_1=idx+1, ticker=candidate.get('ticker'), name=candidate.get('name'))}\n"
+                summary_text += i18n.t('growth_copy_candidate_header', idx_plus_1=idx+1, ticker=candidate.get('ticker'), name=candidate.get('name')) + "\n"
                 if candidate.get('red_flag'):
-                    summary_text += f"   {i18n.t('warning_red_flag', warning_message=candidate['red_flag'])}\n"
-                summary_text += f"{i18n.t('growth_copy_niche', niche=candidate.get('niche'))}\n"
-                summary_text += f"{i18n.t('growth_copy_why', why=candidate.get('why_10x_100x'))}\n"
-                summary_text += f"{i18n.t('growth_copy_risk', risk=candidate.get('black_swan'))}\n"
+                    summary_text += "   " + i18n.t('warning_red_flag', warning_message=candidate['red_flag']) + "\n"
+                summary_text += i18n.t('growth_copy_niche', niche=candidate.get('niche')) + "\n"
+                summary_text += i18n.t('growth_copy_why', why=candidate.get('why_10x_100x')) + "\n"
+                summary_text += i18n.t('growth_copy_risk', risk=candidate.get('black_swan')) + "\n"
                 summary_text += f"   {candidate.get('resolution', '')}\n\n"
 
             self.clipboard_clear()
             self.clipboard_append(summary_text)
             messagebox.showinfo(i18n.t("info_title"), i18n.t("status_copied"))
         except Exception as e:
-            # FIX: Change to f-string formatting as per instructions
-            messagebox.showerror(i18n.t("error_title"), f"{i18n.t('error_copying')}: {e}")
+            # FIX: Change to f-string formatting using i18n.t with 'e' parameter
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
     def _export_growth_to_word(self):
         if not HAS_DOCX:
@@ -1223,7 +1229,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if not HAS_GENAI or not self.get_gemini_key():
             self.dividends_analysis_box.configure(state="normal")
             self.dividends_analysis_box.delete("0.0", "end")
-            self.dividends_analysis_box.insert("0.0", f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}")
+            self.dividends_analysis_box.insert("0.0", i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary'))
             self.dividends_analysis_box.configure(state="disabled")
             return
 
@@ -1278,7 +1284,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     "dividend_yield": dividend_yield,
                 })
             except Exception as e:
-                self.master.after(0, self._update_dividends_log, f"{i18n.t('error_fetching_ticker_data', ticker=ticker, e=e)}")
+                self.master.after(0, self._update_dividends_log, i18n.t('error_fetching_ticker_data', ticker=ticker, e=e))
                 dividend_data.append({
                     "ticker": ticker,
                     "name": ticker,
@@ -1295,7 +1301,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if HAS_GENAI and self.get_gemini_key():
             resolution_text = self._get_gemini_dividends_resolution(dividend_data)
         else:
-            resolution_text = f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}"
+            resolution_text = i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         self.master.after(0, self._update_dividends_log_final, resolution_text)
         self.master.after(0, lambda: self.btn_calc_dividends.configure(state="normal", text=i18n.t("btn_calc_dividends")))
@@ -1315,7 +1321,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
     def _get_gemini_dividends_resolution(self, dividend_data):
         if not HAS_GENAI or not self.get_gemini_key():
-            return f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}"
+            return i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         try:
             genai.configure(api_key=self.get_gemini_key())
@@ -1361,7 +1367,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
             return response.text.strip()
         except Exception as e:
-            return f"⚠️ {i18n.t('error_gemini_dividends', e=e)}\n{i18n.t('analysis_disclaimer_summary')}"
+            return i18n.t('error_gemini_dividends', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
 
     # ==========================================
     # 5. CILNE: TIRGUS KLIMATS & INSAIDERI
@@ -1395,7 +1401,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if not HAS_GENAI or not self.get_gemini_key():
             self.market_intel_box.configure(state="normal")
             self.market_intel_box.delete("0.0", "end")
-            self.market_intel_box.insert("0.0", f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}")
+            self.market_intel_box.insert("0.0", i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary'))
             self.market_intel_box.configure(state="disabled")
             return
 
@@ -1488,31 +1494,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if not api_key:
             return i18n.t("error_finnhub_key_missing"), []
 
-        insider_sentiment = {"buy": 0, "sell": 0, "total": 0, "net_puchase_share": 0}
         recent_transactions = []
         try:
-            # This API often has limits or requires specific parameters for aggregate data.
-            # For a simpler approach, we can fetch recent insider transactions for a few major indices or a broad market view.
-            # However, Finnhub's /stock/insider-sentiment API usually requires a specific symbol.
-            # To get a "market climate" without specifying tickers, we might need a different data source,
-            # or make assumptions (e.g., check SPY, QQQ).
-            # For this exercise, let's simplify by noting if the key is missing or data fails.
-
-            # Example: Fetching for SPY (S&P 500 ETF) as a proxy for market sentiment
-            # This is a simplification and real market sentiment would aggregate across many stocks.
-            today = datetime.now()
-            # Fetch for the last 3 months
-            from_date = (today - timedelta(days=90)).strftime('%Y-%m-%d')
-            to_date = today.strftime('%Y-%m-%d')
-            
-            # Using a dummy stock/index for the example. A real solution would aggregate from multiple.
-            # For aggregated market sentiment, Finnhub's `market-news` or `economic-calendar` might be more suitable,
-            # but the request asks for "insider transactions".
-            # Finnhub's insider-sentiment endpoint is typically per-symbol.
-            # Let's mock a simple check for overall market sentiment based on a few key tickers if we don't have a direct market-wide API.
-            # Since the task description implies a broader "insider transactions" and refers to "Finnhub",
-            # I will use a simplified approach to indicate sentiment.
-            
             # This is a placeholder as Finnhub's `insider-sentiment` is for *specific stocks*.
             # To get *market climate & insiders*, we would typically need an aggregation API
             # or fetch data for many top stocks and summarize.
@@ -1521,45 +1504,32 @@ class InvestorStudioFrame(ctk.CTkFrame):
             # response_insider = requests.get(url_insider, timeout=10).json()
             # ... process response_insider ...
 
-            # Given the lack of a direct "market-wide insider sentiment" API on Finnhub free tier or simple endpoints,
-            # and the instruction context, I will mock a generic sentiment based on key presence.
-            # A more advanced implementation would iterate over a list of key stocks or use a dedicated market sentiment API.
-            if api_key: # Assume if key is present, we *could* fetch.
-                # Simulate some data or leave it as "No major deals" if no specific API for market-wide insider sentiment
-                # For a true market climate, Finnhub has `news` and `economic-calendar` endpoints.
-                # However, the instruction explicitly refers to "insider transactions".
-                # As there's no explicit Finnhub endpoint for *aggregate market insider sentiment* for general access
-                # without iterating symbols, we'll represent it simply.
-                
-                # Let's try to get some aggregate news sentiment using Finnhub to gauge general market 'insider' climate from news
-                # (This is a stretch to meet "insiders" but aligns with "market climate").
-                news_url = f"https://finnhub.io/api/v1/news?category=general&minId=0&token={api_key}"
-                news_response = requests.get(news_url, timeout=10).json()
-                
-                buy_signals = 0
-                sell_signals = 0
-                
-                # This is a very simplistic heuristic, not real insider trading sentiment
-                for news_item in news_response[:10]: # Check top 10 news items
-                    headline = news_item.get('headline', '').lower()
-                    if 'acquisition' in headline or 'buyback' in headline or 'strong' in headline:
-                        buy_signals += 1
-                    elif 'sell' in headline or 'drop' in headline or 'weak' in headline:
-                        sell_signals += 1
-                
-                if buy_signals > sell_signals * 2:
-                    insider_sentiment_text = i18n.t("insider_buy")
-                elif sell_signals > buy_signals * 2:
-                    insider_sentiment_text = i18n.t("insider_sell")
-                else:
-                    insider_sentiment_text = i18n.t("insider_neutral")
-
-                recent_transactions = [
-                    {"sentiment": insider_sentiment_text, "notes": f"Based on {buy_signals} positive and {sell_signals} negative news signals from Finnhub."}
-                ]
+            # Let's try to get some aggregate news sentiment using Finnhub to gauge general market 'insider' climate from news
+            # (This is a stretch to meet "insiders" but aligns with "market climate").
+            news_url = f"https://finnhub.io/api/v1/news?category=general&minId=0&token={api_key}"
+            news_response = requests.get(news_url, timeout=10).json()
+            
+            buy_signals = 0
+            sell_signals = 0
+            
+            # This is a very simplistic heuristic, not real insider trading sentiment
+            for news_item in news_response[:10]: # Check top 10 news items
+                headline = news_item.get('headline', '').lower()
+                if 'acquisition' in headline or 'buyback' in headline or 'strong' in headline:
+                    buy_signals += 1
+                elif 'sell' in headline or 'drop' in headline or 'weak' in headline:
+                    sell_signals += 1
+            
+            if buy_signals > sell_signals * 2:
+                insider_sentiment_text = i18n.t("insider_buy")
+            elif sell_signals > buy_signals * 2:
+                insider_sentiment_text = i18n.t("insider_sell")
             else:
-                insider_sentiment_text = i18n.t("insider_no_major_deals")
+                insider_sentiment_text = i18n.t("insider_neutral")
 
+            recent_transactions = [
+                {"sentiment": insider_sentiment_text, "notes": f"Based on {buy_signals} positive and {sell_signals} negative news signals from Finnhub."}
+            ]
             return insider_sentiment_text, recent_transactions
 
         except Exception as e:
@@ -1579,12 +1549,12 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 news_headlines.append(i18n.t("news_no_aggressive"))
         except Exception as e:
             print(f"Error fetching market news: {e}")
-            news_headlines.append(f"{i18n.t('error_fetching_ticker_data', ticker='Market News', e=e)}")
+            news_headlines.append(i18n.t('error_fetching_ticker_data', ticker='Market News', e=e))
         return news_headlines
 
     def _get_gemini_market_resolution(self, fng_value, fng_sentiment, macro_data, insider_sentiment, recent_insider_transactions, market_news):
         if not HAS_GENAI or not self.get_gemini_key():
-            return f"⚠️ {i18n.t('error_api_key_unavailable')}\n{i18n.t('analysis_disclaimer_summary')}"
+            return i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         try:
             genai.configure(api_key=self.get_gemini_key())
@@ -1628,7 +1598,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
             return f"{i18n.t('kvark_strategic_resolution')}{response.text.strip()}"
         except Exception as e:
-            return f"⚠️ {i18n.t('error_kvark_market_intel', e=e)}\n{i18n.t('analysis_disclaimer_summary')}"
+            return i18n.t('error_kvark_market_intel', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
 
     def _update_market_intel_final(self, text):
         self.market_intel_box.configure(state="normal")
