@@ -84,6 +84,16 @@ TRANSLATIONS = {
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Analizēt Tīkeri",
         "lbl_ticker_input": "Ievadiet Tīkeri (piem., AAPL, NVDA):",
+        # Investor Studio iekšējās cilnes
+        "tab_inv_single": "🔍 Viena Tikera Rentgens",
+        "tab_inv_etoro": "💼 Mans eToro Portfelis & Audits",
+        "tab_inv_unicorns": "🚀 Kvarka Izaugsmes Mednieks",
+        "tab_inv_dividends": "💰 Dividendes & Naudas Plūsma",
+        "tab_inv_insiders": "🏛️ Tirgus Klimats & Insaideri",
+        # Rezolūcija un paziņojumi
+        "lbl_inv_resolution_title": "KOMANDANTA KVARKA REZOLŪCIJA",
+        "lbl_inv_waiting_request": "Gaidu pieprasījumu...",
+        "lbl_inv_enter_ticker_hint": "Ievadiet tikeri un nospiediet 'Rentgens'...",
     },
     "en": {
         "tab_offers": "💼 Quote Studio",
@@ -135,6 +145,16 @@ TRANSLATIONS = {
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Analyze Ticker",
         "lbl_ticker_input": "Enter Ticker (e.g., AAPL, NVDA):",
+        # Investor Studio internal tabs
+        "tab_inv_single": "🔍 Single Ticker X-Ray",
+        "tab_inv_etoro": "💼 My eToro Portfolio & Audit",
+        "tab_inv_unicorns": "🚀 Quark Growth Hunter",
+        "tab_inv_dividends": "💰 Dividends & Cash Flow",
+        "tab_inv_insiders": "🏛️ Market Climate & Insiders",
+        # Resolution and notifications
+        "lbl_inv_resolution_title": "COMMANDER QUARK RESOLUTION",
+        "lbl_inv_waiting_request": "Waiting for request...",
+        "lbl_inv_enter_ticker_hint": "Enter ticker and press 'X-Ray'...",
     },
     "uk": {
         "tab_offers": "💼 Студія пропозицій",
@@ -186,6 +206,16 @@ TRANSLATIONS = {
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Аналізувати тикер",
         "lbl_ticker_input": "Введіть тикер (напр., AAPL, NVDA):",
+        # Investor Studio internal tabs
+        "tab_inv_single": "🔍 Рентген одного тікера",
+        "tab_inv_etoro": "💼 Мій портфель eToro та аудит",
+        "tab_inv_unicorns": "🚀 Мисливець за зростанням Кварка",
+        "tab_inv_dividends": "💰 Дивіденди та грошовий потік",
+        "tab_inv_insiders": "🏛️ Ринковий клімат та інсайдери",
+        # Rezolūcija un paziņojumi
+        "lbl_inv_resolution_title": "РЕЗОЛЮЦІЯ КОМАНДИРА КВАРКА",
+        "lbl_inv_waiting_request": "Очікую запит...",
+        "lbl_inv_enter_ticker_hint": "Введіть тікер і натисніть 'Рентген'...",
     },
     "ru": {
         "tab_offers": "💼 Студия предложений",
@@ -237,6 +267,16 @@ TRANSLATIONS = {
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Анализировать тикер",
         "lbl_ticker_input": "Введите тикер (напр., AAPL, NVDA):",
+        # Investor Studio internal tabs
+        "tab_inv_single": "🔍 Рентген одного тикера",
+        "tab_inv_etoro": "💼 Мой портфель eToro и аудит",
+        "tab_inv_unicorns": "🚀 Охотник за ростом Кварка",
+        "tab_inv_dividends": "💰 Дивиденды и денежный поток",
+        "tab_inv_insiders": "🏛️ Рыночный климат и инсайдеры",
+        # Rezolūcija un paziņojumi
+        "lbl_inv_resolution_title": "РЕЗОЛЮЦИЯ КОМАНДИРА КВАРКА",
+        "lbl_inv_waiting_request": "Ожидаю запрос...",
+        "lbl_inv_enter_ticker_hint": "Введите тикер и нажмите 'Рентген'...",
     },
     "it": {
         "tab_offers": "💼 Studio Offerte",
@@ -288,6 +328,16 @@ TRANSLATIONS = {
         # Investor Studio papildu atslēgas
         "btn_audit_ticker": "⚡ Analizza ticker",
         "lbl_ticker_input": "Inserisci ticker (es., AAPL, NVDA):",
+        # Investor Studio internal tabs
+        "tab_inv_single": "🔍 Raggi X Singolo Ticker",
+        "tab_inv_etoro": "💼 Mio Portafoglio eToro & Audit",
+        "tab_inv_unicorns": "🚀 Cacciatore di Crescita Quark",
+        "tab_inv_dividends": "💰 Dividendi e Flusso di Cassa",
+        "tab_inv_insiders": "🏛️ Clima di Mercato & Insider",
+        # Rezolūcija un paziņojumi
+        "lbl_inv_resolution_title": "RISOLUZIONE DEL COMANDANTE QUARK",
+        "lbl_inv_waiting_request": "In attesa di richiesta...",
+        "lbl_inv_enter_ticker_hint": "Inserisci il ticker e premi 'Raggi X'...",
     }
 }
 
