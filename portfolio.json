@@ -1,16 +1,17 @@
 {
-  "tickers": [
-    "DAL",
-    "MSFT",
-    "ABNB",
-    "OXY",
-    "VOO",
-    "BP.L",
-    "CMG",
-    "ARM",
-    "SNOW",
-    "AVGO",
-    "TSLA"
-  ],
-  "cash_usd": "500"
+    "tickers": "DAL MSFT ABNB OXY VOO BP.L CMG ARM SNOW AVGO",
+    "ticker_list": [
+        "DAL",
+        "MSFT",
+        "ABNB",
+        "OXY",
+        "VOO",
+        "BP.L",
+        "CMG",
+        "ARM",
+        "SNOW",
+        "AVGO"
+    ],
+    "cash_balance": 100.0,
+    "risk_strategy": "\ud83d\udee1\ufe0f Konservat\u012bvs (5-10%)"
 }

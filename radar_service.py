@@ -564,7 +564,7 @@ def scan_outlook_mailbox():
                         continue
 
                     subj = msg.Subject or "(Bez temata)"
-                    sender = msg.SenderName or "Nezināms"
+                    sender = getattr(msg, "SenderName", getattr(msg, "SenderEmailAddress", "Sistēmas Ziņa")) or "Nezināms"
                     body = clean_msg_text(msg)
 
                     if any(ign in sender.lower() for ign in ignored_list):
