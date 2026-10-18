@@ -535,6 +535,17 @@ def t(key: str, lang: str = None) -> str:
     # Ja joprojām nav atrasts, atgriež pašu atslēgu (nav tukšums)
     return key
 
+def register_translations(module_dict: dict):
+    """
+    Reģistrē jaunas vai atjaunina esošās tulkojumu atslēgas no moduļa vārdnīcas.
+    """
+    for key, val in module_dict.items():
+        if isinstance(val, dict):
+            for lang, txt in val.items():
+                l = _normalize_lang_input(lang)
+                if l in TRANSLATIONS:
+                    TRANSLATIONS[l][key] = txt
+
 # Šī funkcija nodrošināta atpakaļejošai savietojamībai, ja kāds izsauc `set_language`.
 # Tā tagad iestata UI valodu.
 def set_language(lang_code: str):
