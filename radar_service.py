@@ -10,6 +10,13 @@ from PIL import Image, ImageDraw
 import pystray
 from pystray import MenuItem as item
 
+# IMAP specific imports
+import imaplib
+import email
+import re
+from email.header import decode_header
+from email.utils import parsedate_to_datetime
+
 try:
     from alert_service import notify_urgent_request
 except ImportError:
@@ -68,7 +75,12 @@ class CTkToolTip:
             self.tip_window.destroy()
             self.tip_window = None
 
-BASE_DIR = Path(__file__).resolve().parent
+# Corrected BASE_DIR handling to be global and consistent
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys.executable).parent
+else:
+    BASE_DIR = Path(__file__).resolve().parent
+
 STATE_FILE = BASE_DIR / "radar_state.json"
 IGNORE_FILE = BASE_DIR / "radar_ignored_senders.json"
 VOICE_DIR = BASE_DIR / "storage" / "voice"
@@ -138,46 +150,291 @@ def open_email_in_outlook(entry_id):
 
 
 def clean_msg_text(msg):
+    """Clean and extract text from Outlook MAPI message body."""
     text = ""
     try:
         if hasattr(msg, "Body") and msg.Body:
             text = msg.Body
         elif hasattr(msg, "HTMLBody") and msg.HTMLBody:
-            import re
             text = re.sub(r'<[^<]+?>', '', msg.HTMLBody)
     except Exception:
         text = ""
+    # These replacements seem specific to the original context, keeping them.
     text = text.replace(r"\d", "ī").replace(r"\t", "ī").replace(r"\i", "ī").replace(r"\j", "ā")
     return text.strip()
 
 
-def collect_all_folders(root_folder):
-    """Rekursīvi savāc visas mapes un apakšmapes."""
-    folders = [root_folder]
+def _parse_imap_message_content(msg, email_id_raw, keywords, is_warranty_topic, is_self_task):
+    """Helper function to extract body and attachments from an IMAP email message."""
+    body_text = ""
+    saved_audio_path = None
+    saved_image_path = None
+    saved_pdf_path = None
+    
+    msg_subj_lower = ""
+    if msg['Subject']:
+        try:
+            subj_decoded = ""
+            for segment, charset in decode_header(msg['Subject']):
+                if isinstance(segment, bytes):
+                    subj_decoded += segment.decode(charset or 'utf-8', errors='ignore')
+                else:
+                    subj_decoded += segment
+            msg_subj_lower = subj_decoded.lower()
+        except Exception:
+            msg_subj_lower = str(msg['Subject']).lower()
+
+    is_invoice_mail = any(w in msg_subj_lower for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"]) or any(k in msg_subj_lower for k in keywords)
+
+    for part in msg.walk():
+        if part.is_multipart():
+            continue
+
+        content_type = part.get_content_type()
+        charset = part.get_content_charset() or 'utf-8'
+
+        if part.get_filename(): # It's an attachment
+            filename = part.get_filename()
+            try:
+                # Decode filename if it's encoded
+                decoded_filename = ""
+                for segment, cset in decode_header(filename):
+                    if isinstance(segment, bytes):
+                        decoded_filename += segment.decode(cset or 'utf-8', errors='ignore')
+                    else:
+                        decoded_filename += segment
+                filename = decoded_filename.strip()
+            except Exception:
+                pass # Use original filename if decoding fails
+
+            ext = Path(filename).suffix.lower()
+            payload = part.get_payload(decode=True)
+            if not payload:
+                continue
+
+            # A) Audio
+            if ext in AUDIO_EXTENSIONS and not saved_audio_path:
+                clean_name = f"imap_voice_{email_id_raw.decode()}_{filename}"
+                target_path = VOICE_DIR / clean_name
+                if not target_path.exists():
+                    try:
+                        with open(target_path, "wb") as f:
+                            f.write(payload)
+                        saved_audio_path = str(target_path)
+                    except Exception as e:
+                        print(f"⚠️ Nevarēja saglabāt balss pielikumu '{filename}': {e}")
+
+            # B) Garantijas attēli
+            elif ext in IMAGE_EXTENSIONS and not saved_image_path and (is_warranty_topic or is_self_task):
+                # Simple check for size, avoid tiny images
+                if len(payload) < 20000:
+                    continue
+                clean_name = f"imap_warranty_{email_id_raw.decode()}_{filename}"
+                target_path = WARRANTY_DIR / clean_name
+                if not target_path.exists():
+                    try:
+                        with open(target_path, "wb") as f:
+                            f.write(payload)
+                        saved_image_path = str(target_path)
+                        print(f"🛡️ [IMAP GARANTIJA SAGLABĀTA]: {saved_image_path}")
+                    except Exception as e:
+                        print(f"⚠️ Nevarēja saglabāt garantijas attēlu '{filename}': {e}")
+
+            # C) PDF rēķini
+            elif ext == ".pdf" and not saved_pdf_path and (is_invoice_mail or "rekins" in filename.lower() or "invoice" in filename.lower()):
+                clean_name = f"imap_inv_{email_id_raw.decode()}_{filename}"
+                target_path = (INVOICE_DIR / clean_name).resolve()
+                if not target_path.exists():
+                    try:
+                        with open(target_path, "wb") as f:
+                            f.write(payload)
+                        saved_pdf_path = str(target_path)
+                        print(f"✅ [IMAP PDF SAGLABĀTS]: {saved_pdf_path}")
+                    except Exception as e:
+                        print(f"⚠️ Nevarēja saglabāt PDF pielikumu '{filename}': {e}")
+        else: # It's a body part
+            if content_type == 'text/plain':
+                try:
+                    body_text += part.get_payload(decode=True).decode(charset, errors='ignore') + "\n"
+                except Exception:
+                    pass
+            elif content_type == 'text/html':
+                try:
+                    html_content = part.get_payload(decode=True).decode(charset, errors='ignore')
+                    body_text += re.sub(r'<[^<]+?>', '', html_content) + "\n"
+                except Exception:
+                    pass
+    
+    # Apply special replacements from original clean_msg_text for body_text
+    body_text = body_text.replace(r"\d", "ī").replace(r"\t", "ī").replace(r"\i", "ī").replace(r"\j", "ā")
+    return body_text.strip(), saved_audio_path, saved_image_path, saved_pdf_path
+
+
+def scan_via_imap(items_to_save, keywords, default_keywords, imap_cfg):
+    """Skenē e-pastus, izmantojot IMAP protokolu."""
+    new_count = 0
+
+    imap_server = imap_cfg.get("server")
+    imap_user = imap_cfg.get("user")
+    imap_password = imap_cfg.get("password")
+    imap_port = imap_cfg.get("port", 993)
+    imap_days_back = imap_cfg.get("days_back", 30)
+    
+    # Use existing fingerprints to avoid duplicates
+    existing_fingerprints = set()
+    for itm in items_to_save.values():
+        s_clean = str(itm.get("subject", "")).strip().lower()
+        r_clean = str(itm.get("received", "")).strip()
+        if s_clean:
+            existing_fingerprints.add((s_clean, r_clean))
+
+    if not (imap_server and imap_user and imap_password):
+        print("⚠️ IMAP nav konfigurēts config.json. Pārslēdzos uz manuālo režīmu.")
+        return 0
+
+    mail = None
     try:
-        for sub in root_folder.Folders:
-            folders.extend(collect_all_folders(sub))
-    except Exception:
-        pass
-    return folders
+        mail = imaplib.IMAP4_SSL(imap_server, port=imap_port)
+        mail.login(imap_user, imap_password)
+        mail.select("INBOX")
+
+        date_since = (datetime.now() - timedelta(days=imap_days_back)).strftime("%d-%b-%Y")
+        
+        # Search for all emails since date_since. Could add UNSEEN if desired.
+        status, email_ids = mail.search(None, 'SINCE', date_since)
+        email_id_list = email_ids[0].split()
+        
+        # Process messages from newest to oldest
+        for email_id in reversed(email_id_list):
+            try:
+                imap_entry_id = f"imap_{email_id.decode()}"
+                if imap_entry_id in items_to_save:
+                    continue
+
+                status, msg_data = mail.fetch(email_id, '(RFC822)')
+                raw_email = msg_data[0][1]
+                msg = email.message_from_bytes(raw_email)
+
+                # Decode subject
+                subj_decoded = ""
+                if msg['Subject']:
+                    for segment, charset in decode_header(msg['Subject']):
+                        if isinstance(segment, bytes):
+                            subj_decoded += segment.decode(charset or 'utf-8', errors='ignore')
+                        else:
+                            subj_decoded += segment
+
+                subj = subj_decoded.strip() or "(Bez temata)"
+                sender_raw = msg['From'] if msg['From'] else "Nezināms"
+                sender = sender_raw # Will try to extract more specific sender later if needed
+
+                # Try to extract sender name or email for ignored list matching
+                sender_identifier = ""
+                try:
+                    sender_email_match = re.search(r'<([^>]+)>', sender_raw)
+                    if sender_email_match:
+                        sender_identifier = sender_email_match.group(1)
+                    else: # Fallback to sender_raw if no email in angle brackets
+                        sender_identifier = sender_raw
+                except Exception:
+                    sender_identifier = sender_raw
+                
+                ignored_list = get_ignored_senders()
+                if any(ign in sender_identifier.lower() for ign in ignored_list) or \
+                   any(ign in sender.lower() for ign in ignored_list):
+                    continue
+
+                rec_time = parsedate_to_datetime(msg['Date'])
+                rec_time_str = rec_time.strftime("%d.%m %H:%M") if rec_time else ""
+
+                current_fp = (subj.strip().lower(), rec_time_str)
+                if current_fp in existing_fingerprints:
+                    continue
+
+                subj_lower = subj.lower()
+                sender_lower = sender.lower()
+
+                # No direct equivalent of CurrentUser.Name/Email for IMAP without extra config, keep it simple for now or assume a default
+                is_self_task = False 
+                if "radar" in subj_lower: # Basic self-task check
+                    is_self_task = True
+
+                is_warranty_topic = any(w in subj_lower for w in ["garant", "war", "warranty"])
+
+                body, saved_audio_path, saved_image_path, saved_pdf_path = _parse_imap_message_content(
+                    msg, email_id, keywords, is_warranty_topic, is_self_task
+                )
+                body_lower = body.lower()
+
+                matches_keywords = any(k in subj_lower for k in keywords) or any(k in body_lower[:500] for k in keywords)
+
+                # If matches keywords, is self-task, or found any relevant files
+                if matches_keywords or is_self_task or is_warranty_topic or saved_audio_path or saved_image_path or saved_pdf_path:
+                    date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
+
+                    if saved_audio_path:
+                        found_deadline = "Balss apstrāde"
+                        cat = "🎙️ Balss ziņa"
+                    elif is_warranty_topic or saved_image_path:
+                        found_deadline = "Steidzams"
+                        cat = "🛡️ Garantija"
+                    elif any(w in subj_lower for w in ["rēķin", "rekin", "invoice", "leasing", "līzing"]) or saved_pdf_path:
+                        found_deadline = f"Līdz {date_match.group(1)}" if date_match else "Apmaksai"
+                        cat = "Rēķins"
+                    elif date_match:
+                        found_deadline = f"Līdz {date_match.group(1)}"
+                        cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
+                    elif "rīt" in body_lower or "rītdien" in body_lower:
+                        found_deadline = "Līdz rītdienai"
+                        cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
+                    else:
+                        found_deadline = "Steidzams"
+                        cat = "Zibens uzdevums" if is_self_task else ("Cenu pieprasījums" if "cenu" in subj_lower else "Kritisks")
+
+                    items_to_save[imap_entry_id] = {
+                        "subject": subj,
+                        "sender": f"{sender} (IMAP)", # Indicate IMAP origin
+                        "core_request": body[:120].strip() + "..." if body else subj,
+                        "deadline": found_deadline,
+                        "category": cat,
+                        "status": "ACTIVE",
+                        "audio_path": saved_audio_path,
+                        "image_path": saved_image_path,
+                        "pdf_path": saved_pdf_path,
+                        "received": rec_time_str
+                    }
+                    new_count += 1
+                    existing_fingerprints.add(current_fp)
+                    print(f"📥 [IMAP JAUNS IERAKSTS]: {cat} | {subj} | No: {sender} (IMAP)")
+
+                    try:
+                        if notify_urgent_request and cat in ["Cenu pieprasījums", "🛡️ Garantija", "Kritisks"]:
+                            notify_urgent_request(category=cat, subject=subj, sender=sender, deadline=found_deadline)
+                    except Exception as alert_e:
+                        print(f"⚠️ Kļūda sūtot brīdinājumu uz Telegram: {alert_e}")
+
+            except Exception as e_msg:
+                print(f"⚠️ Kļūda apstrādājot IMAP ziņu {email_id.decode()}: {e_msg}")
+                continue
+
+    except imaplib.IMAP4.error as imap_err:
+        print(f"⚠️ IMAP savienojuma/autorizācijas kļūda: {imap_err}. Pārslēdzos uz manuālo režīmu.")
+        return 0
+    except Exception as e:
+        print(f"⚠️ [IMAP RADARS KĻŪDA]: {e}")
+        return 0
+    finally:
+        if mail:
+            try:
+                mail.logout()
+            except Exception:
+                pass
+
+    return new_count
 
 
 def scan_outlook_mailbox():
     new_count = 0
-
-    if getattr(sys, 'frozen', False):
-        BASE_DIR = Path(sys.executable).parent
-    else:
-        BASE_DIR = Path(__file__).resolve().parent
-
-    STORAGE_DIR = BASE_DIR / "storage"
-    INVOICE_DIR = STORAGE_DIR / "invoices"
-    VOICE_DIR = STORAGE_DIR / "voice"
-    WARRANTY_DIR = STORAGE_DIR / "warranty"
-
-    INVOICE_DIR.mkdir(parents=True, exist_ok=True)
-    VOICE_DIR.mkdir(parents=True, exist_ok=True)
-    WARRANTY_DIR.mkdir(parents=True, exist_ok=True)
 
     default_keywords = [
         "cenu piepras", "iepirkums", "termin", "vid", "pasutijum", 
@@ -187,6 +444,7 @@ def scan_outlook_mailbox():
     keywords = default_keywords
     days_back = 30
 
+    cfg = {} # Initialize cfg dictionary
     cfg_path = BASE_DIR / "config.json"
     if cfg_path.exists():
         try:
@@ -194,7 +452,8 @@ def scan_outlook_mailbox():
                 cfg = json.load(cf)
                 keywords = cfg.get("keywords", default_keywords)
                 days_back = cfg.get("days_back", 30)
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Kļūda nolasot config.json: {e}")
             pass
 
     items_to_save = {}
@@ -212,25 +471,47 @@ def scan_outlook_mailbox():
         r_clean = str(itm.get("received", "")).strip()
         if s_clean:
             existing_fingerprints.add((s_clean, r_clean))
+    
+    # 1. Režīma nolasīšana no config.json
+    radar_mode = cfg.get("radar_mode", "manual").lower()
+    if cfg.get("force_imap", False):
+        radar_mode = "imap"
 
-    use_imap = not HAS_WIN32COM
-    outlook = None
+    # 2. Režīmu loģika
+    if radar_mode == "manual" or radar_mode == "offline":
+        print("ℹ️ Radars darbojas manuālajā (offline) režīmā. E-pasts netiek skenēts.")
+        return 0
 
-    if HAS_WIN32COM:
+    elif radar_mode == "imap" or radar_mode == "gmail":
+        print(f"📡 Radars darbojas IMAP/Gmail režīmā.")
+        new_count = scan_via_imap(items_to_save, keywords, default_keywords, cfg.get("imap", {}))
+        if new_count > 0:
+            try:
+                with open(STATE_FILE, "w", encoding="utf-8") as f:
+                    json.dump(items_to_save, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                print(f"⚠️ Kļūda saglabājot stāvokļa failu pēc IMAP skenēšanas: {e}")
+        return new_count
+
+    elif radar_mode == "outlook":
+        print(f"📡 Radars darbojas Outlook (MAPI) režīmā.")
+        outlook = None
+        if not HAS_WIN32COM:
+            print("⚠️ Outlook MAPI modulis (win32com) nav pieejams. Pārslēdzos uz manuālo režīmu.")
+            return 0
+        
         try:
             pythoncom.CoInitialize()
             outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
         except Exception as mapi_err:
-            print(f"⚠️ Classic Outlook MAPI nav pieejams ({mapi_err}). Pārslēdzamies uz IMAP...")
-            use_imap = True
+            print(f"⚠️ Classic Outlook MAPI nav pieejams ({mapi_err}). Pārslēdzos uz manuālo režīmu.")
+            return 0 # Fail gracefully and switch to manual
+    else:
+        print(f"⚠️ Neatpazīts radara režīms '{radar_mode}'. Pārslēdzos uz manuālo režīmu.")
+        return 0
 
-    if use_imap or outlook is None:
-        new_count = scan_via_imap(items_to_save, keywords, default_keywords)
-        if new_count > 0:
-            with open(STATE_FILE, "w", encoding="utf-8") as f:
-                json.dump(items_to_save, f, ensure_ascii=False, indent=2)
-        return new_count
 
+    # If we reached here, it means radar_mode is "outlook" and MAPI is available.
     try:
         current_user_name = ""
         current_user_email = ""
@@ -362,7 +643,6 @@ def scan_outlook_mailbox():
 
                     # Ja atbilst atslēgvārdiem, ir paša uzdevums, vai atrasts kāds no failiem
                     if matches_keywords or is_self_task or is_warranty_topic or saved_audio_path or saved_image_path or saved_pdf_path:
-                        import re
                         date_match = re.search(r'\b(\d{1,2}[\./]\d{1,2}(?:[\./]\d{2,4})?)\b', subj + " " + body[:300])
 
                         if saved_audio_path:
@@ -402,13 +682,13 @@ def scan_outlook_mailbox():
 
                         # Trauksmes zvans uz Telegram
                         try:
-                            from alert_service import notify_urgent_request
-                            if cat in ["Cenu pieprasījums", "🛡️ Garantija", "Kritisks"]:
+                            if notify_urgent_request and cat in ["Cenu pieprasījums", "🛡️ Garantija", "Kritisks"]:
                                 notify_urgent_request(category=cat, subject=subj, sender=sender, deadline=found_deadline)
-                        except Exception:
-                            pass
+                        except Exception as alert_e:
+                            print(f"⚠️ Kļūda sūtot brīdinājumu uz Telegram: {alert_e}")
 
-                except Exception:
+                except Exception as e_msg:
+                    print(f"⚠️ Kļūda apstrādājot Outlook ziņu '{subj}' no {sender}: {e_msg}")
                     continue
 
         if new_count > 0:
@@ -417,8 +697,13 @@ def scan_outlook_mailbox():
 
     except Exception as e:
         print(f"⚠️ [RADARS KĻŪDA]: {e}")
+        return 0 # Ensure 0 is returned on error
     finally:
-        pythoncom.CoUninitialize()
+        if HAS_WIN32COM and 'outlook' in locals() and outlook is not None: # Only call if win32com was actually initialized
+            try:
+                pythoncom.CoUninitialize()
+            except Exception:
+                pass # Already uninitialized or error
 
     return new_count
 
@@ -569,7 +854,13 @@ class RadarMainApp(ctk.CTk):
 
     def draft_smart_reply(self, entry_id, card_data, btn_widget):
         """Asinhroni ar Gemini uzģenerē atbildes melnrakstu un atver to Outlook."""
+        if str(entry_id).startswith("imap_"):
+            import tkinter.messagebox as messagebox
+            messagebox.showinfo("Smart Reply (IMAP)", "Viedā atbilde nav pieejama IMAP e-pastiem, jo nav tiešas integrācijas ar jūsu e-pasta klientu. Jums būs jākopē atbildes melnraksts manuāli.")
+            return
+
         if not HAS_WIN32COM:
+            import tkinter.messagebox as messagebox
             messagebox.showerror("Kļūda", "Outlook modulis (win32com) nav pieejams!")
             return
 
@@ -584,10 +875,17 @@ class RadarMainApp(ctk.CTk):
                 sender = card_data.get("sender", "")
                 body_snippet = card_data.get("core_request", "")
 
-                api_key = get_gemini_api_key() if "get_gemini_api_key" in globals() else os.environ.get("GEMINI_API_KEY", "")
+                api_key = os.environ.get("GEMINI_API_KEY", "") # Fallback to env variable
                 if not api_key:
                     # Mēģinām paņemt no config.json
-                    cfg = get_app_config() if "get_app_config" in globals() else {}
+                    cfg = {}
+                    cfg_path = BASE_DIR / "config.json"
+                    if cfg_path.exists():
+                        try:
+                            with open(cfg_path, "r", encoding="utf-8") as cf:
+                                cfg = json.load(cf)
+                        except Exception:
+                            pass
                     api_key = cfg.get("gemini_api_key", "")
 
                 reply_text = ""
@@ -639,7 +937,6 @@ class RadarMainApp(ctk.CTk):
 
     def open_kvark_briefing(self):
         try:
-            # Ja nosauci failu par morning.py, tad: from morning import KvarkBriefingDialog
             from morning_briefing import KvarkBriefingDialog
             KvarkBriefingDialog(self)
         except Exception as e:
@@ -728,7 +1025,7 @@ class RadarMainApp(ctk.CTk):
                 threading.Event().wait(5)
                 try:
                     self.scan_tick += 5
-                    if self.scan_tick >= 300:
+                    if self.scan_tick >= 300: # Scan every 5 minutes (300 seconds)
                         self.scan_tick = 0
                         added = scan_outlook_mailbox()
                         if added > 0:
@@ -809,7 +1106,10 @@ class RadarMainApp(ctk.CTk):
         def parse_date(item_tuple):
             val = item_tuple[1].get("received", "")
             try:
-                return datetime.strptime(f"2026.{val}", "%Y.%d.%m %H:%M")
+                # The format in items_to_save is "%d.%m %H:%M". We need a year to parse it for sorting.
+                # Assuming current year if no year is present.
+                year = datetime.now().year
+                return datetime.strptime(f"{val}.{year}", "%d.%m %H:%M.%Y")
             except Exception:
                 return datetime.min
 
