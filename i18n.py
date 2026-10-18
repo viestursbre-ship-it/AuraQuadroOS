@@ -5,7 +5,7 @@ from pathlib import Path # Import Path for robust path handling
 # --- Configuration Constants ---
 CONFIG_PATH = Path(__file__).resolve().parent / "config.json" # Drošs ceļš uz config.json
 DEFAULT_UI_LANGUAGE_CODE = 'lv' # Noklusējuma valoda lietotāja saskarnei
-DEFAULT_OUTPUT_LANGUAGE_CODE = 'auto' # Noklusējuma valoda atskaitēm/ģenerētajiem failiem (vai 'lv', 'en', 'auto' u.c.)
+DEFAULT_OUTPUT_LANGUAGE_CODE = 'auto' # Noklusējuma valoda atskaitēm/ģenerētajiem failiem (vai 'lv', 'en', 'auto' u.c.')
 
 # --- Supported Languages Definition ---
 SUPPORTED_LANGUAGES = {
@@ -264,6 +264,28 @@ def get_text(key: str, default: str = "") -> str:
 
     # If still not found, return the provided default or the key itself
     return default or key
+
+def t(key: str, lang: str = None) -> str:
+    """
+    Atgriež tulkotu tekstu norādītajā valodā vai pašreizējā UI valodā, ja valoda nav norādīta.
+    Nodrošina fallback uz 'lv' un tad 'en', ja atslēga nav atrasta norādītajā valodā.
+    """
+    target_lang = (lang or get_ui_language()).strip().lower() # Ensure lang is normalized if provided, otherwise use UI lang
+
+    # Try to get translation in the target language
+    if key in TRANSLATIONS.get(target_lang, {}):
+        return TRANSLATIONS[target_lang][key]
+
+    # If not found in target language, try 'lv' as fallback
+    if key in TRANSLATIONS.get('lv', {}):
+        return TRANSLATIONS['lv'][key]
+
+    # If not found in 'lv', try 'en' as fallback
+    if key in TRANSLATIONS.get('en', {}):
+        return TRANSLATIONS['en'][key]
+
+    # If still not found, return the key itself as per specification
+    return key
 
 # Šī funkcija nodrošināta atpakaļejošai savietojamībai, ja kāds izsauc `set_language`.
 # Tā tagad iestata UI valodu.
