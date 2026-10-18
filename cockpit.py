@@ -66,6 +66,12 @@ UI_TEXTS = {
         "lbl_finnhub_api_key": "📈 Finnhub API Key:",
         "lbl_alpha_api_key": "📊 Alpha Vantage API Key:", # JAUNUMS
         "lbl_fmp_api_key": "🏛️ FMP API Key:", # JAUNUMS
+        # JAUNUMS: IMAP konfigurācijas sadaļa
+        "lbl_imap_header": "📧 E-pasta IMAP Pieslēgums (Gmail / M365):",
+        "lbl_imap_server": "Serveris:",
+        "lbl_imap_port": "Ports:",
+        "lbl_imap_user": "Lietotājs / E-pasts:",
+        "lbl_imap_pass": "Parole (Gmail: App Password):",
     },
     "EN": {
         "title": "⚡ AQ-OS Cockpit — Control Center",
@@ -91,6 +97,12 @@ UI_TEXTS = {
         "lbl_finnhub_api_key": "📈 Finnhub API Key:",
         "lbl_alpha_api_key": "📊 Alpha Vantage API Key:", # JAUNUMS
         "lbl_fmp_api_key": "🏛️ FMP API Key:", # JAUNUMS
+        # JAUNUMS: IMAP konfigurācijas sadaļa
+        "lbl_imap_header": "📧 Email IMAP Connection (Gmail / M365):",
+        "lbl_imap_server": "Server:",
+        "lbl_imap_port": "Port:",
+        "lbl_imap_user": "User / Email:",
+        "lbl_imap_pass": "Password (Gmail: App Password):",
     },
     "UA": { # Placeholder translations (UI_TEXTS expects "UA")
         "title": "⚡ AQ-OS Cockpit — Центр Управління",
@@ -116,6 +128,12 @@ UI_TEXTS = {
         "lbl_finnhub_api_key": "📈 Finnhub API Key:",
         "lbl_alpha_api_key": "📊 Ключ API Alpha Vantage:", # JAUNUMS
         "lbl_fmp_api_key": "🏛️ Ключ API FMP:", # JAUNUMS
+        # JAUNUMS: IMAP konfigurācijas sadaļa
+        "lbl_imap_header": "📧 Підключення IMAP електронної пошти (Gmail / M365):",
+        "lbl_imap_server": "Сервер:",
+        "lbl_imap_port": "Порт:",
+        "lbl_imap_user": "Користувач / Електронна пошта:",
+        "lbl_imap_pass": "Пароль (Gmail: Пароль додатка):",
     },
     "RU": { # Placeholder translations
         "title": "⚡ AQ-OS Cockpit — Центр Управления",
@@ -141,6 +159,12 @@ UI_TEXTS = {
         "lbl_finnhub_api_key": "📈 Finnhub API Key:",
         "lbl_alpha_api_key": "📊 Ключ API Alpha Vantage:", # JAUNUMS
         "lbl_fmp_api_key": "🏛️ Ключ API FMP:", # JAUNUMS
+        # JAUNUMS: IMAP konfigurācijas sadaļa
+        "lbl_imap_header": "📧 Подключение IMAP электронной почты (Gmail / M365):",
+        "lbl_imap_server": "Сервер:",
+        "lbl_imap_port": "Порт:",
+        "lbl_imap_user": "Пользователь / Электронная почта:",
+        "lbl_imap_pass": "Пароль (Gmail: Пароль приложения):",
     },
     "IT": { # Placeholder translations
         "title": "⚡ AQ-OS Cockpit — Centro di Controllo",
@@ -166,6 +190,12 @@ UI_TEXTS = {
         "lbl_finnhub_api_key": "📈 Chiave API Finnhub:",
         "lbl_alpha_api_key": "📊 Chiave API Alpha Vantage:", # JAUNUMS
         "lbl_fmp_api_key": "🏛️ Chiave API FMP:", # JAUNUMS
+        # JAUNUMS: IMAP konfigurācijas sadaļa
+        "lbl_imap_header": "📧 Connessione IMAP Email (Gmail / M365):",
+        "lbl_imap_server": "Server:",
+        "lbl_imap_port": "Porta:",
+        "lbl_imap_user": "Utente / Email:",
+        "lbl_imap_pass": "Password (Gmail: Password App):",
     }
 }
 
@@ -417,6 +447,18 @@ class CockpitWindow(ctk.CTkToplevel):
             if hasattr(self, "lbl_fmp_api_key"):
                 self.lbl_fmp_api_key.configure(text=t["lbl_fmp_api_key"])
             
+            # JAUNUMS: Atjaunina IMAP konfigurācijas uzrakstus
+            if hasattr(self, "lbl_imap_header"):
+                self.lbl_imap_header.configure(text=t["lbl_imap_header"])
+            if hasattr(self, "lbl_imap_server"):
+                self.lbl_imap_server.configure(text=t["lbl_imap_server"])
+            if hasattr(self, "lbl_imap_port"):
+                self.lbl_imap_port.configure(text=t["lbl_imap_port"])
+            if hasattr(self, "lbl_imap_user"):
+                self.lbl_imap_user.configure(text=t["lbl_imap_user"])
+            if hasattr(self, "lbl_imap_pass"):
+                self.lbl_imap_pass.configure(text=t["lbl_imap_pass"])
+
             # Atjaunina saglabāšanas ziņojumu, ja tas ir redzams
             if self.lbl_saved.cget("text"):
                 briefing_time = self.entry_briefing_time.get().strip() or "18:00"
@@ -534,8 +576,62 @@ class CockpitWindow(ctk.CTkToplevel):
         self.radar_mode_optionmenu.set(initial_radar_mode_display)
 
 
-        # JAUNUMS: API Atslēgu sadaļa
-        api_keys_frame = ctk.CTkFrame(self.settings_scroll, fg_color="transparent") # Pārvietots uz scrollable frame
+        # JAUNUMS: IMAP konfigurācijas sadaļa (tiek pievienota PĒC radara režīma)
+        self.lbl_imap_header = ctk.CTkLabel(
+            self.settings_scroll,
+            text=t["lbl_imap_header"],
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="#38bdf8"
+        )
+        self.lbl_imap_header.pack(anchor="w", padx=25, pady=(15, 6))
+
+        imap_frame_server_port = ctk.CTkFrame(self.settings_scroll, fg_color="transparent")
+        imap_frame_server_port.pack(fill="x", padx=25, pady=(0, 10))
+
+        # IMAP Server
+        f_imap_server = ctk.CTkFrame(imap_frame_server_port, fg_color="transparent")
+        f_imap_server.pack(side="left", padx=(0, 20))
+        self.lbl_imap_server = ctk.CTkLabel(f_imap_server, text=t["lbl_imap_server"], font=ctk.CTkFont(size=12))
+        self.lbl_imap_server.pack(anchor="w", pady=(0, 2))
+        self.entry_imap_server = ctk.CTkEntry(f_imap_server, width=240, height=32, font=ctk.CTkFont(size=13), placeholder_text="imap.gmail.com")
+        self.entry_imap_server.pack(anchor="w")
+
+        # IMAP Port
+        f_imap_port = ctk.CTkFrame(imap_frame_server_port, fg_color="transparent")
+        f_imap_port.pack(side="left")
+        self.lbl_imap_port = ctk.CTkLabel(f_imap_port, text=t["lbl_imap_port"], font=ctk.CTkFont(size=12))
+        self.lbl_imap_port.pack(anchor="w", pady=(0, 2))
+        self.entry_imap_port = ctk.CTkEntry(f_imap_port, width=100, height=32, font=ctk.CTkFont(size=13), placeholder_text="993")
+        self.entry_imap_port.pack(anchor="w")
+
+        imap_frame_user_pass = ctk.CTkFrame(self.settings_scroll, fg_color="transparent")
+        imap_frame_user_pass.pack(fill="x", padx=25, pady=(0, 15)) # Pievienots pady (0, 15), lai atdalītu no nākamās sadaļas
+
+        # IMAP User
+        f_imap_user = ctk.CTkFrame(imap_frame_user_pass, fg_color="transparent")
+        f_imap_user.pack(side="left", padx=(0, 20))
+        self.lbl_imap_user = ctk.CTkLabel(f_imap_user, text=t["lbl_imap_user"], font=ctk.CTkFont(size=12))
+        self.lbl_imap_user.pack(anchor="w", pady=(0, 2))
+        self.entry_imap_user = ctk.CTkEntry(f_imap_user, width=240, height=32, font=ctk.CTkFont(size=13), placeholder_text="vards@gmail.com")
+        self.entry_imap_user.pack(anchor="w")
+
+        # IMAP Password
+        f_imap_pass = ctk.CTkFrame(imap_frame_user_pass, fg_color="transparent")
+        f_imap_pass.pack(side="left")
+        self.lbl_imap_pass = ctk.CTkLabel(f_imap_pass, text=t["lbl_imap_pass"], font=ctk.CTkFont(size=12))
+        self.lbl_imap_pass.pack(anchor="w", pady=(0, 2))
+        self.entry_imap_pass = ctk.CTkEntry(f_imap_pass, width=240, height=32, font=ctk.CTkFont(size=13), show="*", placeholder_text="****")
+        self.entry_imap_pass.pack(anchor="w")
+
+        # Ielādējam IMAP iestatījumus
+        imap_settings = cfg.get("imap", {})
+        self.entry_imap_server.insert(0, imap_settings.get("server", ""))
+        self.entry_imap_port.insert(0, str(imap_settings.get("port", "")))
+        self.entry_imap_user.insert(0, imap_settings.get("user", ""))
+        self.entry_imap_pass.insert(0, imap_settings.get("password", ""))
+
+        # JAUNUMS: API Atslēgu sadaļa (Pārkārtoju, lai IMAP būtu pirms API atslēgām)
+        api_keys_frame = ctk.CTkFrame(self.settings_scroll, fg_color="transparent")
         api_keys_frame.pack(fill="x", padx=25, pady=(10, 15))
         
         # Gemini API Key
@@ -709,6 +805,19 @@ class CockpitWindow(ctk.CTkToplevel):
         cfg["alpha_vantage_api_key"] = alpha_vantage_api_key # JAUNUMS
         cfg["fmp_api_key"] = fmp_api_key # JAUNUMS
 
+        # JAUNUMS: Saglabāt IMAP konfigurāciju
+        imap_server = self.entry_imap_server.get().strip()
+        imap_port_str = self.entry_imap_port.get().strip()
+        imap_port = int(imap_port_str) if imap_port_str.isdigit() else 993
+        imap_user = self.entry_imap_user.get().strip()
+        imap_pass = self.entry_imap_pass.get().strip()
+
+        cfg["imap"] = {
+            "server": imap_server,
+            "port": imap_port,
+            "user": imap_user,
+            "password": imap_pass
+        }
 
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump(cfg, f, ensure_ascii=False, indent=2)
