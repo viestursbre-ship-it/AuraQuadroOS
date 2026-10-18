@@ -100,7 +100,7 @@ TRANSLATIONS = {
     "growth_no_unicorns_fallback": {"lv": "Kvarks neatrada piemērotus vienradžus vai radās kļūda.", "en": "Quark found no suitable unicorns or an error occurred.", "ru": "Кварк не нашел подходящих единорогов или произошла ошибка.", "uk": "Кварк не знайшов відповідних єдинорогів або сталася помилка.", "it": "Quark non ha trovato unicorni adatti o si è verificato un errore."},
     "error_gemini_parsing": {"lv": "⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {e}. Daļa: {partial_response}...", "en": "⚠️ Gemini returned unstructured response or parsing error: {e}. Part: {partial_response}...", "ru": "⚠️ Gemini вернул неструктурированный ответ или ошибка парсинга: {e}. Часть: {partial_response}...", "uk": "⚠️ Gemini повернув неструктуровану відповідь або помилка парсингу: {e}. Частина: {partial_response}...", "it": "⚠️ Gemini ha restituito una risposta non strutturata o errore di parsing: {e}. Parte: {partial_response}..."},
     "error_ai_unparsable": {"lv": "⚠️ AI atbilde nav parsējama. Mēģiniet vēlreiz vai pārbaudiet API.", "en": "⚠️ AI response unparsable. Try again or check API.", "ru": "⚠️ Ответ ИИ не поддается парсингу. Попробуйте еще раз или проверьте API.", "uk": "⚠️ Відповідь ШІ не піддається парсингу. Спробуйте ще раз або перевірте API.", "it": "⚠️ Risposta AI non parsabile. Riprova o controlla l'API."},
-    "error_gemini_api_contact": {"lv": "⚠️ Kļūda sazinoties ar Gemini: {e}", "en": "⚠️ Error communicating with Gemini: {e}", "ru": "⚠️ Ошибка связи с Gemini: {e}", "uk": "⚠️ Помилка зв'язку з Gemini: {e}", "it": "⚠️ Errore di comunicazione con Gemini: {e}"},
+    "error_gemini_api_contact": {"lv": "⚠️ Kļūda sazinoties ar Gemini: {e}", "en": "⚠️ Error communicating with Gemini: {e}", "ru": "⚠️ Ошибка связи с Gemini: {e}", "uk": "⚠️ Помилка зв'язку ar Gemini: {e}", "it": "⚠️ Errore di comunicazione con Gemini: {e}"},
     "growth_analysis_complete": {"lv": "✅ Analīze pabeigta!", "en": "✅ Analysis complete!", "ru": "✅ Анализ завершен!", "uk": "✅ Аналіз завершено!", "it": "✅ Analisi completata!"},
     "warning_red_flag": {"lv": "🚩 Sarkanais Karogs: {warning_message}", "en": "🚩 Red Flag: {warning_message}", "ru": "🚩 Красный Флаг: {warning_message}", "uk": "🚩 Червоний Прапор: {warning_message}", "it": "🚩 Bandiera Rossa: {warning_message}"},
     "lbl_niche": {"lv": "Slepenais ierocis (Niša):", "en": "Secret Weapon (Niche):", "ru": "Секретное оружие (Ниша):", "uk": "Секретна зброя (Ніша):", "it": "Arma Segreta (Nicchia):"},
@@ -110,7 +110,7 @@ TRANSLATIONS = {
     "growth_copy_header": {"lv": "🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀", "en": "🚀 COMMANDER KVARK'S UNICORN HUNT RESULTS 🚀", "ru": "🚀 РЕЗУЛЬТАТЫ ОХОТЫ НА ЕДИНОРОГОВ КОМАНДИРА КВАРКА 🚀", "uk": "🚀 РЕЗУЛЬТАТИ ПОЛЮВАННЯ НА ЄДИНОРОГІВ КОМАНДИРА КВАРКА 🚀", "it": "🚀 RISULTATI DELLA CACCIA AGLI UNICORNI DEL COMANDANTE QUARK 🚀"},
     "growth_copy_candidate_header": {"lv": "--- Kandidāts {idx_plus_1}: {ticker} - {name} ---", "en": "--- Candidate {idx_plus_1}: {ticker} - {name} ---", "ru": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "uk": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "it": "--- Candidato {idx_plus_1}: {ticker} - {name} ---"},
     "growth_copy_niche": {"lv": "   Slepenais ierocis (Niša): {niche}", "en": "   Secret Weapon (Niche): {niche}", "ru": "   Секретное оружие (Ниша): {niche}", "uk": "   Секретна зброя (Ніша): {niche}", "it": "   Arma Segreta (Nicchia): {niche}"},
-    "growth_copy_why": {"lv": "   Kāpēc 10x-100x: {why}", "en": "   Why 10x-100x: {why}", "ru": "   Почему 10x-100x: {why}", "uk": "   Чому 10x-100x: {why}", "it": "   Perché 10x-100x: {why}"},
+    "growth_copy_why": {"lv": "   Kāpēc 10x-100x: {why}", "en": "   Why 10x-100x: {why}", "ru": "   Почему 10x-100x: {why}", "uk": "   Чому 10x-100x: {why}", "it": "   Perché 10x-100x:"},
     "growth_copy_risk": {"lv": "   Melnais Gulbis (risks): {risk}", "en": "   Black Swan (risk): {risk}", "ru": "   Черный Лебедь (риск): {risk}", "uk": "   Чорний Лебідь (ризик): {risk}", "it": "   Cigno Nero (rischio): {risk}"},
     "growth_no_analysis_to_copy": {"lv": "Nav atrasta neviena analīze, ko kopēt.", "en": "No analysis found to copy.", "ru": "Не найдено анализа для копирования.", "uk": "Не знайдено аналізу для копіювання.", "it": "Nessuna analisi trovata da copiare."},
     "error_title": {"lv": "Kļūda", "en": "Error", "ru": "Ошибка", "uk": "Помилка", "it": "Errore"},
@@ -135,10 +135,10 @@ TRANSLATIONS = {
     # Dividends Tab:
     "lbl_cashflow_radar_title": {"lv": "💰 NAUDAS PLŪSMAS RADARS", "en": "💰 CASH FLOW RADAR", "ru": "💰 РАДАР ДЕНЕЖНОГО ПОТОКА", "uk": "💰 РАДАР ГРОШОВОГО ПОТОКУ", "it": "💰 RADAR DEL FLUSSO DI CASSA"},
     "lbl_cashflow_radar_desc": {"lv": "Aprēķina pasīvo dividenžu ienesīgumu no portfeļa akcijām.", "en": "Calculates passive dividend yield from portfolio stocks.", "ru": "Рассчитывает пассивную дивидендную доходность от акций портфеля.", "uk": "Розраховує пасивний дивідендний дохід від акцій портфеля.", "it": "Calcola il rendimento da dividendi passivi dalle azioni del portafoglio."},
-    "btn_calc_dividends": {"lv": "⚡ Aprēķināt Dividenžu Plūsmu", "en": "⚡ Calculate Dividend Flow", "ru": "⚡ Рассчитать Дивидендный Поток", "uk": "⚡ Розрахувати Дивідендний Потік", "it": "⚡ Calcola Flusso Dividendi"},
+    "btn_calc_dividends": {"lv": "⚡ Aprēķināt Dividenžu Plūsmu", "en": "⚡ Calculate Dividend Flow", "ru": "⚡ Рассчитать Дивидендный Поток", "uk": "⚡ Розрахувати Дивідендний Поток", "it": "⚡ Calcola Flusso Dividendi"},
     "dividends_initial_msg": {"lv": "Nospiediet pogu, lai nolasītu dividenžu datus...", "en": "Press the button to fetch dividend data...", "ru": "Нажмите кнопку, чтобы получить данные о дивидендах...", "uk": "Натисніть кнопку, щоб отримати дані про дивіденди...", "it": "Premi il pulsante per recuperare i dati sui dividendi..."},
     "dividends_initial_analysis_msg": {"lv": "Gaidu dividenžu skenēšanas palaišanu...", "en": "Awaiting dividend scan initiation...", "ru": "Ожидаю запуск сканирования дивидендов...", "uk": "Очікую запуск сканування дивідендів...", "it": "In attesa dell'avvio della scansione dei dividendi..."},
-    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Збирає дані про дивіденди...", "it": "⏳ Raccolta dati dividendi..."},
+    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Збирає дані про дивідendus...", "it": "⏳ Raccolta dati dividendi..."},
     "dividends_scan_progress1": {"lv": "Pārbauda {len_tickers} aktīvus tirgū...\n", "en": "Checking {len_tickers} assets in the market...\n", "ru": "Проверяет {len_tickers} активов на рынке...\n", "uk": "Перевіряє {len_tickers} активів на ринку...\n", "it": "Controllando {len_tickers} asset sul mercato...\n"},
     "dividends_scan_progress2": {"lv": "Kvarks apkopo naudas plūsmas kalendāru...\n", "en": "Quark compiles the cash flow calendar...\n", "ru": "Кварк составляет календарь денежного потока...\n", "uk": "Кварк складає календар грошового потоку...\n", "it": "Quark compila il calendario dei flussi di cassa...\n"},
     "dividends_summary_header": {"lv": "=== DIVIDENŽU PĀRSKATS ===", "en": "=== DIVIDEND OVERVIEW ===", "ru": "=== ОБЗОР ДИВИДЕНДОВ ===", "uk": "=== ОГЛЯД ДИВІДЕНДІВ ===", "it": "=== RIEPILOGO DIVIDENDI ==="},
@@ -187,25 +187,29 @@ TRANSLATIONS = {
     "52week_range_label": {"lv": "52 ned. diapazons:{low_52} - {high_52} {currency}", "en": "52 wk. range:    {low_52} - {high_52} {currency}", "ru": "Диапазон 52 нед.:{low_52} - {high_52} {currency}", "uk": "Діапазон 52 тижнів:{low_52} - {high_52} {currency}", "it": "Intervallo 52 sett.:{low_52} - {high_52} {currency}"},
     "pe_label": {"lv": "P/E (faktiskais): {pe}", "en": "P/E (actual):    {pe}", "ru": "P/E (фактический): {pe}", "uk": "P/E (фактичний): {pe}", "it": "P/E (effettivo): {pe}"},
     "fwd_pe_label": {"lv": "P/E (prognoze):   {fwd_pe}", "en": "P/E (forecast):  {fwd_pe}", "ru": "P/E (прогноз):   {fwd_pe}", "uk": "P/E (прогноз):   {fwd_pe}", "it": "P/E (previsto):   {fwd_pe}"},
-    "peg_ratio_label": {"lv": "PEG koeficients:  {peg}", "en": "PEG ratio:       {peg}", "ru": "Коэффициент PEG:  {peg}", "uk": "Коефіцієнт PEG:  {peg}", "it": "Rapporto PEG:      {peg}"},
+    "peg_ratio_label": {"lv": "PEG koeficients:  {peg}", "en": "PEG ratio:       {peg}", "ru": "Коэффициент PEG:  {peg}", "uk": "Коефіcients PEG:  {peg}", "it": "Rapporto PEG:      {peg}"},
     "dividends_label": {"lv": "Dividendes:       {div_str}", "en": "Dividends:       {div_str}", "ru": "Дивиденды:       {div_str}", "uk": "Дивіденди:       {div_str}", "it": "Dividendi:       {div_str}"},
     "analyst_rating_label": {"lv": "Analītiķu vērt.:  {rec}", "en": "Analyst rating:  {rec}", "ru": "Оценка аналитиков:  {rec}", "uk": "Оцінка аналітиків:  {rec}", "it": "Valutazione analisti:  {rec}"},
     "target_price_label": {"lv": "Mērķa vid. cena:  {target_mean} {currency}", "en": "Target avg. price: {target_mean} {currency}", "ru": "Целевая сред. цена: {target_mean} {currency}", "uk": "Цільова сер. ціна: {target_mean} {currency}", "it": "Prezzo medio target: {target_mean} {currency}"},
     "unknown_value": {"lv": "Nezināms", "en": "Unknown", "ru": "Неизвестно", "uk": "Невідомо", "it": "Sconosciuto"},
     "error_fetching_ticker_data": {"lv": "⚠️ Kļūda nolasot {ticker}: {e}", "en": "⚠️ Error fetching {ticker}: {e}", "ru": "⚠️ Ошибка при получении {ticker}: {e}", "uk": "⚠️ Помилка при отриманні {ticker}: {e}", "it": "⚠️ Errore nel recupero {ticker}: {e}"},
-    "analysis_disclaimer_summary": {"lv": "Informatīvs analīzes kopsavilkums.", "en": "Informative analysis summary.", "ru": "Информативное резюме анализа.", "uk": "Інформативне резюме аналізу.", "it": "Riepilogo analitico informativo."}
+    "analysis_disclaimer_summary": {"lv": "Informatīvs analīzes kopsavilkums.", "en": "Informative analysis summary.", "ru": "Информативное резюме анализа.", "uk": "Інформативне резюме аналізу.", "it": "Riepilogo analitico informativo."},
+
+    # Additional keys for prompts and UI (LEO ADDITION)
+    "lbl_inv_portfolio_audit_plan": {"lv": "🐾 KOMANDANTA KVARKA AUDITA PLĀNS", "en": "🐾 COMMANDER KVARK'S AUDIT PLAN", "ru": "🐾 ПЛАН АУДИТА КОМАНДИРА КВАРКА", "uk": "🐾 ПЛАН АУДИТУ КОМАНДИРА КВАРКА", "it": "🐾 PIANO DI AUDIT DEL COMANDANTE KVARKS"},
+    "audit_sell_liquidate": {"lv": "✂️ LIKVIDĒT / PĀRDOT", "en": "✂️ LIQUIDATE / SELL", "ru": "✂️ ЛИКВИДИРОВАТЬ / ПРОДАТЬ", "uk": "✂️ ЛІКВІДУВАТИ / ПРОДАТИ", "it": "✂️ LIQUIDARE / VENDERE"},
+    "audit_cash_allocation": {"lv": "🎯 BRĪVO LĪDZEKĻU SADALE", "en": "🎯 FREE CASH ALLOCATION", "ru": "🎯 РАСПРЕДЕЛЕНИЕ СВОБОДНЫХ СРЕДСТВ", "uk": "🎯 РОЗПОДІЛ ВІЛЬНИХ КОШТІВ", "it": "🎯 ALLOCAZIONE DEL CAPITALE DISPONIBILE"},
+    "llm_default_lang_instruction": {"lv": "Atbildi latviešu valodā.", "en": "Respond in English.", "ru": "Ответь на русском языке.", "uk": "Відповідайте українською мовою.", "it": "Rispondi in italiano."},
+    "source_label": {"lv": "Avots", "en": "Source", "ru": "Источник", "uk": "Джерело", "it": "Fonte"},
+    "error_gemini_analysis": {"lv": "⚠️ Gemini analīzes kļūda: {e}", "en": "⚠️ Gemini analysis error: {e}", "ru": "⚠️ Ошибка анализа Gemini: {e}", "uk": "⚠️ Помилка аналізу Gemini: {e}", "it": "⚠️ Errore di analisi Gemini: {e}"}
 }
 
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
 # This should only happen ONCE upon module load.
 if HAS_I18N:
-    i18n_locales_data = {}
-    for key, translations_for_key in TRANSLATIONS.items():
-        for lang_code, text in translations_for_key.items():
-            if lang_code not in i18n_locales_data:
-                i18n_locales_data[lang_code] = {}
-            i18n_locales_data[lang_code][key] = text
-    i18n.set_dictionary(i18n_locales_data)
+    # The AuraQuadro local i18n module is stated to contain a global TRANSLATIONS dictionary
+    # and does not support/require set_dictionary. It expects TRANSLATIONS to be defined
+    # at module level, and directly uses it.
     if not i18n.get('locale'): # Set default if not externally configured by master app
         i18n.set('locale', 'lv') # Default to Latvian
     i18n.set('fallback', 'en') # Fallback language, useful for missing keys
@@ -216,8 +220,7 @@ else:
         def get_ui_language(self): return "lv" # Default to Latvian
         def t(self, key, **kwargs): # Dummy t function uses global TRANSLATIONS
             # This logic mimics the old custom t for fallback behavior
-            current_lang = "lv"
-            # Attempt to format if kwargs are provided
+            current_lang = "lv" # Default for dummy
             translated_text = TRANSLATIONS.get(key, {}).get(current_lang, TRANSLATIONS.get(key, {}).get("en", key))
             if kwargs:
                 try:
@@ -233,7 +236,9 @@ else:
         def set(self, key, value): pass # Dummy for i18n.set method
 
     i18n = DummyI18nModule() # Instantiate the dummy module
-    def get_llm_language_instruction(): return "Respond in Latvian." # Default instruction for Latvian
+    # The get_llm_language_instruction in this else block should use the global TRANSLATIONS
+    def get_llm_language_instruction():
+        return i18n.t("llm_default_lang_instruction")
 
 # Helper function for localization, now just an alias to i18n.t (NEW)
 # No longer defines a custom 't' function as per instructions to use i18n.t
@@ -330,6 +335,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 self.btn_audit.configure(text=i18n.t("btn_audit_portfolio"))
         if hasattr(self, 'btn_copy_audit'):
             self.btn_copy_audit.configure(text=i18n.t("btn_copy_summary"))
+        if hasattr(self, 'lbl_inv_portfolio_audit_plan'): # LEO ADDITION
+            self.lbl_inv_portfolio_audit_plan.configure(text=i18n.t("lbl_inv_portfolio_audit_plan")) # LEO ADDITION
 
 
         # Update elements in Growth tab
@@ -567,12 +574,13 @@ class InvestorStudioFrame(ctk.CTkFrame):
         header_r = ctk.CTkFrame(right, fg_color="transparent")
         header_r.pack(fill="x", padx=15, pady=(15, 6))
 
-        ctk.CTkLabel(
+        self.lbl_inv_portfolio_audit_plan = ctk.CTkLabel( # LEO ADDITION: Added as instance variable
             header_r,
-            text=i18n.t("lbl_inv_portfolio_audit_plan"), # Placeholder or new key needed
+            text=i18n.t("lbl_inv_portfolio_audit_plan"), # LEO ADDITION: Used new key
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#f59e0b"
-        ).pack(side="left")
+        )
+        self.lbl_inv_portfolio_audit_plan.pack(side="left")
 
         self.btn_copy_audit = ctk.CTkButton(
             header_r,
@@ -648,7 +656,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         msg = (
             i18n.t("audit_copy_header") + "\n"
-            f"{i18n.t('audit_copy_strategy')} {self.seg_risk.get() if hasattr(self, 'seg_risk') else i18n.t('btn_audit_portfolio')}\n"
+            f"{i18n.t('audit_copy_strategy')} {self.seg_risk.get() if hasattr(self, 'seg_risk') else i18n.t('seg_risk_conservative')}\n" # LEO ADDITION: Default with translated key
             "----------------------------------------\n\n"
             f"{text_to_copy}\n\n"
             "----------------------------------------\n"
@@ -710,7 +718,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 model = genai.GenerativeModel("gemini-2.5-flash")
 
                 # Get language instruction (NEW)
-                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction") # Using i18n.t for default
+                current_lang_instruction = i18n.t("llm_default_lang_instruction") # LEO ADDITION: Used new key
 
                 if i18n.t("seg_risk_venture_growth") in risk_mode: # Compare translated values
                     strategy_instruction = i18n.t("strategy_venture_desc")
@@ -893,7 +901,7 @@ Sagatavo tiešu un strukturētu auditu atbilstoši izvēlētajai stratēģijai:
                 model = genai.GenerativeModel("gemini-2.5-flash")
 
                 # Get language instruction (NEW)
-                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction")
+                current_lang_instruction = i18n.t("llm_default_lang_instruction")
 
                 # Kvark's criteria (localizable if needed, but treated as fixed for now)
                 kvark_criteria_prompt = """
@@ -1276,7 +1284,7 @@ Tikai un vienīgi JSON atbilde. Nekādus citus ievadvārdus vai paskaidrojumus."
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
                 # Get language instruction (NEW)
-                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction")
+                current_lang_instruction = i18n.t("llm_default_lang_instruction")
 
                 prompt = f"""Tu esi dividenžu un pasīvās naudas plūsmas eksperts Komandants Kvarks.
 {current_lang_instruction}
@@ -1462,7 +1470,7 @@ Sagatavo strukturētu analīzi:
                     genai.configure(api_key=api_key)
                     model = genai.GenerativeModel("gemini-2.5-flash")
                     # Get language instruction (NEW)
-                    current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction")
+                    current_lang_instruction = i18n.t("llm_default_lang_instruction")
 
                     prompt = f"""Tu esi militāri ass investīciju virspavēlnieks Komandants Kvarks (resnais runcis no Liepājas štāba).
 {current_lang_instruction}
@@ -1526,7 +1534,7 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
             
             # ADDED: Source to stats_text
             stats_text = (
-                f"{i18n.t('source_label')}: {self.selected_source}\n" + # Assuming 'source_label' key is added to translations.
+                f"{i18n.t('source_label')}: {self.selected_source}\n" + # LEO ADDITION: Used new key
                 f"{i18n.t('ticker_info_header', short_name=short_name, ticker=ticker)}\n"
                 f"{i18n.t('price_label', price=curr_price, currency=currency)}\n"
                 f"{i18n.t('52week_range_label', low_52=low52, high_52=high52, currency=currency)}\n"
@@ -1570,7 +1578,7 @@ Dod 3-5 teikumu zibenīgu operatīvo atskaiti un taktisko rīkojumu:
                 genai.configure(api_key=api_key)
                 model = genai.GenerativeModel("gemini-2.5-flash")
                 # Get language instruction (NEW)
-                current_lang_instruction = get_llm_language_instruction() if HAS_I18N else i18n.t("llm_default_lang_instruction")
+                current_lang_instruction = i18n.t("llm_default_lang_instruction")
 
                 prompt = f"""Tu esi stingrs, profesionāls investīciju analītiķis un Komandants Kvarks.
 {current_lang_instruction}
@@ -1589,7 +1597,7 @@ Strukturē atbildi precīzi šādās 3 sadaļās:
             except Exception as e:
                 # Pievienota atruna (disclaimer) arī kļūdas gadījumā
                 disclaimer_on_error = f"\n\n---\n📌 {i18n.t('source_label')}: {self.selected_source}. {i18n.t('analysis_disclaimer_summary')}"
-                return i18n.t("error_gemini_analysis", e=str(e)) + disclaimer_on_error
+                return i18n.t("error_gemini_analysis", e=str(e)) + disclaimer_on_error # LEO ADDITION: Used new key
         # Pievienota atruna (disclaimer) arī fallback gadījumā
         disclaimer_fallback = f"\n\n---\n📌 {i18n.t('source_label')}: {self.selected_source}. {i18n.t('analysis_disclaimer_summary')}"
         return stats_fallback + disclaimer_fallback
