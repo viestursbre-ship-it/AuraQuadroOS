@@ -82,8 +82,12 @@ TRANSLATIONS = {
         "btn_open_conclusion": "📄 Atvērt Slēdzienu",
         "lbl_doc_waiting_status": "0% - Gaida dokumentu",
         # Investor Studio papildu atslēgas
+        "lbl_ticker_analysis": "TIKERA ANALĪZE", # NEW KEY
         "btn_audit_ticker": "⚡ Analizēt Tīkeri",
+        "btn_rentgens": "Rentgens", # NEW KEY
         "lbl_ticker_input": "Ievadiet Tīkeri (piem., AAPL, NVDA):",
+        "txt_waiting": "Gaidu pieprasījumu...", # NEW KEY
+        "rentgen_initial_msg": "Ievadiet tikeri un nospiediet 'Rentgens'...", # NEW KEY
         # Investor Studio iekšējās cilnes
         "tab_inv_single": "🔍 Viena Tikera Rentgens",
         "tab_inv_etoro": "💼 Mans eToro Portfelis & Audits",
@@ -143,15 +147,19 @@ TRANSLATIONS = {
         "btn_open_conclusion": "📄 Open Report",
         "lbl_doc_waiting_status": "0% - Waiting for document",
         # Investor Studio papildu atslēgas
+        "lbl_ticker_analysis": "TICKER ANALYSIS", # NEW KEY
         "btn_audit_ticker": "⚡ Analyze Ticker",
+        "btn_rentgens": "X-Ray", # NEW KEY
         "lbl_ticker_input": "Enter Ticker (e.g., AAPL, NVDA):",
+        "txt_waiting": "Waiting for request...", # NEW KEY
+        "rentgen_initial_msg": "Enter ticker and press 'X-Ray'...", # NEW KEY
         # Investor Studio internal tabs
         "tab_inv_single": "🔍 Single Ticker X-Ray",
         "tab_inv_etoro": "💼 My eToro Portfolio & Audit",
         "tab_inv_unicorns": "🚀 Quark Growth Hunter",
         "tab_inv_dividends": "💰 Dividends & Cash Flow",
         "tab_inv_insiders": "🏛️ Market Climate & Insiders",
-        # Resolution and notifications
+        # Rezolūcija un paziņojumi
         "lbl_inv_resolution_title": "COMMANDER QUARK RESOLUTION",
         "lbl_inv_waiting_request": "Waiting for request...",
         "lbl_inv_enter_ticker_hint": "Enter ticker and press 'X-Ray'...",
@@ -204,8 +212,12 @@ TRANSLATIONS = {
         "btn_open_conclusion": "📄 Відкрити висновок",
         "lbl_doc_waiting_status": "0% - Очікування документа",
         # Investor Studio papildu atslēgas
+        "lbl_ticker_analysis": "АНАЛІЗ ТІКЕРА", # NEW KEY
         "btn_audit_ticker": "⚡ Аналізувати тикер",
+        "btn_rentgens": "Рентген", # NEW KEY
         "lbl_ticker_input": "Введіть тикер (напр., AAPL, NVDA):",
+        "txt_waiting": "Очікую запит...", # NEW KEY
+        "rentgen_initial_msg": "Введіть тікер і натисніть 'Рентген'...", # NEW KEY
         # Investor Studio internal tabs
         "tab_inv_single": "🔍 Рентген одного тікера",
         "tab_inv_etoro": "💼 Мій портфель eToro та аудит",
@@ -265,8 +277,12 @@ TRANSLATIONS = {
         "btn_open_conclusion": "📄 Открыть заключение",
         "lbl_doc_waiting_status": "0% - Ожидание документа",
         # Investor Studio papildu atslēgas
+        "lbl_ticker_analysis": "АНАЛИЗ ТИКЕРА", # NEW KEY
         "btn_audit_ticker": "⚡ Анализировать тикер",
+        "btn_rentgens": "Рентген", # NEW KEY
         "lbl_ticker_input": "Введите тикер (напр., AAPL, NVDA):",
+        "txt_waiting": "Ожидаю запрос...", # NEW KEY
+        "rentgen_initial_msg": "Введите тикер и нажмите 'Рентген'...", # NEW KEY
         # Investor Studio internal tabs
         "tab_inv_single": "🔍 Рентген одного тикера",
         "tab_inv_etoro": "💼 Мой портфель eToro и аудит",
@@ -326,8 +342,12 @@ TRANSLATIONS = {
         "btn_open_conclusion": "📄 Apri relazione",
         "lbl_doc_waiting_status": "0% - In attesa del documento",
         # Investor Studio papildu atslēgas
+        "lbl_ticker_analysis": "ANALISI TICKER", # NEW KEY
         "btn_audit_ticker": "⚡ Analizza ticker",
+        "btn_rentgens": "Raggi X", # NEW KEY
         "lbl_ticker_input": "Inserisci ticker (es., AAPL, NVDA):",
+        "txt_waiting": "In attesa di richiesta...", # NEW KEY
+        "rentgen_initial_msg": "Inserisci il ticker e premi 'Raggi X'...", # NEW KEY
         # Investor Studio internal tabs
         "tab_inv_single": "🔍 Raggi X Singolo Ticker",
         "tab_inv_etoro": "💼 Mio Portafoglio eToro & Audit",
