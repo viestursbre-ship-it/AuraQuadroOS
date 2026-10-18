@@ -7,6 +7,7 @@ from datetime import datetime
 import customtkinter as ctk
 from tkinter import filedialog
 import docx
+import i18n # Import i18n module
 
 try:
     import openpyxl
@@ -381,7 +382,8 @@ class OfferStudioFrame(ctk.CTkFrame):
         self.lbl_lang_text = ctk.CTkLabel(mode_bar, text="Valoda:", font=ctk.CTkFont(size=12, weight="bold"), text_color="#cbd5e1")
         self.lbl_lang_text.pack(side="left", padx=(5, 5))
 
-        self.seg_lang = ctk.CTkSegmentedButton(mode_bar, values=["Auto", "LV", "EN"], width=130, height=30)
+        # Updated segmented button values for 5 languages
+        self.seg_lang = ctk.CTkSegmentedButton(mode_bar, values=["Auto", "LV", "EN", "RU", "DE"], width=200, height=30)
         self.seg_lang.set("Auto")
         self.seg_lang.pack(side="left", padx=(0, 12))
 
@@ -446,60 +448,33 @@ class OfferStudioFrame(ctk.CTkFrame):
 
         self.txt_preview = ctk.CTkTextbox(right_col, fg_color="#0f172a", font=ctk.CTkFont(size=12), wrap="word")
         self.txt_preview.pack(fill="both", expand=True, padx=10, pady=(0, 8))
-
-    def set_ui_language(self, lang: str):
-        """Dinamiski pārslēdz visus tekstus."""
-        if hasattr(self, "seg_lang"):
-            self.seg_lang.set(lang)
-        if lang == "EN":
-            self.btn_calculate.configure(text="⚡ Calculate & Generate")
-            self.btn_open_excel.configure(text="📊 Open Excel Sheet")
-            self.btn_copy.configure(text="📋 Copy for Email")
-            self.lbl_margin_text.configure(text="Margin (%):")
-            self.lbl_lang_text.configure(text="Language:")
-            self.lbl_client_header.configure(text="1. 📥 Client RFQ / Requirements:")
-            self.btn_load_client.configure(text="📁 Load")
-            self.lbl_dist_header.configure(text="2. 🏷️ Supplier / Disti Costs:")
-            self.btn_load_dist.configure(text="📁 Load (.xlsx)")
-            self.lbl_result_header.configure(text="⚡ Commercial Offer (Client-Safe):")
-        else:
-            self.btn_calculate.configure(text="⚡ Aprēķināt & Noformēt")
-            self.btn_open_excel.configure(text="📊 Atvērt Excel Tāmēšanai")
-            self.btn_copy.configure(text="📋 Kopēt E-pastam")
-            self.lbl_margin_text.configure(text="Marža (%):")
-            self.lbl_lang_text.configure(text="Valoda:")
-            self.lbl_client_header.configure(text="1. 📥 Klienta Pieprasījums:")
-            self.btn_load_client.configure(text="📁 Ielādēt")
-            self.lbl_dist_header.configure(text="2. 🏷️ Distributora Pašizmaksa / Cenas:")
-            self.btn_load_dist.configure(text="📁 Ielādēt (.xlsx)")
-            self.lbl_result_header.configure(text="⚡ Gatavais Piedāvājums Klientam (Drošs):")
-
+        
     def load_into_textbox(self, target_widget):
         f = filedialog.askopenfilename(
             filetypes=[("Dokumenti & Tabulas", "*.xlsx *.xls *.docx *.pdf *.txt"), ("Visi faili", "*.*")]
         )
         if f:
             path = Path(f)
-            self.lbl_status.configure(text=f"Ielādē: {path.name}...")
+            self.lbl_status.configure(text=i18n.t("status_loading_file", filename=path.name))
             content = read_text_from_file(path)
             if content:
                 target_widget.delete("1.0", "end")
                 target_widget.insert("end", content)
-                self.lbl_status.configure(text=f"Ielādēts: {path.name}")
+                self.lbl_status.configure(text=i18n.t("status_file_loaded", filename=path.name))
             else:
-                self.lbl_status.configure(text="⚠️ Neizdevās nolasīt tekstu")
+                self.lbl_status.configure(text=i18n.t("error_read_text"))
 
     def load_request(self, subject, sender, body):
         self.txt_client.delete("1.0", "end")
-        self.txt_client.insert("end", f"Temats: {subject}\nNo: {sender}\n\n{body}")
-        self.lbl_status.configure(text="Pieprasījums ielādēts no Radara!")
+        self.txt_client.insert("end", f"{i18n.t('email_subject')}: {subject}\n{i18n.t('email_from')}: {sender}\n\n{body}")
+        self.lbl_status.configure(text=i18n.t("status_request_loaded_from_radar"))
 
     def process_offer(self):
         client_text = self.txt_client.get("1.0", "end").strip()
         dist_text = self.txt_dist.get("1.0", "end").strip()
 
         if not dist_text:
-            self.lbl_status.configure(text="⚠️ Ievadiet distributora cenas!")
+            self.lbl_status.configure(text=i18n.t("warning_enter_distributor_prices"))
             return
 
         try:
@@ -509,13 +484,13 @@ class OfferStudioFrame(ctk.CTkFrame):
 
         target_lang = self.seg_lang.get()
         api_key = self.get_gemini_key_fn() if self.get_gemini_key_fn else os.environ.get("GEMINI_API_KEY", "")
-        self.lbl_status.configure(text="Gemini tāmē & ģenerē Excel...")
+        self.lbl_status.configure(text=i18n.t("status_gemini_processing"))
         self.btn_calculate.configure(state="disabled")
 
         def _worker():
             excel_path = None
             email_out = ""
-            status_msg = "Gatavs!"
+            status_msg = i18n.t("status_ready")
             try:
                 data = generate_client_offer_structured(client_text, dist_text, margin, target_lang, api_key)
                 email_out = data.get("email_text", "")
@@ -523,12 +498,14 @@ class OfferStudioFrame(ctk.CTkFrame):
                 if HAS_OPENPYXL and data.get("items"):
                     try:
                         excel_path = create_offer_excel(data, margin, lang=final_lang)
-                        status_msg = f"Gatavs! Saglabāts {excel_path.name}"
+                        status_msg = i18n.t("status_saved_excel", filename=excel_path.name)
                     except Exception as e:
-                        email_out += f"\n\n[Piezīme: Neizdevās saglabāt Excel: {e}]"
+                        email_out += f"\n\n[{i18n.t('note_excel_save_failed', error=e)}]"
+                else:
+                    status_msg = i18n.t("status_ready_no_excel") # New status for cases where excel is not generated
             except Exception as e:
-                email_out = f"⚠️ Kļūda: {e}"
-                status_msg = "Kļūda!"
+                email_out = f"⚠️ {i18n.t('error_calculation', error=e)}"
+                status_msg = i18n.t("status_error")
             finally:
                 def _done():
                     self.txt_preview.delete("1.0", "end")
@@ -546,39 +523,38 @@ class OfferStudioFrame(ctk.CTkFrame):
         if self.last_generated_excel and self.last_generated_excel.exists():
             try:
                 os.startfile(str(self.last_generated_excel))
-                self.lbl_status.configure(text="Excel atvērts tāmēšanai!")
+                self.lbl_status.configure(text=i18n.t("status_excel_opened"))
             except Exception as e:
-                self.lbl_status.configure(text=f"Kļūda atverot Excel: {e}")
+                self.lbl_status.configure(text=i18n.t("error_opening_excel", error=e))
 
     def copy_to_clipboard(self):
         txt = self.txt_preview.get("1.0", "end").strip()
         if txt:
             self.clipboard_clear()
             self.clipboard_append(txt)
-            self.lbl_status.configure(text="📋 E-pasta teksts iekopēts!")
+            self.lbl_status.configure(text=i18n.t("status_email_copied"))
 
-    def set_ui_language(self, lang: str):
+    def set_ui_language(self, lang: str = None):
         """Dinamiski atjauno visus OfferStudio tekstus atkarībā no izvēlētās valodas."""
-        self.seg_lang.set(lang)
-        if lang == "EN":
-            self.btn_calculate.configure(text="⚡ Calculate & Generate")
-            self.btn_open_excel.configure(text="📊 Open Excel Sheet")
-            self.btn_copy.configure(text="📋 Copy for Email")
-            self.lbl_margin_text.configure(text="Margin (%):")
-            self.lbl_lang_text.configure(text="Language:")
-            self.lbl_client_header.configure(text="1. 📥 Client RFQ / Requirements:")
-            self.btn_load_client.configure(text="📁 Load")
-            self.lbl_dist_header.configure(text="2. 🏷️ Supplier / Disti Costs:")
-            self.btn_load_dist.configure(text="📁 Load (.xlsx)")
-            self.lbl_result_header.configure(text="⚡ Commercial Offer (Client-Safe):")
-        else:
-            self.btn_calculate.configure(text="⚡ Aprēķināt & Noformēt")
-            self.btn_open_excel.configure(text="📊 Atvērt Excel Tāmēšanai")
-            self.btn_copy.configure(text="📋 Kopēt E-pastam")
-            self.lbl_margin_text.configure(text="Marža (%):")
-            self.lbl_lang_text.configure(text="Valoda:")
-            self.lbl_client_header.configure(text="1. 📥 Klienta Pieprasījums:")
-            self.btn_load_client.configure(text="📁 Ielādēt")
-            self.lbl_dist_header.configure(text="2. 🏷️ Distributora Pašizmaksa / Cenas:")
-            self.btn_load_dist.configure(text="📁 Ielādēt (.xlsx)")
-            self.lbl_result_header.configure(text="⚡ Gatavais Piedāvājums Klientam (Drošs):")
+        if lang is None:
+            lang = i18n.get_ui_language()
+
+        # Update the segmented button value
+        if hasattr(self, "seg_lang"):
+            self.seg_lang.set(lang)
+
+        # Reconfigure all widget texts dynamically, calling i18n.t(key)
+        self.btn_calculate.configure(text=i18n.t("btn_calculate"))
+        self.btn_open_excel.configure(text=i18n.t("btn_open_excel"))
+        self.btn_copy.configure(text=i18n.t("btn_copy_email"))
+        self.lbl_margin_text.configure(text=i18n.t("lbl_margin"))
+        self.lbl_lang_text.configure(text=i18n.t("lbl_language"))
+        self.lbl_client_header.configure(text=i18n.t("lbl_client_rfq"))
+        self.btn_load_client.configure(text=i18n.t("btn_load_file"))
+        self.lbl_dist_header.configure(text=i18n.t("lbl_supplier_costs"))
+        self.btn_load_dist.configure(text=i18n.t("btn_load_file") + " (.xlsx)") # Specific suffix
+        self.lbl_result_header.configure(text=i18n.t("lbl_commercial_offer"))
+
+    def refresh_ui(self):
+        """Universālais UI atsvaidzināšanas pseidonīms."""
+        self.set_ui_language(i18n.get_ui_language())
