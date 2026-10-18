@@ -61,9 +61,11 @@ UI_TEXTS = {
         "btn_save": "💾 Saglabāt iestatījumus",
         "saved_msg": "✅ Iestatījumi saglabāti! (Atskaite: {time})",
         "lbl_output_lang_header": "📄 Atskaišu un dokumentu ģenerēšanas valoda:",
-        "lbl_radar_mode": "📡 Radara režīms / Radar Mode:", # JAUNUMS
-        "lbl_gemini_api_key": "🔑 Gemini API Key:", # JAUNUMS
-        "lbl_finnhub_api_key": "📈 Finnhub API Key:", # JAUNUMS
+        "lbl_radar_mode": "📡 Radara režīms / Radar Mode:",
+        "lbl_gemini_api_key": "🔑 Gemini API Key:",
+        "lbl_finnhub_api_key": "📈 Finnhub API Key:",
+        "lbl_alpha_api_key": "📊 Alpha Vantage API Key:", # JAUNUMS
+        "lbl_fmp_api_key": "🏛️ FMP API Key:", # JAUNUMS
     },
     "EN": {
         "title": "⚡ AQ-OS Cockpit — Control Center",
@@ -84,9 +86,11 @@ UI_TEXTS = {
         "btn_save": "💾 Save Settings",
         "saved_msg": "✅ Settings saved! (Briefing: {time})",
         "lbl_output_lang_header": "📄 Report and Document Generation Language:",
-        "lbl_radar_mode": "📡 Radar Mode:", # JAUNUMS
-        "lbl_gemini_api_key": "🔑 Gemini API Key:", # JAUNUMS
-        "lbl_finnhub_api_key": "📈 Finnhub API Key:", # JAUNUMS
+        "lbl_radar_mode": "📡 Radar Mode:",
+        "lbl_gemini_api_key": "🔑 Gemini API Key:",
+        "lbl_finnhub_api_key": "📈 Finnhub API Key:",
+        "lbl_alpha_api_key": "📊 Alpha Vantage API Key:", # JAUNUMS
+        "lbl_fmp_api_key": "🏛️ FMP API Key:", # JAUNUMS
     },
     "UA": { # Placeholder translations (UI_TEXTS expects "UA")
         "title": "⚡ AQ-OS Cockpit — Центр Управління",
@@ -107,9 +111,11 @@ UI_TEXTS = {
         "btn_save": "💾 Зберегти налаштування",
         "saved_msg": "✅ Налаштування збережено! (Брифінг: {time})",
         "lbl_output_lang_header": "📄 Мова генерування звітів та документів:",
-        "lbl_radar_mode": "📡 Режим Радару:", # JAUNUMS
-        "lbl_gemini_api_key": "🔑 Gemini API Key:", # JAUNUMS
-        "lbl_finnhub_api_key": "📈 Finnhub API Key:", # JAUNUMS
+        "lbl_radar_mode": "📡 Режим Радару:",
+        "lbl_gemini_api_key": "🔑 Gemini API Key:",
+        "lbl_finnhub_api_key": "📈 Finnhub API Key:",
+        "lbl_alpha_api_key": "📊 Ключ API Alpha Vantage:", # JAUNUMS
+        "lbl_fmp_api_key": "🏛️ Ключ API FMP:", # JAUNUMS
     },
     "RU": { # Placeholder translations
         "title": "⚡ AQ-OS Cockpit — Центр Управления",
@@ -130,9 +136,11 @@ UI_TEXTS = {
         "btn_save": "💾 Сохранить настройки",
         "saved_msg": "✅ Настройки сохранены! (Отчет: {time})",
         "lbl_output_lang_header": "📄 Язык генерации отчетов и документов:",
-        "lbl_radar_mode": "📡 Режим Радара:", # JAUNUMS
-        "lbl_gemini_api_key": "🔑 Gemini API Key:", # JAUNUMS
-        "lbl_finnhub_api_key": "📈 Finnhub API Key:", # JAUNUMS
+        "lbl_radar_mode": "📡 Режим Радара:",
+        "lbl_gemini_api_key": "🔑 Gemini API Key:",
+        "lbl_finnhub_api_key": "📈 Finnhub API Key:",
+        "lbl_alpha_api_key": "📊 Ключ API Alpha Vantage:", # JAUNUMS
+        "lbl_fmp_api_key": "🏛️ Ключ API FMP:", # JAUNUMS
     },
     "IT": { # Placeholder translations
         "title": "⚡ AQ-OS Cockpit — Centro di Controllo",
@@ -153,9 +161,11 @@ UI_TEXTS = {
         "btn_save": "💾 Salva impostazioni",
         "saved_msg": "✅ Impostazioni salvate! (Briefing: {time})",
         "lbl_output_lang_header": "📄 Lingua di generazione rapporti e documenti:",
-        "lbl_radar_mode": "📡 Modalità Radar:", # JAUNUMS
-        "lbl_gemini_api_key": "🔑 Chiave API Gemini:", # JAUNUMS
-        "lbl_finnhub_api_key": "📈 Chiave API Finnhub:", # JAUNUMS
+        "lbl_radar_mode": "📡 Modalità Radar:",
+        "lbl_gemini_api_key": "🔑 Chiave API Gemini:",
+        "lbl_finnhub_api_key": "📈 Chiave API Finnhub:",
+        "lbl_alpha_api_key": "📊 Chiave API Alpha Vantage:", # JAUNUMS
+        "lbl_fmp_api_key": "🏛️ Chiave API FMP:", # JAUNUMS
     }
 }
 
@@ -394,13 +404,18 @@ class CockpitWindow(ctk.CTkToplevel):
             self.lbl_desc_text.configure(text=t["lbl_desc"])
             self.btn_save_settings.configure(text=t["btn_save"])
             self.lbl_output_lang_header.configure(text=t["lbl_output_lang_header"]) 
-            # JAUNUMS: Atjaunina jaunos uzrakstus
+            
             if hasattr(self, "lbl_radar_mode_header"):
                 self.lbl_radar_mode_header.configure(text=t["lbl_radar_mode"])
             if hasattr(self, "lbl_gemini_api_key"):
                 self.lbl_gemini_api_key.configure(text=t["lbl_gemini_api_key"])
             if hasattr(self, "lbl_finnhub_api_key"):
                 self.lbl_finnhub_api_key.configure(text=t["lbl_finnhub_api_key"])
+            # JAUNUMS: Atjaunina jauno API atslēgu uzrakstus
+            if hasattr(self, "lbl_alpha_api_key"):
+                self.lbl_alpha_api_key.configure(text=t["lbl_alpha_api_key"])
+            if hasattr(self, "lbl_fmp_api_key"):
+                self.lbl_fmp_api_key.configure(text=t["lbl_fmp_api_key"])
             
             # Atjaunina saglabāšanas ziņojumu, ja tas ir redzams
             if self.lbl_saved.cget("text"):
@@ -463,16 +478,20 @@ class CockpitWindow(ctk.CTkToplevel):
         t = UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])
         cfg = _load_config_data() # Ielādējam config.json datus
 
+        # 1. Ritināms ietvars
+        self.settings_scroll = ctk.CTkScrollableFrame(self.tab_settings, fg_color="transparent")
+        self.settings_scroll.pack(fill="both", expand=True, padx=5, pady=5)
+
         # 1. Bankas rekvizīti
         self.lbl_bank_sec = ctk.CTkLabel(
-            self.tab_settings, 
+            self.settings_scroll, # Pārvietots uz scrollable frame
             text=t["lbl_bank_header"], 
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#38bdf8"
         )
         self.lbl_bank_sec.pack(anchor="w", padx=25, pady=(15, 6))
 
-        bank_row = ctk.CTkFrame(self.tab_settings, fg_color="transparent")
+        bank_row = ctk.CTkFrame(self.settings_scroll, fg_color="transparent") # Pārvietots uz scrollable frame
         bank_row.pack(fill="x", padx=25, pady=(0, 10))
 
         # IBAN lauks
@@ -493,7 +512,7 @@ class CockpitWindow(ctk.CTkToplevel):
         
         # JAUNUMS: Radara režīms
         self.lbl_radar_mode_header = ctk.CTkLabel(
-            self.tab_settings,
+            self.settings_scroll, # Pārvietots uz scrollable frame
             text=t["lbl_radar_mode"],
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#38bdf8"
@@ -501,7 +520,7 @@ class CockpitWindow(ctk.CTkToplevel):
         self.lbl_radar_mode_header.pack(anchor="w", padx=25, pady=(15, 6))
 
         self.radar_mode_optionmenu = ctk.CTkOptionMenu(
-            self.tab_settings,
+            self.settings_scroll, # Pārvietots uz scrollable frame
             values=list(_RADAR_MODE_DISPLAY_MAP.keys()),
             width=280,
             height=32,
@@ -516,7 +535,7 @@ class CockpitWindow(ctk.CTkToplevel):
 
 
         # JAUNUMS: API Atslēgu sadaļa
-        api_keys_frame = ctk.CTkFrame(self.tab_settings, fg_color="transparent")
+        api_keys_frame = ctk.CTkFrame(self.settings_scroll, fg_color="transparent") # Pārvietots uz scrollable frame
         api_keys_frame.pack(fill="x", padx=25, pady=(10, 15))
         
         # Gemini API Key
@@ -529,47 +548,69 @@ class CockpitWindow(ctk.CTkToplevel):
 
         # Finnhub API Key
         f_finnhub = ctk.CTkFrame(api_keys_frame, fg_color="transparent")
-        f_finnhub.pack(side="top", anchor="w", fill="x")
+        f_finnhub.pack(side="top", anchor="w", fill="x", pady=(0, 10)) # Pievienots pady
         self.lbl_finnhub_api_key = ctk.CTkLabel(f_finnhub, text=t["lbl_finnhub_api_key"], font=ctk.CTkFont(size=12))
         self.lbl_finnhub_api_key.pack(anchor="w", pady=(0, 2))
         self.entry_finnhub_api_key = ctk.CTkEntry(f_finnhub, width=350, height=32, font=ctk.CTkFont(size=13), show="*")
         self.entry_finnhub_api_key.pack(anchor="w")
+        
+        # JAUNUMS: Alpha Vantage API Key
+        f_alpha = ctk.CTkFrame(api_keys_frame, fg_color="transparent")
+        f_alpha.pack(side="top", anchor="w", fill="x", pady=(0, 10))
+        self.lbl_alpha_api_key = ctk.CTkLabel(f_alpha, text=t["lbl_alpha_api_key"], font=ctk.CTkFont(size=12))
+        self.lbl_alpha_api_key.pack(anchor="w", pady=(0, 2))
+        self.entry_alpha_api_key = ctk.CTkEntry(f_alpha, width=350, height=32, font=ctk.CTkFont(size=13), show="*")
+        self.entry_alpha_api_key.pack(anchor="w")
+
+        # JAUNUMS: FMP API Key
+        f_fmp = ctk.CTkFrame(api_keys_frame, fg_color="transparent")
+        f_fmp.pack(side="top", anchor="w", fill="x") # Bez papildu pady, ja šis ir pēdējais
+        self.lbl_fmp_api_key = ctk.CTkLabel(f_fmp, text=t["lbl_fmp_api_key"], font=ctk.CTkFont(size=12))
+        self.lbl_fmp_api_key.pack(anchor="w", pady=(0, 2))
+        self.entry_fmp_api_key = ctk.CTkEntry(f_fmp, width=350, height=32, font=ctk.CTkFont(size=13), show="*")
+        self.entry_fmp_api_key.pack(anchor="w")
+
 
         # Ielādējam API atslēgas no config.json
         gemini_api_key = cfg.get("gemini_api_key") or cfg.get("aq_ai_api_key", "")
         finnhub_api_key = cfg.get("finnhub_api_key", "")
+        alpha_vantage_api_key = cfg.get("alpha_vantage_api_key", "") # JAUNUMS
+        fmp_api_key = cfg.get("fmp_api_key", "") # JAUNUMS
+
         self.entry_gemini_api_key.insert(0, gemini_api_key)
         self.entry_finnhub_api_key.insert(0, finnhub_api_key)
+        self.entry_alpha_api_key.insert(0, alpha_vantage_api_key) # JAUNUMS
+        self.entry_fmp_api_key.insert(0, fmp_api_key) # JAUNUMS
 
 
         # 2. Atskaites laiks (saglabā esošo pozīciju vai pielāgo, ja nepieciešams)
         self.lbl_time_header = ctk.CTkLabel(
-            self.tab_settings, 
+            self.settings_scroll, # Pārvietots uz scrollable frame
             text=t["lbl_time"], 
             font=ctk.CTkFont(size=14, weight="bold")
         )
         self.lbl_time_header.pack(anchor="w", padx=25, pady=(10, 4)) # Adjusted padding to fit new elements
 
-        self.entry_briefing_time = ctk.CTkEntry(self.tab_settings, width=120, height=32, font=ctk.CTkFont(size=13))
+        self.entry_briefing_time = ctk.CTkEntry(self.settings_scroll, width=120, height=32, font=ctk.CTkFont(size=13)) # Pārvietots uz scrollable frame
         self.entry_briefing_time.pack(anchor="w", padx=25, pady=(0, 10))
 
         # 3. Atslēgvārdi
         self.lbl_kw_header = ctk.CTkLabel(
-            self.tab_settings, 
+            self.settings_scroll, # Pārvietots uz scrollable frame
             text=t["lbl_kw"], 
             font=ctk.CTkFont(size=14, weight="bold")
         )
         self.lbl_kw_header.pack(anchor="w", padx=25, pady=(5, 4))
 
         self.lbl_desc_text = ctk.CTkLabel(
-            self.tab_settings,
+            self.settings_scroll, # Pārvietots uz scrollable frame
             text=t["lbl_desc"],
             font=ctk.CTkFont(size=12),
             text_color="#94a3b8"
         )
         self.lbl_desc_text.pack(anchor="w", padx=25, pady=(0, 6))
 
-        self.txt_keywords = ctk.CTkTextbox(self.tab_settings, height=90, fg_color="#0f172a", font=ctk.CTkFont(size=13))
+        self.txt_keywords = ctk.CTkTextbox(self.settings_scroll, height=90, fg_color="#0f172a", font=ctk.CTkFont(size=13)) # Pārvietots uz scrollable frame
         self.txt_keywords.pack(fill="x", padx=25, pady=(0, 15))
 
         kw_list = ["cenu piepras", "iepirkums", "termin", "vid", "pasutijum", "līgums", "rekins", "rēķin"]
@@ -593,7 +634,7 @@ class CockpitWindow(ctk.CTkToplevel):
         self.txt_keywords.insert("end", ", ".join(kw_list))
 
         self.btn_save_settings = ctk.CTkButton(
-            self.tab_settings, 
+            self.settings_scroll, # Pārvietots uz scrollable frame
             text=t["btn_save"], 
             fg_color="#059669", 
             hover_color="#10b981", 
@@ -603,12 +644,12 @@ class CockpitWindow(ctk.CTkToplevel):
         )
         self.btn_save_settings.pack(anchor="w", padx=25, pady=10)
 
-        self.lbl_saved = ctk.CTkLabel(self.tab_settings, text="", font=ctk.CTkFont(size=12), text_color="#10b981")
+        self.lbl_saved = ctk.CTkLabel(self.settings_scroll, text="", font=ctk.CTkFont(size=12), text_color="#10b981") # Pārvietots uz scrollable frame
         self.lbl_saved.pack(anchor="w", padx=25)
 
         # Atskaišu valodas iestatījumu sadaļa
         self.lbl_output_lang_header = ctk.CTkLabel(
-            self.tab_settings,
+            self.settings_scroll, # Pārvietots uz scrollable frame
             text=t["lbl_output_lang_header"],
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#38bdf8"
@@ -616,7 +657,7 @@ class CockpitWindow(ctk.CTkToplevel):
         self.lbl_output_lang_header.pack(anchor="w", padx=25, pady=(15, 6))
 
         self.output_lang_optionmenu = ctk.CTkOptionMenu(
-            self.tab_settings,
+            self.settings_scroll, # Pārvietots uz scrollable frame
             values=list(_OUTPUT_LANG_DISPLAY_MAP.keys()),
             width=280,
             height=32,
@@ -642,6 +683,8 @@ class CockpitWindow(ctk.CTkToplevel):
 
         gemini_api_key = self.entry_gemini_api_key.get().strip()
         finnhub_api_key = self.entry_finnhub_api_key.get().strip()
+        alpha_vantage_api_key = self.entry_alpha_api_key.get().strip() # JAUNUMS
+        fmp_api_key = self.entry_fmp_api_key.get().strip() # JAUNUMS
 
         cfg = _load_config_data() # Ielādējam config.json datus drošā veidā
 
@@ -663,6 +706,9 @@ class CockpitWindow(ctk.CTkToplevel):
         cfg["gemini_api_key"] = gemini_api_key
         cfg["aq_ai_api_key"] = gemini_api_key  # Sinhronizācijai
         cfg["finnhub_api_key"] = finnhub_api_key
+        cfg["alpha_vantage_api_key"] = alpha_vantage_api_key # JAUNUMS
+        cfg["fmp_api_key"] = fmp_api_key # JAUNUMS
+
 
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump(cfg, f, ensure_ascii=False, indent=2)
