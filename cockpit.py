@@ -13,19 +13,19 @@ from investor_studio import InvestorStudioFrame
 
 # --- Valodu kartēšana / Language Mappings ---
 _UI_LANG_DISPLAY_MAP = {
-    "🇱🇻 LV": "LV",
+    "🇱🇻 LV": "LV", # Display text -> UI_TEXTS key (uppercase)
     "🇬🇧 EN": "EN",
     "🇺🇦 UA": "UA",
     "🌐 RU": "RU",
     "🇮🇹 IT": "IT"
 }
-_UI_LANG_KEY_MAP = {v: k for k, v in _UI_LANG_DISPLAY_MAP.items()}
+_UI_LANG_KEY_MAP = {v: k for k, v in _UI_LANG_DISPLAY_MAP.items()} # UI_TEXTS key (uppercase) -> Display text
 
 _OUTPUT_LANG_DISPLAY_MAP = {
     "Auto (tāda pati kā saskarnei)": "auto",
     "🇱🇻 Latviešu (LV)": "lv",
     "🇬🇧 English (EN)": "en",
-    "🇺🇦 Українська (UA)": "uk",
+    "🇺🇦 Українська (UA)": "uk", # i18n standard 'uk'
     "🌐 Русский (RU)": "ru",
     "🇮🇹 Italiano (IT)": "it"
 }
@@ -73,7 +73,7 @@ UI_TEXTS = {
         "saved_msg": "✅ Settings saved! (Briefing: {time})",
         "lbl_output_lang_header": "📄 Report and Document Generation Language:",
     },
-    "UA": { # Placeholder translations
+    "UA": { # Placeholder translations (UI_TEXTS expects "UA")
         "title": "⚡ AQ-OS Cockpit — Центр Управління",
         "tab_offers": "💼 Пропозиції",
         "tab_hp": "🧠 HP Експерт",
@@ -150,15 +150,20 @@ def get_gemini_api_key():
     # 2. Tikai tad, ja failā nav, skatāmies sistēmas mainīgajos
     return os.environ.get("GEMINI_API_KEY") or os.environ.get("AQ_AI_API_KEY", "")
 
-def get_initial_language():
+# JAUNUMS: Funkcija sākotnējās UI valodas ielādei no config.json
+# Atgriež valodas kodu, kas atbilst UI_TEXTS atslēgām (piem., "LV", "EN", "UA")
+def _load_initial_ui_language_from_config():
     if os.path.exists("config.json"):
         try:
             with open("config.json", "r", encoding="utf-8") as f:
                 cfg = json.load(f)
-                return cfg.get("ui_language", "LV")
+                stored_lang_code = cfg.get("ui_language", "lv").lower() # Noklusējam uz 'lv' un pārveidojam uz mazo burtu
+                if stored_lang_code == "uk": # I18n 'uk' -> UI_TEXTS 'UA'
+                    return "UA"
+                return stored_lang_code.upper() # "lv" -> "LV", "en" -> "EN"
         except Exception:
             pass
-    return "LV"
+    return "LV" # Noklusējuma valodas kods UI_TEXTS meklēšanai
 
 def get_initial_output_language():
     if os.path.exists("config.json"):
@@ -173,7 +178,9 @@ def get_initial_output_language():
 class CockpitWindow(ctk.CTkToplevel):
     def __init__(self, master=None):
         super().__init__(master)
-        self.current_lang = get_initial_language()
+        
+        # Sākotnējā valoda no config.json, kas paredzēta UI_TEXTS atslēgām
+        self.current_lang = _load_initial_ui_language_from_config()
         
         self.title(UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])["title"])
         self.geometry("1020x740")
@@ -206,6 +213,7 @@ class CockpitWindow(ctk.CTkToplevel):
             height=28,
             command=self.on_ui_language_change
         )
+        # Iestata sākuma vērtību valodas izvēlnē, balstoties uz config.json
         initial_ui_display_text = _UI_LANG_KEY_MAP.get(self.current_lang, "🇱🇻 LV")
         self.ui_lang_optionmenu.set(initial_ui_display_text)
         self.ui_lang_optionmenu.pack(side="right", padx=20, pady=15)
@@ -264,18 +272,44 @@ class CockpitWindow(ctk.CTkToplevel):
         }
 
         self.setup_settings_tab()
-        self.update_settings_labels() # Pārliecināmies, ka visas iestatījumu cilnes etiķetes ir atjauninātas
+        # Izsauc valodu maiņas funkciju, lai moduļi un UI elementi tiktu atsvaidzināti ar ielādēto valodu
+        # Tas pārliecinās, ka viss startējas pareizā valodā, nevis noklusējuma latviešu
+        self.on_ui_language_change(initial_ui_display_text)
+
 
     def on_ui_language_change(self, display_text):
-        """Pārslēdz UI valodu, atjaunina ciļņu pogas un sinhronizē moduļus."""
-        selected_lang_key = _UI_LANG_DISPLAY_MAP.get(display_text, "LV")
+        """
+        Pārslēdz UI valodu, atjaunina ciļņu pogas un sinhronizē moduļus.
         
-        self.current_lang = selected_lang_key
+        1. Tīra valodas koda iegūšana un tūlītēja atjaunošana:
+           - Iegūsti tīro kodu: noņem karodziņus, atstarpes, un ņem pēdējos 2 burtus (piem., "🇺🇦 UA" -> "ua", "LV" -> "lv").
+           - Ja kods ir "ua", pārvērt to par "uk" (vai otrādi atbilstoši i18n standartam).
+           - UZREIZ atjaunini instances mainīgo: self.current_lang = clean_lang.
+           - UZREIZ izsauc i18n.set_ui_language(clean_lang) un saglabā to config.json failā.
+        2. Moduļu tūlītēja atsvaidzināšana ar JAUNO valodu:
+           - Iterē cauri visiem moduļiem (self.offer_module, self.investor_module, u.c.):
+             - Ja modulim ir refresh_ui(), izsauc: module.refresh_ui()
+             - Ja modulim ir set_ui_language(), izsauc: module.set_ui_language(clean_lang)
+           - Pārliecinies, ka netiek padota vecā self.current_lang vērtība, bet tieši tikko izvēlētā jaunā vērtība!
+        """
+        
+        # 1. Tīra valodas koda iegūšana un tūlītēja atjaunošana
+        # Iegūstam UI_TEXTS atslēgu (piem., "LV", "UA") no display_text, kas tiek izmantota UI tekstu meklēšanai.
+        selected_ui_texts_key = _UI_LANG_DISPLAY_MAP.get(display_text, "LV")
+        
+        # Atjaunojam instances mainīgo, kas tieši atbilst UI_TEXTS atslēgām.
+        self.current_lang = selected_ui_texts_key 
+        
+        # Iegūstam i18n standarta valodas kodu (piem., "lv", "uk"), kas jāglabā config.json un jānodod moduļiem.
+        config_lang_code = selected_ui_texts_key.lower() # "LV" -> "lv", "UA" -> "ua"
+        if config_lang_code == "ua":
+            config_lang_code = "uk" # Pārvēršam "ua" uz "uk" atbilstoši i18n standartam
+
         t = UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])
 
         self.title(t["title"])
 
-        # 1. Atjaunina ciļņu pogu tekstus. Secībai JĀSAKRĪT ar ciļņu izveides secību.
+        # Atjaunina ciļņu pogu tekstus. Secībai JĀSAKRĪT ar ciļņu izveides secību.
         tab_key_order = ["tab_offers", "tab_hp", "tab_bank", "tab_voice", "tab_docs", "tab_warranty", "tab_settings", "tab_invest"]
         
         button_list = list(self.tabview._segmented_button._buttons_dict.values())
@@ -283,20 +317,33 @@ class CockpitWindow(ctk.CTkToplevel):
             if idx < len(button_list):
                 button_list[idx].configure(text=t.get(key, key))
 
-        # 2. Atjaunina moduļus, ja tiem ir pieejama metode `set_ui_language`
-        for module_name in ["offer_module", "hp_module", "bank_module", "voice_module", "docs_module", "warranty_module", "invest_module"]:
-            module = getattr(self, module_name, None)
-            if module and hasattr(module, "set_ui_language"):
-                module.set_ui_language(self.current_lang)
+        # 2. Moduļu tūlītēja atsvaidzināšana ar JAUNO valodu
+        all_modules = [
+            self.offer_module, self.hp_module, self.bank_module,
+            self.voice_module, self.docs_module, self.warranty_module,
+            self.invest_module
+        ]
+
+        for module in all_modules:
+            if module:
+                if hasattr(module, "set_ui_language"):
+                    # Nododam i18n standarta valodas kodu moduļiem
+                    module.set_ui_language(config_lang_code) 
+                if hasattr(module, "refresh_ui"):
+                    try:
+                        module.refresh_ui()
+                    except Exception as e:
+                        print(f"Kļūda 'refresh_ui' izsaukumā modulī {type(module).__name__}: {e}")
 
         # 3. Paziņo Radaram (master logam), ja tam ir valodas metode
         if self.master and hasattr(self.master, "set_ui_language"):
             try:
-                self.master.set_ui_language(self.current_lang)
+                # Nododam i18n standarta valodas kodu master logam
+                self.master.set_ui_language(config_lang_code)
             except Exception:
                 pass
 
-        # 4. Saglabā izvēli config.json
+        # 4. Saglabā izvēli config.json (i18n standarta valodas kods)
         cfg = {}
         if os.path.exists("config.json"):
             try:
@@ -304,7 +351,7 @@ class CockpitWindow(ctk.CTkToplevel):
                     cfg = json.load(f)
             except Exception:
                 pass
-        cfg["ui_language"] = self.current_lang
+        cfg["ui_language"] = config_lang_code # Saglabājam i18n standarta kodu
         try:
             with open("config.json", "w", encoding="utf-8") as f:
                 json.dump(cfg, f, ensure_ascii=False, indent=2)
@@ -313,24 +360,6 @@ class CockpitWindow(ctk.CTkToplevel):
 
         # 5. Atjaunina Iestatījumu cilnes uzrakstus
         self.update_settings_labels()
-
-        # REPLACED: Iterē cauri visiem reģistrētajiem moduļiem un izsauc to 'refresh_ui' metodi, ja tāda pastāv.
-        modules_to_refresh = [
-            self.offer_module,
-            self.hp_module,
-            self.bank_module,
-            self.voice_module,
-            self.docs_module,
-            self.invest_module,
-            self.warranty_module,
-        ]
-
-        for module in modules_to_refresh:
-            if module and hasattr(module, "refresh_ui"):
-                try:
-                    module.refresh_ui()
-                except Exception as e:
-                    print(f"Kļūda 'refresh_ui' izsaukumā modulī {type(module).__name__}: {e}")
 
     def update_settings_labels(self):
         """Atjaunina visus teksta uzrakstus Iestatījumu cilnē."""
@@ -458,7 +487,8 @@ class CockpitWindow(ctk.CTkToplevel):
         briefing_time = "18:00"
         my_iban = "LV00PARX0000000000000"
         my_name = "Mans Uzņēmums SIA"
-        output_lang = "auto" # Sākotnējā atskaišu valoda
+        # output_lang tiek ielādēta no config.json (piem., "auto", "lv", "uk")
+        output_lang = get_initial_output_language() 
 
         if os.path.exists("config.json"):
             try:
@@ -468,7 +498,7 @@ class CockpitWindow(ctk.CTkToplevel):
                     briefing_time = cfg.get("briefing_time", "18:00")
                     my_iban = cfg.get("my_iban", my_iban)
                     my_name = cfg.get("my_name", my_name)
-                    output_lang = cfg.get("output_language", output_lang) # Ielādē atskaišu valodu
+                    # output_lang jau tiek ielādēta, izmantojot get_initial_output_language()
             except Exception:
                 pass
 
@@ -510,6 +540,7 @@ class CockpitWindow(ctk.CTkToplevel):
         self.output_lang_optionmenu.pack(anchor="w", padx=25, pady=(0, 15))
         
         # Iestata sākotnējo vērtību atskaišu valodas nolaižamajā izvēlnē
+        # _OUTPUT_LANG_CODE_MAP kartē i18n kodu (piem., "auto", "lv", "uk") uz attēlojamo tekstu
         initial_output_display_text = _OUTPUT_LANG_CODE_MAP.get(output_lang, _OUTPUT_LANG_CODE_MAP["auto"])
         self.output_lang_optionmenu.set(initial_output_display_text)
 
@@ -530,10 +561,16 @@ class CockpitWindow(ctk.CTkToplevel):
 
         cfg["keywords"] = kw
         cfg["briefing_time"] = b_time
-        cfg["ui_language"] = self.current_lang
+        
+        # Saglabā UI valodu config.json i18n standarta formātā
+        current_config_lang_code = self.current_lang.lower()
+        if current_config_lang_code == "ua":
+            current_config_lang_code = "uk"
+        cfg["ui_language"] = current_config_lang_code
+
         cfg["my_iban"] = my_iban
         cfg["my_name"] = my_name
-        # output_language tiek saglabāta, izmantojot on_output_language_change
+        # output_language tiek saglabāta, izmantojot on_output_language_change, tāpēc šeit nav jāmaina
 
         with open("config.json", "w", encoding="utf-8") as f:
             json.dump(cfg, f, ensure_ascii=False, indent=2)
