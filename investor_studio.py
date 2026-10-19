@@ -340,6 +340,13 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if hasattr(self, 'btn_export_rentgen'): # Updated button name
             self.btn_export_rentgen.configure(text=i18n.t("btn_save_word"))
 
+        # Update the source_selector values and current selection
+        if hasattr(self, 'source_options') and hasattr(self, 'source_selector'):
+            # The values are hardcoded in _setup_rentgen_tab, but we want to ensure the _display_text_ updates
+            # No direct i18n keys for source options themselves, so no change needed here.
+            # But ensure the current selection's displayed text is correct if it was localized by i18n.
+            self.source_selector.set(self.selected_source)
+
 
         # Update elements in Portfolio tab
         if hasattr(self, 'lbl_portfolio_title'):
@@ -456,8 +463,19 @@ class InvestorStudioFrame(ctk.CTkFrame):
                                          fg_color="#0e7490", hover_color="#086078")
         self.btn_analyze.grid(row=1, column=1, padx=(5, 10), pady=5, sticky="ew")
 
-        self.source_selector = ctk.CTkOptionMenu(f, values=self.source_options, command=self._on_source_change,
-                                                 fg_color="#1e293b", button_color="#0e7490", button_hover_color="#086078")
+        # Pārliecināties par datu avotu opcijām
+        self.source_options = ["Yahoo Finance", "Finnhub", "FMP", "⚔️ Cross-Check"]
+        if not hasattr(self, 'selected_source') or not self.selected_source:
+            self.selected_source = "Yahoo Finance"
+
+        self.source_selector = ctk.CTkOptionMenu(
+            f, 
+            values=self.source_options, 
+            command=self._on_source_change,
+            fg_color="#1e293b", 
+            button_color="#0e7490", 
+            button_hover_color="#086078"
+        )
         self.source_selector.set(self.selected_source)
         self.source_selector.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
 
