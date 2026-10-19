@@ -13,6 +13,7 @@ import time # LEO ADDITION: Import time for API rate limiting
 
 # Import for messagebox (FIX 1)
 from tkinter import messagebox
+from tkinter import filedialog # LEO ADDITION: Import filedialog for file save dialog
 
 try:
     import google.generativeai as genai
@@ -132,7 +133,7 @@ TRANSLATIONS = {
     "word_black_swan": {"lv": "Melnais Gulbis (risks): {value}", "en": "Black Swan (risk): {value}", "ru": "Черный Лебедь (риск): {value}", "uk": "Чорний Лебīдь (risks): {value}", "it": "Cigno Nero (rischio): {value}"},
     "word_output_filename_prefix": {"lv": "Kvarka_Vienradzu_Medibas_", "en": "Quarks_Unicorn_Hunt_", "ru": "Kvar_Ohot_Yedinorog_", "uk": "Kvar_Yedinorih_Polyuvannya_", "it": "Quark_Caccia_Unicorni_"},
     "word_success_message": {"lv": "Atskaite saglabāta:\n{path}", "en": "Report saved to:\n{path}", "ru": "Отчет сохранен в:\n{path}", "uk": "Звіт збережено:\n{path}", "it": "Rapporto salvato in:\n{path}"},
-    "word_error_saving_message": {"lv": "Radās kļūda saglabājot Word failu: {error_message}", "en": "Error saving Word file: {error_message}", "ru": "Произошла ошибка при сохранении файла Word: {error_message}", "uk": "Виникла помилка під час збереження файlu Word: {error_message}", "it": "Error saving Word file: {error_message}"},
+    "word_error_saving_message": {"lv": "Radās kļūda saglabājot Word failu: {error_message}", "en": "Error saving Word file: {error_message}", "ru": "Произошла ошибка при сохранении файла Word: {error_message}", "uk": "Виникла помилка під час збереження failu Word: {error_message}", "it": "Error saving Word file: {error_message}"},
 
     # Rentgen specific Word export keys (NEW)
     "word_report_title_rentgen": {"lv": "🔍 Finanšu Rentgena Atskaite", "uk": "🔍 Фінансовий рентген-звіт", "ru": "🔍 Отчет финансового рентгена", "it": "🔍 Rapporto Raggi X Finanziario", "en": "🔍 Financial X-Ray Report"},
@@ -191,7 +192,7 @@ TRANSLATIONS = {
     "source_changed_msg": {"lv": "Avota kanāls pārslēgts uz: {source}. Gaidu jaunu signālu 'Rentgens'!", "en": "Source channel switched to: {source}. Awaiting new 'X-Ray' signal!", "ru": "Канал источника переключен на: {source}. Ожидаю новый сигнал 'Рентген'!", "uk": "Канал джерела перемкņem na: {source}. Очікую новий сигнал 'Рентген'!", "it": "Canale sorgente cambiato in: {source}. In attesa di nuovo segnale 'Raggi X'!"},
     "fetching_data_msg": {"lv": "Nolasa tirgus datus par {ticker} no {source}...\n", "en": "Fetching market data for {ticker} from {source}...\n", "ru": "Получение рыночных данных для {ticker} из {source}...\n", "uk": "Отримання rinka datus par {ticker} no {source}...\n", "it": "Recupero dati di mercato per {ticker} da {source}...\n"},
     "ticker_info_header": {"lv": "=== {short_name} ({ticker}) ===", "en": "=== {short_name} ({ticker}) ===", "ru": "=== {short_name} ({ticker}) ===", "uk": "=== {short_name} ({ticker}) ===", "it": "=== {short_name} ({ticker}) ==="},
-    "price_label": {"lv": "Cena:             {price} {currency}", "en": "Price:             {price} {currency}", "ru": "Цена:             {price} {currency}", "uk": "Ціна:             {price} {currency}", "it": "Prezzo:             {price} {currency}"},
+    "price_label": {"lv": "Cena:             {price} {currency}", "en": "Price:             {price} {currency}", "ru": "Цена:             {price} {currency}", "uk": "Ціna:             {price} {currency}", "it": "Prezzo:             {price} {currency}"},
     "52week_range_label": {"lv": "52 ned. diapazons:{low_52} - {high_52} {currency}", "en": "52 wk. range:    {low_52} - {high_52} {currency}", "ru": "Диапазон 52 нед.:{low_52} - {high_52} {currency}", "uk": "Діapazons 52 tyžni: {low_52} - {high_52} {currency}", "it": "Intervallo 52 sett.:{low_52} - {high_52} {currency}"},
     "pe_label": {"lv": "P/E (faktiskais): {pe}", "en": "P/E (actual):    {pe}", "ru": "P/E (фактический): {pe}", "uk": "P/E (фактичний): {pe}", "it": "P/E (effettivo): {pe}"},
     "fwd_pe_label": {"lv": "P/E (prognoze):   {fwd_pe}", "en": "P/E (forecast):  {fwd_pe}", "ru": "P/E (прогноз):   {fwd_pe}", "uk": "P/E (прогноз):   {fwd_pe}", "it": "P/E (previsto):   {fwd_pe}"},
@@ -221,6 +222,9 @@ TRANSLATIONS = {
     "growth_no_candidates_found": {"lv": "Komandants Kvarks neatrada piemērotus kandidātus.", "en": "Commander Quark found no suitable candidates.", "ru": "Командир Кварк не нашел подходящих кандидатов.", "uk": "Командир Кварк не знайшов відповідних кандидатів.", "it": "Il Comandante Quark non ha trovato candidati idonei."},
     "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Кварк skenē tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
     "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та novērtē kandidātus ar AI analīzi...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
+    "lbl_ticker_analysis_title": {"lv": "TIKERA ANALĪZE", "ru": "АНАЛИЗ ТИКЕРА", "uk": "АНАЛІЗ ТИКЕРА", "en": "TICKER ANALYSIS", "it": "ANALISI TICKER"}, # LEO ADDITION for Rentgen Tab title
+    "ent_ticker_placeholder": {"lv": "Ievadiet tikeri (piemēram, AAPL)", "en": "Enter ticker (e.g., AAPL)", "ru": "Введите тикер (напр., AAPL)", "uk": "Введіть тікер (напр., AAPL)", "it": "Inserisci ticker (es. AAPL)"}, # LEO ADDITION for Ticker Input placeholder
+    "rentgen_initial_combined_msg": {"lv": "Ievadiet akcijas tikeri (piemēram, AAPL, MSFT, NVDA) un nospiediet 'Rentgens'...", "en": "Enter a stock ticker (e.g., AAPL, MSFT, NVDA) and press 'X-Ray'...", "ru": "Введите тикер акции (напр., AAPL, MSFT, NVDA) и нажмите 'Рентген'...", "uk": "Введіть тікер акції (напр., AAPL, MSFT, NVDA) та натисніть 'Рентген'...", "it": "Inserisci un ticker azionario (es. AAPL, MSFT, NVDA) e premi 'Raggi X'..."}, # LEO ADDITION for combined resolution box initial message
 }
 
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
@@ -323,17 +327,18 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         # Update elements in Rentgen tab
         if hasattr(self, 'lbl_ticker_title'):
-            self.lbl_ticker_title.configure(text=i18n.t("lbl_ticker_analysis"))
+            self.lbl_ticker_title.configure(text=i18n.t("lbl_ticker_analysis_title")) # Changed to use the new i18n key
+        if hasattr(self, 'ticker_input'):
+            self.ticker_input.configure(placeholder_text=i18n.t("ent_ticker_placeholder")) # Update placeholder
         if hasattr(self, 'btn_analyze'):
             current_btn_text = self.btn_analyze.cget("text")
             if not current_btn_text.startswith("⏳"):
                 self.btn_analyze.configure(text=i18n.t("btn_rentgens"))
-        if hasattr(self, "lbl_resolution_title"): # NEW for Instruction 3
-            self.lbl_resolution_title.configure(text=i18n.t("lbl_inv_resolution_title"))
-        if hasattr(self, 'btn_copy_rentgen_analysis'): # NEW for Rentgen tab
-            self.btn_copy_rentgen_analysis.configure(text=i18n.t("btn_copy_analysis"))
-        if hasattr(self, 'btn_save_word_rentgen'): # NEW for Rentgen tab
-            self.btn_save_word_rentgen.configure(text=i18n.t("btn_save_word"))
+        # Removed lbl_resolution_title refresh as its text is hardcoded per new _setup_rentgen_tab
+        if hasattr(self, 'btn_copy_rentgen'): # Updated button name
+            self.btn_copy_rentgen.configure(text=i18n.t("btn_copy_analysis"))
+        if hasattr(self, 'btn_export_rentgen'): # Updated button name
+            self.btn_export_rentgen.configure(text=i18n.t("btn_save_word"))
 
 
         # Update elements in Portfolio tab
@@ -436,78 +441,51 @@ class InvestorStudioFrame(ctk.CTkFrame):
     # ==========================================
     def _setup_rentgen_tab(self):
         f = self.tab_rentgen
-
-        f.grid_columnconfigure(0, weight=1)
+        f.grid_columnconfigure(0, weight=3)
         f.grid_columnconfigure(1, weight=1)
-        f.grid_rowconfigure(6, weight=1) # Allow for expansion of resolution_box
+        f.grid_rowconfigure(5, weight=1)
 
-        self.lbl_ticker_title = ctk.CTkLabel(f, text=i18n.t("lbl_ticker_analysis"), font=ctk.CTkFont(size=16, weight="bold"))
+        self.lbl_ticker_title = ctk.CTkLabel(f, text=i18n.t("lbl_ticker_analysis_title"), font=ctk.CTkFont(size=16, weight="bold"))
         self.lbl_ticker_title.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
 
-        # Ticker Input
-        self.ticker_input = ctk.CTkEntry(f, placeholder_text="AAPL", fg_color="#1e293b", border_color="#334155")
+        self.ticker_input = ctk.CTkEntry(f, placeholder_text=i18n.t("ent_ticker_placeholder"))
         self.ticker_input.grid(row=1, column=0, padx=(10, 5), pady=5, sticky="ew")
-        self.ticker_input.bind("<Return>", lambda event: self._analyze_ticker_event())
+        self.ticker_input.bind("<Return>", lambda event: self._analyze_ticker())
 
         self.btn_analyze = ctk.CTkButton(f, text=i18n.t("btn_rentgens"), command=self._analyze_ticker,
                                          fg_color="#0e7490", hover_color="#086078")
         self.btn_analyze.grid(row=1, column=1, padx=(5, 10), pady=5, sticky="ew")
 
-        # Dropdown for data source selection
-        self.source_options = ["Yahoo Finance", "Alpha Vantage", "FMP", "⚔️ Cross-Check"]
-        self.source_selector = ctk.CTkOptionMenu(f, values=self.source_options,
-                                                 command=self._change_data_source,
+        self.source_selector = ctk.CTkOptionMenu(f, values=self.source_options, command=self._on_source_change,
                                                  fg_color="#1e293b", button_color="#0e7490", button_hover_color="#086078")
-        self.source_selector.set(self.selected_source) # Set initial value
+        self.source_selector.set(self.selected_source)
         self.source_selector.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
 
-        # Progress Bar
-        self.progress_bar = ctk.CTkProgressBar(f, mode="determinate", height=10, fg_color="#334155", progress_color="#0e7490")
-        self.progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
-        self.progress_bar.set(0) # Default to inactive/empty
+        self.progress_bar = ctk.CTkProgressBar(f, mode="determinate", progress_color="#0e7490")
+        self.progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew")
+        self.progress_bar.set(0)
 
-        # Financial Data Display (Compact summary box) - Replaced old stats_box
-        self.financial_summary_box = ctk.CTkTextbox(f, height=120, wrap="word",
-                                        fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.financial_summary_box.grid(row=4, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
-        self.financial_summary_box.insert("0.0", i18n.t("rentgen_initial_msg"))
-        self.financial_summary_box.configure(state="disabled")
+        self.lbl_resolution_title = ctk.CTkLabel(f, text="FINANŠU REZOLŪCIJA & VĒRTĒJUMS", font=ctk.CTkFont(size=15, weight="bold"))
+        self.lbl_resolution_title.grid(row=4, column=0, columnspan=2, padx=10, pady=(5, 2), sticky="w")
 
-        # Commander Quark Resolution Section
-        self.lbl_resolution_title = ctk.CTkLabel(f, text=i18n.t("lbl_inv_resolution_title"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.lbl_resolution_title.grid(row=5, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
-
-        self.resolution_box = ctk.CTkTextbox(f, height=300, wrap="word",
-                                             fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.resolution_box.grid(row=6, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
-        self.resolution_box.insert("0.0", i18n.t("txt_waiting"))
+        self.resolution_box = ctk.CTkTextbox(f, wrap="word", fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
+        self.resolution_box.grid(row=5, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
+        self.resolution_box.insert("0.0", i18n.t("rentgen_initial_combined_msg")) # Updated to use i18n key
         self.resolution_box.configure(state="disabled")
 
-        # Export Buttons Section (NEW)
-        self.rentgen_buttons_frame = ctk.CTkFrame(f, fg_color="transparent")
-        self.rentgen_buttons_frame.grid(row=7, column=0, columnspan=2, padx=10, pady=(0, 10), sticky="ew")
-        self.rentgen_buttons_frame.grid_columnconfigure(0, weight=1)
-        self.rentgen_buttons_frame.grid_columnconfigure(1, weight=1)
+        self.btn_copy_rentgen = ctk.CTkButton(f, text=i18n.t("btn_copy_analysis"), command=self._copy_rentgen_analysis,
+                                              fg_color="#0e7490", hover_color="#086078")
+        self.btn_copy_rentgen.grid(row=6, column=0, padx=(10, 5), pady=(5, 10), sticky="ew")
 
-        self.btn_copy_rentgen_analysis = ctk.CTkButton(self.rentgen_buttons_frame, text=i18n.t("btn_copy_analysis"),
-                                             command=self._copy_rentgen_analysis, fg_color="#0e7490", hover_color="#086078")
-        self.btn_copy_rentgen_analysis.grid(row=0, column=0, padx=(0, 5), pady=5, sticky="ew")
+        self.btn_export_rentgen = ctk.CTkButton(f, text=i18n.t("btn_save_word"), command=self._export_rentgen_to_word,
+                                                fg_color="#0e7490", hover_color="#086078")
+        self.btn_export_rentgen.grid(row=6, column=1, padx=(5, 10), pady=(5, 10), sticky="ew")
 
-        self.btn_save_word_rentgen = ctk.CTkButton(self.rentgen_buttons_frame, text=i18n.t("btn_save_word"),
-                                            command=self._export_rentgen_to_word, fg_color="#0e7490", hover_color="#086078")
-        self.btn_save_word_rentgen.grid(row=0, column=1, padx=(5, 0), pady=5, sticky="ew")
-
-
-    def _change_data_source(self, new_source):
+    def _on_source_change(self, new_source): # Renamed from _change_data_source to match provided _setup_rentgen_tab
         self.selected_source = new_source
-        self.financial_summary_box.configure(state="normal")
-        self.financial_summary_box.delete("0.0", "end")
-        self.financial_summary_box.insert("0.0", i18n.t('source_changed_msg', source=new_source))
-        self.financial_summary_box.configure(state="disabled")
-
         self.resolution_box.configure(state="normal")
         self.resolution_box.delete("0.0", "end")
-        self.resolution_box.insert("0.0", i18n.t("txt_waiting"))
+        self.resolution_box.insert("0.0", i18n.t('source_changed_msg', source=new_source))
         self.resolution_box.configure(state="disabled")
 
     def _analyze_ticker_event(self):
@@ -516,13 +494,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def _analyze_ticker(self):
         ticker = self.ticker_input.get().strip().upper()
         if not ticker:
-            self.financial_summary_box.configure(state="normal")
-            self.financial_summary_box.delete("0.0", "end")
-            self.financial_summary_box.insert("0.0", "Ievadiet tikeri un nospiediet 'Rentgens'...")
-            self.financial_summary_box.configure(state="disabled")
             self.resolution_box.configure(state="normal")
             self.resolution_box.delete("0.0", "end")
-            self.resolution_box.insert("0.0", "Gaidu pieprasījumu...")
+            self.resolution_box.insert("0.0", i18n.t("rentgen_initial_combined_msg"))
             self.resolution_box.configure(state="disabled")
             return
 
@@ -530,14 +504,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
 
-        self.financial_summary_box.configure(state="normal")
-        self.financial_summary_box.delete("0.0", "end")
-        self.financial_summary_box.insert("0.0", f"Nolasa tirgus datus par {ticker} no {self.selected_source}...\n")
-        self.financial_summary_box.configure(state="disabled")
-
         self.resolution_box.configure(state="normal")
         self.resolution_box.delete("0.0", "end")
-        self.resolution_box.insert("0.0", "Kvarks ģenerē fundamentālo analīzi...\n")
+        self.resolution_box.insert("0.0", f"{i18n.t('fetching_data_msg', ticker=ticker, source=self.selected_source)}")
+        self.resolution_box.insert("end", i18n.t("rentgen_generating_analysis_msg"))
         self.resolution_box.configure(state="disabled")
 
         threading.Thread(target=self._analyze_ticker_worker, args=(ticker,), daemon=True).start()
@@ -548,35 +518,30 @@ class InvestorStudioFrame(ctk.CTkFrame):
         # Format stats_data for compact display
         formatted_stats_text = self._format_financial_summary(ticker, stats_data)
 
-        self.master.after(0, lambda: self.financial_summary_box.configure(state="normal"))
-        self.master.after(0, lambda: self.financial_summary_box.delete("0.0", "end"))
-        self.master.after(0, lambda: self.financial_summary_box.insert("0.0", formatted_stats_text))
-        self.master.after(0, lambda: self.financial_summary_box.configure(state="disabled"))
-
-        resolution_text = ""
+        resolution = ""
         if HAS_GENAI and self.get_gemini_key() and not stats_data.get('error'):
-            self.master.after(0, lambda: self.resolution_box.configure(state="normal"))
-            self.master.after(0, lambda: self.resolution_box.delete("0.0", "end")) # Clear previous progress message
-            self.master.after(0, lambda: self.resolution_box.insert("0.0", i18n.t("rentgen_generating_analysis_msg")))
-            self.master.after(0, lambda: self.resolution_box.configure(state="disabled"))
-            resolution_text = self._get_gemini_resolution(payload)
+            resolution = self._get_gemini_resolution(payload)
         elif not HAS_GENAI:
-            resolution_text = i18n.t('error_gemini_api_contact', e='Google Generative AI library not found.') + "\n" + i18n.t('analysis_disclaimer_summary')
+            resolution = i18n.t('error_gemini_api_contact', e='Google Generative AI library not found.') + "\n" + i18n.t('analysis_disclaimer_summary')
         elif not self.get_gemini_key():
-             resolution_text = i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
+             resolution = i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
         else: # If there was an error in stats_data fetch
-            resolution_text = i18n.t('error_fetching_ticker_data', ticker=ticker, e='Data unavailable for analysis.') + "\n" + i18n.t('analysis_disclaimer_summary')
+            resolution = i18n.t('error_fetching_ticker_data', ticker=ticker, e='Data unavailable for analysis.') + "\n" + i18n.t('analysis_disclaimer_summary')
 
-        self.master.after(0, lambda: self.resolution_box.configure(state="normal"))
-        self.master.after(0, lambda: self.resolution_box.delete("0.0", "end"))
-        self.master.after(0, lambda: self.resolution_box.insert("0.0", resolution_text))
-        self.master.after(0, lambda: self.resolution_box.configure(state="disabled"))
+        # Task 2: Apvienot tirgus datus un analīzi vienotā teksta izvadē
+        full_combined_output = f"{formatted_stats_text}\n\n{'='*45}\n\n{resolution}"
         
-        # Task 2: Stop progress bar and reset button
-        self.master.after(0, lambda: self.progress_bar.stop())
-        self.master.after(0, lambda: self.progress_bar.configure(mode="determinate"))
-        self.master.after(0, lambda: self.progress_bar.set(1.0))
-        self.master.after(0, lambda: self.btn_analyze.configure(state="normal", text=i18n.t("btn_rentgens")))
+        self.master.after(0, self._update_rentgen_result_box, full_combined_output)
+
+    # Task 2: Pievienot palīgmetodi
+    def _update_rentgen_result_box(self, content_text):
+        self.resolution_box.configure(state="normal")
+        self.resolution_box.delete("0.0", "end")
+        self.resolution_box.insert("0.0", content_text)
+        self.resolution_box.configure(state="disabled")
+        self.btn_analyze.configure(state="normal", text=i18n.t("btn_rentgens"))
+        self.progress_bar.stop()
+        self.progress_bar.set(1.0)
 
     def _format_financial_summary(self, ticker, stats_data):
         """Formats the financial data into a compact, readable string for the Textbox."""
@@ -595,10 +560,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
         price_str = f"{float(stats_data['price']):.2f}" if isinstance(stats_data.get('price'), (int, float)) else str(stats_data.get('price', 'N/A'))
         low52_str = f"{float(stats_data['52_low']):.2f}" if isinstance(stats_data.get('52_low'), (int, float)) else str(stats_data.get('52_low', 'N/A'))
         high52_str = f"{float(stats_data['52_high']):.2f}" if isinstance(stats_data.get('52_high'), (int, float)) else str(stats_data.get('52_high', 'N/A'))
-        pe_str = f"{float(stats_data['pe']):.2f}" if isinstance(stats_data.get('pe'), (int, float)) else str(stats_data.get('pe', 'N/A'))
-        fwd_pe_str = f"{float(stats_data['fwd_pe']):.2f}" if isinstance(stats_data.get('fwd_pe'), (int, float)) else str(stats_data.get('fwd_pe', 'N/A'))
-        peg_str = f"{float(stats_data['peg']):.2f}" if isinstance(stats_data.get('peg'), (int, float)) else str(stats_data.get('peg', 'N/A'))
-        target_mean_str = f"{float(stats_data['target_mean']):.2f}" if isinstance(stats_data.get('target_mean'), (int, float)) else str(stats_data.get('target_mean', 'N/A'))
+        pe_str = f"{float(stats_data.get('pe', 'N/A')):.2f}" if isinstance(stats_data.get('pe'), (int, float)) else str(stats_data.get('pe', 'N/A'))
+        fwd_pe_str = f"{float(stats_data.get('fwd_pe', 'N/A')):.2f}" if isinstance(stats_data.get('fwd_pe'), (int, float)) else str(stats_data.get('fwd_pe', 'N/A'))
+        peg_str = f"{float(stats_data.get('peg', 'N/A')):.2f}" if isinstance(stats_data.get('peg'), (int, float)) else str(stats_data.get('peg', 'N/A'))
+        target_mean_str = f"{float(stats_data.get('target_mean', 'N/A')):.2f}" if isinstance(stats_data.get('target_mean'), (int, float)) else str(stats_data.get('target_mean', 'N/A'))
+
 
         lines.append(f"{'Cena:':<18} {price_str} {currency}")
         lines.append(f"{'52 ned. diapazons:':<18} {low52_str} - {high52_str} {currency}")
@@ -823,7 +789,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def _copy_rentgen_analysis(self):
         """Copies the content of the resolution_box to the clipboard."""
         analysis_text = self.resolution_box.get("0.0", "end").strip()
-        if not analysis_text or analysis_text == i18n.t("txt_waiting"):
+        if not analysis_text or analysis_text == i18n.t("rentgen_initial_combined_msg"): # Updated check for the new initial message
             messagebox.showinfo(i18n.t("info_title"), i18n.t("growth_no_analysis_to_copy"))
             return
 
@@ -835,37 +801,43 @@ class InvestorStudioFrame(ctk.CTkFrame):
             messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
     def _export_rentgen_to_word(self):
-        """Exports the content of the resolution_box to a Word (.docx) file."""
         if not HAS_DOCX:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing"))
+            messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
             return
-        
-        analysis_text = self.resolution_box.get("0.0", "end").strip()
-        financial_summary_text = self.financial_summary_box.get("0.0", "end").strip()
 
-        if not analysis_text or i18n.t("txt_waiting") in analysis_text:
-            messagebox.showinfo(i18n.t("info_title"), "Nav datu, ko eksportēt. Vispirms veiciet analīzi.") # Literal string as per prompt
+        analysis_text = self.resolution_box.get("0.0", "end").strip()
+        if not analysis_text or "Ievadiet akcijas" in analysis_text: # Using literal string as per prompt
+            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Vispirms veiciet analīzi.")
             return
+
+        ticker = self.ticker_input.get().strip().upper() or "AKTIVS"
+        default_filename = f"Rentgens_{ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+
+        from tkinter import filedialog
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".docx",
+            filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
+            initialfile=default_filename,
+            title="Saglabāt Rentgena atskaiti kā Word failu"
+        )
+        if not save_path:
+            return  # Lietotājs atcēla saglabāšanu
 
         try:
             document = Document()
-            document.add_heading(f"{i18n.t('word_report_title_rentgen')}: {self.ticker_input.get().strip().upper()}", level=1)
-            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            document.add_paragraph("Analīze sagatavota ar AuraQuadroOS kvantitatīvās un fundamentālās analīzes dzinēju.") # Literal string as per prompt
-            
-            document.add_heading(i18n.t("word_data_summary"), level=2)
-            document.add_paragraph(financial_summary_text)
+            document.add_heading(f"Finanšu Rentgena Atskaite: {ticker}", level=1)
+            document.add_paragraph(f"Ģenerēts: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            document.add_paragraph("Analīze sagatavota ar AuraQuadroOS analītikas moduli.")
+            document.add_paragraph("-" * 40)
 
-            document.add_heading(i18n.t("lbl_inv_resolution_title"), level=2)
             for paragraph in analysis_text.split('\n'):
                 if paragraph.strip():
                     document.add_paragraph(paragraph)
 
-            filename = OUTBOX_DIR / f"{i18n.t('word_output_filename_prefix_rentgen')}{self.ticker_input.get().strip().upper()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
-            document.save(filename)
-            messagebox.showinfo(i18n.t("success_title"), i18n.t('word_success_message', path=filename))
+            document.save(save_path)
+            messagebox.showinfo("Veiksmīgi saglabāts!", f"Atskaite veiksmīgi saglabāta:\n{save_path}")
         except Exception as err:
-            messagebox.showerror(i18n.t("error_saving_word_title"), i18n.t('word_error_saving_message', error_message=err))
+            messagebox.showerror("Kļūda", f"Neizdevās saglabāt Word failu: {err}")
 
 
     # ==========================================
@@ -1212,10 +1184,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.growth_candidates_data = []
 
     def _select_growth_candidate(self, selected_name):
-        if selected_name == "Nav atlasīti vienradžu kandidāti." or not self.growth_candidates_data:
+        if selected_name == i18n.t("growth_no_candidates") or not self.growth_candidates_data:
             self.growth_analysis_box.configure(state="normal")
             self.growth_analysis_box.delete("0.0", "end")
-            self.growth_analysis_box.insert("0.0", "Nav atlasīti vienradžu kandidāti.")
+            self.growth_analysis_box.insert("0.0", i18n.t("growth_no_candidates"))
             self.growth_analysis_box.configure(state="disabled")
             return
 
@@ -1236,7 +1208,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         else:
             self.growth_analysis_box.configure(state="normal")
             self.growth_analysis_box.delete("0.0", "end")
-            self.growth_analysis_box.insert("0.0", "Nav atlasīti vienradžu kandidāti.")
+            self.growth_analysis_box.insert("0.0", i18n.t("growth_no_candidates"))
             self.growth_analysis_box.configure(state="disabled")
 
     # UZDEVUMS 2: Sakārtot funkciju _enable_all_growth_buttons
@@ -1356,7 +1328,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 
                 # Convert price and volume to float/int, default to 0 for safe comparison
                 current_price = float(str(stock_data.get("price", "0")).replace(",", "")) if isinstance(stock_data.get("price"), str) else (stock_data.get("price") or 0)
-                daily_volume = int(str(stock_data.get("volume", "0")).replace(",", "")) if isinstance(stock_data.get("volume"), str) else (stock_data.get("volume") or 0)
+                # daily_volume = int(str(stock_data.get("volume", "0")).replace(",", "")) if isinstance(stock_data.get("volume"), str) else (stock_data.get("volume") or 0) # Volume filter removed as per instruction
 
                 ipo_date_str = stock_data.get("ipo_date")
                 
@@ -1364,7 +1336,6 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     # Pielaidīgāks slieksnis mazkapitāla akcijām (<\$10)
                     if current_price > 10.0:
                         keep_candidate = False
-                        # CORRECTED LINE: Removed backslash from \$
                         self.master.after(0, self._update_growth_analysis_log, f"Izlaiž {ticker}: cena ${current_price:.2f} pārsniedz $10 slieksni")
                 elif hunt_type == "new_stars":
                     try:
@@ -1682,7 +1653,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 last_div_info = f"Last Dividend: {item['last_dividend']['amount']} on {item['last_dividend']['date']}" if item['last_dividend'] else i18n.t("dividends_not_paying")
                 yield_info = f"Yield: {item['dividend_yield']:.2%}" if item['dividend_yield'] is not None else "Yield: N/A"
                 price_info = f"Current Price: {item['current_price']} {item['currency']}" if item['current_price'] != "N/A" else "Current Price: N/A"
-                error_info = f" (Error: {item['error']})" if "error" in item else ""
+                error_info = f" (Error: {item['error']})" if "error" in item and item["error"] != "N/A" else "" # Check for actual error, not N/A
 
                 data_for_prompt += (
                     f"- Ticker: {item['ticker']} ({item['name']})\n"
