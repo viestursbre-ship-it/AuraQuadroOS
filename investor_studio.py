@@ -93,7 +93,7 @@ TRANSLATIONS = {
     # Growth Tab
     "lbl_growth_description": {"lv": "Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", "en": "Quark scans future markets and hunts for TOP 10 unicorns (AI, medicine, energy, space, etc.):", "ru": "Кварк сканирует будущие рынки и ищет ТОП-10 единорогов (ИИ, медицина, энергетика, космос и др.):", "uk": "Кварк сканує майбутні ринки та полює na ТОП-10 єдиноrogus...", "it": "Quark scansiona i mercati futuri e cerca i TOP 10 unicorni (AI, medicina, energia, spazio, ecc.):"},
     "growth_no_candidates": {"lv": "Nav atlasīti vienradžu kandidāti.", "en": "No unicorn candidates selected.", "ru": "Не выбрано ни одного кандидата-единорога.", "uk": "Не вибрано жодного кандидата-єдинорога.", "it": "Nessun candidato unicorno selezionato."},
-    "growth_status_initial": {"lv": "Gaidu Komandanta Kvarka rīkojumus...", "en": "Awaiting Commander Quark's orders...", "ru": "Ожидаю приказов Командира Кварка...", "uk": "Очікую наказів Командира Кварка...", "it": "In attesa degli ordini del Comandante Quark..."},
+    "growth_status_initial": {"lv": "Gaidu Komandanta Kvarka rīkojumus...", "en": "Awaiting Commander Quark's orders...", "ru": "Ожидаю приказов Командира Кварка...", "uk": "Очікую наказів Командира Кварka...", "it": "In attesa degli ordini del Comandante Quark..."},
     "btn_hunt_unicorns_loading": {"lv": "⏳ {btn_text}...", "en": "⏳ {btn_text}...", "ru": "⏳ {btn_text}...", "uk": "⏳ {btn_text}...", "it": "⏳ {btn_text}..."},
     "growth_scanning_candidates": {"lv": "🔍 Kvarks skenē... Gaidiet jaunus kandidātus!", "en": "🔍 Quark is scanning... Awaiting new candidates!", "ru": "🔍 Кварк сканирует... Ожидайте новых кандидатов!", "uk": "🔍 Кварк сканує... Чекайте нових кандидатів!", "it": "🔍 Quark sta scansionando... In attesa di nuovi candidati!"},
     "growth_scan_progress1": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о единорогах...", "uk": "🔍 Кварк сканує ринок та збирає дані про єдиноrogus...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sugli unicorni..."},
@@ -128,7 +128,7 @@ TRANSLATIONS = {
     "word_generated_on": {"lv": "Ģenerēts: ", "uk": "Згенеровано: ", "ru": "Сгенерировано: ", "it": "Generato il: ", "en": "Generated: "},
     "word_analysis_basis": {"lv": "Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.", "uk": "Аналіз згенеровано на основі 4 золотих критеріjів Командира Кварка.", "ru": "Аналіз згенеровано на основі 4 золотих критеріjів Командира Кварка.", "it": "Analisi generata in base ai 4 criteri d'oro del Comandante Quark.", "en": "Analysis generated based on Commander Quark's 4 golden criteria."},
     "word_red_flag": {"lv": "🚩 Sarkanais Karogs: {value}", "en": "🚩 Red Flag: {value}", "ru": "🚩 Красный Флаг: {value}", "uk": "🚩 Червоний Прапор: {value}", "it": "🚩 Bandiera Rossa: {value}"},
-    "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): {value}", "en": "Secret Weapon (Niche): {value}", "ru": "Секретное оружие (Ниша): {value}", "uk": "Секретна зброя (Ніша): {value}", "it": "Arma Segreta (Nicchia): {value}"},
+    "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): {value}", "en": "Secret Weapon (Niche):", "ru": "Секретное оружие (Ниша): {value}", "uk": "Секретна зброя (Ніша): {value}", "it": "Arma Segreta (Nicchia): {value}"},
     "word_why_10x_100x": {"lv": "Kāpēc 10x-100x: {value}", "en": "Why 10x-100x: {value}", "ru": "Почему 10x-100x: {value}", "uk": "Чому 10x-100x: {value}", "it": "Perché 10x-100x: {value}"},
     "word_black_swan": {"lv": "Melnais Gulbis (risks): {value}", "en": "Black Swan (risk): {value}", "ru": "Черный Лебедь (risks): {value}", "uk": "Чорний Лебīдь (risks): {value}", "it": "Cigno Nero (rischio): {value}"},
     "word_output_filename_prefix": {"lv": "Kvarka_Vienradzu_Medibas_", "en": "Quarks_Unicorn_Hunt_", "ru": "Kvar_Ohot_Yedinorog_", "uk": "Kvar_Yedinorih_Polyuvannya_", "it": "Quark_Caccia_Unicorni_"},
@@ -529,7 +529,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.resolution_box.configure(state="normal")
         self.resolution_box.delete("0.0", "end")
         # Task 1: Use i18n.t for the loading message
-        self.resolution_box.insert("0.0", i18n.t("rentgen_fetching_data_generating_analysis_msg", ticker=ticker, source=self.selected_source))
+        # self.resolution_box.insert("0.0", i18n.t("rentgen_fetching_data_generating_analysis_msg", ticker=ticker, source=self.selected_source))
+        self.resolution_box.insert("0.0", f"🔍 Nolasa datus par {ticker} no {self.selected_source} un veic kvantitatīvo analīzi...\n")
         self.resolution_box.configure(state="disabled")
 
         threading.Thread(target=self._analyze_ticker_worker, args=(ticker,), daemon=True).start()
