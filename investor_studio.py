@@ -8,7 +8,7 @@ import customtkinter as ctk
 import yfinance as yf
 from datetime import datetime, timedelta
 import re # Added for safe JSON extraction (Task 1)
-import requests # LEO ADDITION: Import requests for Alpha Vantage and FMP
+import requests # LEO ADDITION: Import requests for Alpha Vantage, Finnhub, and FMP
 
 # Import for messagebox (FIX 1)
 from tkinter import messagebox
@@ -56,8 +56,8 @@ TRANSLATIONS = {
     "tab_inv_etoro": {"lv": "💼 Mans eToro Portfelis & Audits", "en": "💼 My eToro Portfolio & Audit", "ru": "💼 Мой Портфель eToro и Аудит", "uk": "💼 Мій Портфель eToro та Аудит", "it": "💼 Mio Portfolio eToro & Audit"},
     "tab_inv_unicorns": {"lv": "🚀 Kvarka Izaugsmes Mednieks", "en": "🚀 Quark's Growth Hunter", "ru": "🚀 Охотник за Ростом Кварка", "uk": "🚀 Мисливець за Зростанням Кварка", "it": "🚀 Caccia alla Crescita di Quark"},
     "tab_inv_dividends": {"lv": "💰 Dividendes & Naudas Plūsma", "en": "💰 Dividends & Cash Flow", "ru": "💰 Дивиденды и Денежный Поток", "uk": "💰 Дивіденди та Грошовий Потік", "it": "💰 Dividendi & Flusso di Cassa"},
-    "tab_inv_insiders": {"lv": "🕵️ Tirgus Klimats & Insaideri", "en": "🕵️ Market Climate & Insiders", "ru": "🕵️ Климат Рынка и Инсайдеры", "uk": "🕵️ Ринок та Інсайдери", "it": "🕵️ Clima di Mercato & Insider"},
-    "lbl_inv_growth_resolution_title": {"lv": "🎯 IZAUGSMES REZOLŪCIJA & RISKA NOVĒRTĒJUMS", "en": "🎯 GROWTH RESOLUTION & RISK ASSESSMENT", "ru": "🎯 РЕЗОЛЮЦИЯ ПО РОСТУ И ОЦЕНКА РИСКА", "uk": "🎯 РЕЗОЛЮЦІЯ З РОSTU ТА ОЦІНКА РИЗИКУ", "it": "🎯 RISOLUZIONE DI CRESCITA & VALUTAZIONE DEL RISCHIO"},
+    "tab_inv_insiders": {"lv": "🕵️ Tirgus Klimats & Insaideri", "en": "🕵️ Market Climate & Insiders", "ru": "🕵️ Климат Рынка и Инсайдеры", "uk": "🕵️ Ринок та Інсайдеры", "it": "🕵️ Clima di Mercato & Insider"},
+    "lbl_inv_growth_resolution_title": {"lv": "🎯 IZAUGSMES REZOLŪCIJA & RISKA NOVĒRTĒJUMS", "en": "🎯 GROWTH RESOLUTION & RISK ASSESSMENT", "ru": "🎯 РЕЗОЛЮЦИЯ ПО РОСТУ И ОЦЕНКА РИСКА", "uk": "🎯 РЕЗОЛЮЦІЯ З РОСТУ ТА ОЦІНКА РИЗИКУ", "it": "🎯 RISOLUZIONE DI CRESCITA & VALUTAZIONE DEL RISCHIO"},
     "lbl_inv_dividends_resolution_title": {"lv": "📅 KVARKA DIVIDENŽU KALENDĀRS & REZOLŪCIJA", "en": "📅 QUARK'S DIVIDEND CALENDAR & RESOLUTION", "ru": "📅 КАЛЕНДАРЬ ДИВИДЕНДОВ КВАРКА И РЕЗОЛЮЦИЯ", "uk": "📅 КАЛЕНДАР ДИВІДЕНДІВ КВАРКА ТА РЕЗОЛЮЦІЯ", "it": "📅 CALENDARIO DIVIDENDI DI QUARK & RISOLUZIONE"},
     "lbl_inv_market_news_title": {"lv": "📰 JAUNĀKĀS ZIŅAS & KVARKA TAKTIKA", "en": "📰 LATEST NEWS & QUARK'S TACTICS", "ru": "📰 ПОСЛЕДНИЕ НОВОСТИ И ТАКТИКА КВАРКА", "uk": "📰 ОСТАННІ НОВИНИ ТА ТАКТИКА КВАРКА", "it": "📰 ULTIME NOTIZIE & TATTICHE DI QUARK"},
 
@@ -84,7 +84,7 @@ TRANSLATIONS = {
     "audit_loading_msg": {"lv": "Komandants Kvarks caurskata {len_tickers} pozīcijas un finanšu rādītājus...\n", "en": "Commander Quark reviews {len_tickers} positions and financial indicators...\n", "ru": "Командир Кварк просматривает {len_tickers} позиций и финансовые показатели...\n", "uk": "Командир Кварк переглядає {len_tickers} позицій та фінансові показники...\n", "it": "Il Comandante Quark esamina {len_tickers} posizioni e indicatori finanziari...\n"},
     "audit_initial_msg": {"lv": "Ievadiet savas akcijas un nospiediet 'Kvarka Audits'...\nKvarks noteiks, kurus 'sīkuļus' likvidēt un kur gudri ieguldīt līdzekļus!", "en": "Enter your stocks and press 'Quark's Audit'...\nQuark will determine which 'minnows' to liquidate and where to invest wisely!", "ru": "Введите свои акции и нажмите 'Аудит Кварка'...\nКварк определит, какие 'мелкие' позиции ликвидировать и куда разумно вложить средства!", "uk": "Введіть свої акції та натисніть 'Аудит Кварка'...\nКварк визначить, які 'дрібниці' ліквідувати і куди розумно вкласти кошти!", "it": "Inserisci i tuoi titoli e premi 'Audit di Quark'...\nQuark determinerà quali 'pesci piccoli' liquidare e dove investire saggiamente!"},
     "strategy_venture_desc": {"lv": "STRATĒĢIJA: VENTURE & GROWTH HUNTER (Agresīvs riska kapitāls).\n- Vērtē aktīvus no nākotnes tirgus dominances, monopolstāvokļa un AI/tehnoloģiju lēciena prizmas.\n- Augsts P/E vai īslaicīgs peļņas trūkums nav šķērslis, ja ieņēmumu lēciens un infrastruktūras nozīme ir milzīga (piemēram, ARM, SNOW, PLTR).\n- Izbrāķē tikai stagnējošus un lēnus uzņēmumus bez tehnoloģiskas nākotnes.", "en": "STRATEGY: VENTURE & GROWTH HUNTER (Aggressive Venture Capital).\n- Values assets from the perspective of future market dominance, monopoly position, and AI/technology leap.\n- High P/E or temporary lack of profit is not an obstacle if revenue growth and infrastructure importance are enormous (e.g., ARM, SNOW, PLTR).\n- Only rejects stagnant and slow companies without a technological future.", "ru": "СТРАТЕГИЯ: ВЕНЧУРНЫЙ ОХОТНИК ЗА РОСТОМ (Агрессивный венчурный капитал).\n- Оценивает активы с точки зрения будущего доминирования на рынке, монопольного положения и технологического скачка AI.\n- Высокий P/E или временное отсутствие прибыли не является препятствием, если рост выручки и значимость инфраструктуры огромны (например, ARM, SNOW, PLTR).\n- Отбрасывает только стагнирующие и медленные компании без технологического будущего.", "uk": "СТРАТЕГІЯ: ВЕНЧУРНИЙ МИСЛИВЕЦЬ ЗА ЗРОСТАННЯМ (Агресивний венчурний капітал).\n- Оцінює активи з позиції майбутнього домінування на ринку, монопольного становища та стрибка AI/технологій.\n- Високий P/E або тимчасова відсутність прибутку не є перешкодою, якщо стрибок доходів та значення інфраструктури величезні (наприклад, ARM, SNOW, PLTR).\n- Відкидає лише стагнуючі та повільні компанії без технологічного майбутнього.", "it": "STRATEGIA: Cacciatore di Venture & Crescita (Capitale di rischio aggressivo).\n- Valuta gli asset dal punto di vista del dominio futuro del mercato, della posizione di monopolio e del salto tecnologico AI.\n- Un P/E elevato o una temporanea mancanza di profitto non sono un ostacolo se la crescita dei ricavi e l'importanza dell'infrastruttura sono enormi (es. ARM, SNOW, PLTR).\n- Rifiuta solo le aziende stagnanti e lente senza un futuro tecnologico."},
-    "strategy_conservative_desc": {"lv": "STRATĒĢIJA: KONSERVATĪVS (Zems risks, 5-10% stabils pieaugums gadā).\n- Vērtē aktīvus pēc reālas naudas plūsmas, veselīga P/E (< 30-35), dividenžu stabilitātes un zemiem riskiem.\n- Ja uzņēmuma P/E ir pārmērīgs (> 80-100) vai nav peļņas un PEG > 2, norādi to kā bīstamu burbuli un iesaki samazināt pozīciju.\n- Dod priekšroku tirgus indeksiem (VOO/SPY) un stabiliem industrijas milžiem.", "en": "STRATEGY: CONSERVATIVE (Low risk, 5-10% stable annual growth).\n- Values assets by real cash flow, healthy P/E (< 30-35), dividend stability, and low risks.\n- If a company's P/E is excessive (> 80-100) or has no profit and PEG > 2, indicate it as a dangerous bubble and recommend reducing the position.\n- Prefers market indices (VOO/SPY) and stable industry giants.", "ru": "СТРАТЕГИЯ: КОНСЕРВАТИВНАЯ (Низкий риск, 5-10% стабильного роста в год).\n- Оценивает активы по реальному денежному потоку, здоровому P/E (< 30-35), стабильности дивидендов и низким рискам.\n- Если P/E компании чрезмерен (> 80-100) или нет прибыли, а PEG > 2, укажите это как опасный пузырь и рекомендуйте уменьшить позицию.\n- Отдает предпочтение рыночным индексам (VOO/SPY) и стабильным промышленным гигантам.", "uk": "СТРАТЕГІЯ: КОНСЕРВАТИВНА (Низький ризик, 5-10% стабільний річний приріст).\n- Оцінює активи за реальним грошовим потоком, здоровим P/E (< 30-35), стабільністю дивідендів та низькими ризиками.\n- Якщо P/E компанії надмірний (> 80-100) або немає прибутку, а PEG > 2, вкажіть це як небезпечний міхurs і рекомендуйте зменшити позицію.\n- Віддає перевагу ринковим індексам (VOO/SPY) та стабільним промисловим гігантам.", "it": "STRATEGIA: CONSERVATIVA (Basso rischio, 5-10% crescita annua stabile).\n- Valuta gli asset in base al flusso di cassa reale, un P/E sano (< 30-35), la stabilità dei dividendi e i bassi rischi.\n- Se il P/E di un'azienda è eccessivo (> 80-100) o non c'è profitto e il PEG > 2, indicalo come una bolla pericolosa e consiglia di ridurre la posizione.\n- Preferisce gli indici di mercato (VOO/SPY) e i giganti del settore stabili."},
+    "strategy_conservative_desc": {"lv": "STRATĒĢIJA: KONSERVATĪVS (Zems risks, 5-10% stabils pieaugums gadā).\n- Vērtē aktīvus pēc reālas naudas plūsmas, veselīga P/E (< 30-35), dividenžu stabilitātes un zemiem riskiem.\n- Ja uzņēmuma P/E ir pārmērīgs (> 80-100) vai nav peļņas un PEG > 2, norādi to kā bīstamu burbuli un iesaki samazināt pozīciju.\n- Dod priekšroku tirgus indeksiem (VOO/SPY) un stabiliem industrijas milžiem.", "en": "STRATEGY: CONSERVATIVE (Low risk, 5-10% stable annual growth).\n- Values assets by real cash flow, healthy P/E (< 30-35), dividend stability, and low risks.\n- If a company's P/E is excessive (> 80-100) or has no profit and PEG > 2, indicate it as a dangerous bubble and recommend reducing the position.\n- Prefers market indices (VOO/SPY) and stable industry giants.", "ru": "СТРАТЕГИЯ: КОНСЕРВАТИВНАЯ (Низкий риск, 5-10% стабильного роста в год).\n- Оценивает активы по реальному денежному потоку, здоровому P/E (< 30-35), стабильности дивидендов и низким рискам.\n- Если P/E компании чрезмерен (> 80-100) или нет прибыли, а PEG > 2, укажите это как опасный пузырь и рекомендуйте уменьшить позицию.\n- Отдает предпочтение рыночным индексам (VOO/SPY) и стабильным промышленным гигантам.", "uk": "СТРАТЕГІЯ: КОНСЕРВАТИВНА (Низький ризик, 5-10% стабільний річний приріст).\n- Оцінює активи за реальним грошовим потоком, здоровим P/E (< 30-35), стабільністю дивідендів та низькими ризиками.\n- Якщо P/E компанії надмірний (> 80-100) або немає прибутку, а PEG > 2, вкажіть це як небезпечний міхур і рекомендуйте зменшити позицію.\n- Віддає перевагу ринковим індексам (VOO/SPY) та стабільним промисловим гігантам.", "it": "STRATEGIA: CONSERVATIVA (Basso rischio, 5-10% crescita annua stabile).\n- Valuta gli asset in base al flusso di cassa reale, un P/E sano (< 30-35), la stabilità dei dividendi e i bassi rischi.\n- Se il P/E di un'azienda è eccessivo (> 80-100) o non c'è profitto e il PEG > 2, indicalo come una bolla pericolosa e consiglia di ridurre la posizione.\n- Preferisce gli indici di mercato (VOO/SPY) e i giganti del settore stabili."},
     "error_audit_gemini": {"lv": "⚠️ Audita kļūda: {e}", "en": "⚠️ Audit error: {e}", "ru": "⚠️ Ошибка аудита: {e}", "uk": "⚠️ Помилка аудиту: {e}", "it": "⚠️ Errore di audit: {e}"},
     "error_api_missing_data": {"lv": "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus.", "en": "⚠️ Missing API key or failed to retrieve data.", "ru": "⚠️ Отсутствует ключ API или не удалось получить данные.", "uk": "⚠️ Відсутній ключ API або не вдалося отримати дані.", "it": "⚠️ Chiave API mancante o impossibile recuperare i dati."},
 
@@ -110,9 +110,9 @@ TRANSLATIONS = {
     "btn_add_to_portfolio": {"lv": "➕ Pievienot manam eToro sarakstam", "en": "➕ Add to my eToro list", "ru": "➕ Добавить в мой список eToro", "uk": "➕ Додати до мого списку eToro", "it": "➕ Aggiungi alla mia lista eToro"},
     "growth_copy_header": {"lv": "🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀", "en": "🚀 COMMANDER KVARK'S UNICORN HUNT RESULTS 🚀", "ru": "🚀 РЕЗУЛЬТАТЫ ОХОТЫ НА ЕДИНОРОГОВ КОМАНДИРА КВАРКА 🚀", "uk": "🚀 РЕЗУЛЬТАТИ ПОЛЮВАННЯ НА ЄДИНОРОГІВ КОМАНДИРА КВАРКА 🚀", "it": "🚀 RISULTATI DELLA CACCIA AGLI UNICORNI DEL COMANDANTE QUARK 🚀"},
     "growth_copy_candidate_header": {"lv": "--- Kandidāts {idx_plus_1}: {ticker} - {name} ---", "en": "--- Candidate {idx_plus_1}: {ticker} - {name} ---", "ru": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "uk": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "it": "--- Candidato {idx_plus_1}: {ticker} - {name} ---"},
-    "growth_copy_niche": {"lv": "   Slepenais ierocis (Niša): {niche}", "en": "   Secret Weapon (Niche): {niche}", "ru": "   Секретное оружие (Ниша): {niche}", "uk": "   Секретна зброя (Ніша):", "it": "   Arma Segreta (Nicchia): {niche}"},
-    "growth_copy_why": {"lv": "   Kāpēc 10x-100x: {why}", "en": "   Why 10x-100x: {why}", "ru": "   Почему 10x-100x: {why}", "uk": "   Чому 10x-100x: {why}", "it": "   Perché 10x-100x:"},
-    "growth_copy_risk": {"lv": "   Melnais Gulbis (risks): {risk}", "en": "   Black Swan (risk): {risk}", "ru": "   Черный Лебедь (риск): {risk}", "uk": "   Чорний Лебідis (ризик): {risk}", "it": "   Cigno Nero (rischio): {risk}"},
+    "growth_copy_niche": {"lv": "   Slepenais ierocis (Niša): {niche}", "en": "   Secret Weapon (Niche): {niche}", "ru": "   Секретное оружие (Ниша): {niche}", "uk": "   Секретна зброя (Ніша): {niche}", "it": "   Arma Segreta (Nicchia): {niche}"},
+    "growth_copy_why": {"lv": "   Kāpēc 10x-100x: {why}", "en": "   Why 10x-100x: {why}", "ru": "   Почему 10x-100x: {why}", "uk": "   Чому 10x-100x: {why}", "it": "   Perché 10x-100x: {why}"},
+    "growth_copy_risk": {"lv": "   Melnais Gulbis (risks): {risk}", "en": "   Black Swan (risk): {risk}", "ru": "   Черный Лебедь (риск): {risk}", "uk": "   Чорний Лебідь (ризик): {risk}", "it": "   Cigno Nero (rischio): {risk}"},
     "growth_no_analysis_to_copy": {"lv": "Nav atrasta neviena analīze, ko kopēt.", "en": "No analysis found to copy.", "ru": "Не найдено анализа для копирования.", "uk": "Не знайдено аналізу для коpiювання.", "it": "Nessuna analisi trovata da copiare."},
     "error_title": {"lv": "Kļūda", "en": "Error", "ru": "Ошибка", "uk": "Помилка", "it": "Errore"},
     "error_docx_missing": {"lv": "Lai eksportētu uz Word, nepieciešama 'python-docx' bibliotēka.\nUzinstalējiet to ar 'pip install python-docx'.", "en": "To export to Word, the 'python-docx' library is required.\nInstall it with 'pip install python-docx'.", "ru": "Для экспорта в Word требуется библиотека 'python-docx'.\nУстановите ее с помощью 'pip install python-docx'.", "uk": "Для експорту в Word потрібна бібліотека 'python-docx'.\nВстановіть її за допомогою 'pip install python-docx'.", "it": "Per esportare in Word è necessaria la libreria 'python-docx'.\nInstallala con 'pip install python-docx'."},
@@ -125,13 +125,13 @@ TRANSLATIONS = {
     "word_report_title": {"lv": "🚀 Komandanta Kvarka Vienradžu Medību Atskaite", "uk": "🚀 Звіт про Полювання на Єдинорогів Командира Кварка", "ru": "🚀 Отчет об Охоте на Единорогов Командира Кварка", "it": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark", "en": "🚀 Commander Quark's Unicorn Hunt Report"},
     "word_generated_on": {"lv": "Ģenerēts: ", "uk": "Згенеровано: ", "ru": "Сгенерировано: ", "it": "Generato il: ", "en": "Generated: "},
     "word_analysis_basis": {"lv": "Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.", "uk": "Аналіз згенеровано на основі 4 золотих критеріjів Командира Кварка.", "ru": "Анализ сгенерирован на основе 4 золотых критериев Командира Кварка.", "it": "Analisi generata in base ai 4 criteri d'oro del Comandante Quark.", "en": "Analysis generated based on Commander Quark's 4 golden criteria."},
-    "word_red_flag": {"lv": "🚩 Sarkanais Karogs: ", "uk": "🚩 Червоний Прапор: ", "ru": "🚩 Красный Флаг: ", "it": "🚩 Bandiera Rossa: ", "en": "🚩 Red Flag: "},
-    "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): ", "uk": "Секретна зброя (Ніша): ", "ru": "Секретное оружие (Ниша): ", "it": "Arma Segreta (Nicchia): ", "en": "Secret Weapon (Niche): "},
-    "word_why_10x_100x": {"lv": "Kāpēc 10x-100x: ", "uk": "Чому 10x-100x: ", "ru": "Почему 10x-100x: ", "it": "Perché 10x-100x: ", "en": "Why 10x-100x: "},
-    "word_black_swan": {"lv": "Melnais Gulbis (risks): ", "uk": "Чорний Лебīдь (ризик): ", "ru": "Черный Лебедь (риск): ", "it": "Cigno Nero (rischio): ", "en": "Black Swan (risk): "},
+    "word_red_flag": {"lv": "🚩 Sarkanais Karogs: {value}", "uk": "🚩 Червоний Прапор: {value}", "ru": "🚩 Красный Флаг: {value}", "it": "🚩 Bandiera Rossa: {value}", "en": "🚩 Red Flag: {value}"},
+    "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): {value}", "uk": "Секретна зброя (Ніша): {value}", "ru": "Секретное оружие (Ниша): {value}", "it": "Arma Segreta (Nicchia): {value}", "en": "Secret Weapon (Niche): {value}"},
+    "word_why_10x_100x": {"lv": "Kāpēc 10x-100x: {value}", "uk": "Чому 10x-100x: {value}", "ru": "Почему 10x-100x: {value}", "it": "Perché 10x-100x: {value}", "en": "Why 10x-100x: {value}"},
+    "word_black_swan": {"lv": "Melnais Gulbis (risks): {value}", "uk": "Чорний Лебīдь (ризик): {value}", "ru": "Черный Лебедь (риск): {value}", "it": "Cigno Nero (rischio): {value}", "en": "Black Swan (risk): {value}"},
     "word_output_filename_prefix": {"lv": "Kvarka_Vienradzu_Medibas_", "uk": "Kvar_Yedinorih_Polyuvannya_", "ru": "Kvar_Ohot_Yedinorog_", "it": "Quark_Caccia_Unicorni_", "en": "Quarks_Unicorn_Hunt_"},
-    "word_success_message": {"lv": "Atskaite saglabāta:\n", "uk": "Звіт збережено:\n", "ru": "Отчет сохранен в:\n", "it": "Rapporto salvato in:\n", "en": "Report saved to:\n"},
-    "word_error_saving_message": {"lv": "Radās kļūda saglabājot Word failu: ", "uk": "Виникла помилка під час збереження файlu Word: ", "ru": "Произошла ошибка при сохранении файла Word: ", "it": "Error saving Word file: ", "en": "Error saving Word file: "},
+    "word_success_message": {"lv": "Atskaite saglabāta:\n{path}", "uk": "Звіт збережено:\n{path}", "ru": "Отчет сохранен в:\n{path}", "it": "Rapporto salvato in:\n{path}", "en": "Report saved to:\n{path}"},
+    "word_error_saving_message": {"lv": "Radās kļūda saglabājot Word failu: {error_message}", "uk": "Виникла помилка під час збереження файlu Word: {error_message}", "ru": "Произошла ошибка при сохранении файла Word: {error_message}", "it": "Error saving Word file: {error_message}", "en": "Error saving Word file: {error_message}"},
 
     # Rentgen specific Word export keys (NEW)
     "word_report_title_rentgen": {"lv": "🔍 Komandanta Kvarka Tikera Rentgena Atskaite", "uk": "🔍 Звіт Рентген Тикера Командира Кварка", "ru": "🔍 Отчет Рентген Тикера Командира Кварка", "it": "🔍 Rapporto Raggi X Titolo del Comandante Quark", "en": "🔍 Commander Quark's Ticker X-Ray Report"},
@@ -210,7 +210,16 @@ TRANSLATIONS = {
     "source_label": {"lv": "Avots", "en": "Source", "ru": "Источник", "uk": "Джерело", "it": "Fonte"},
     "error_gemini_analysis": {"lv": "⚠️ Gemini analīzes kļūda: {e}", "en": "⚠️ Gemini analysis error: {e}", "ru": "⚠️ Oшибка анализа Gemini: {e}", "uk": "⚠️ Помилка analīzes Gemini: {e}", "it": "⚠️ Errore di analisi Gemini: {e}"},
     "data_fetch_error": {"lv": "⚠️ Kļūda nolasot datus", "en": "⚠️ Error fetching data", "ru": "⚠️ Ошибка pri poluchenii dannyx", "uk": "⚠️ Помилка pri otrimanni danih", "it": "⚠️ Errore nel recupero dei dati"},
-    "error_invalid_cash_balance": {"lv": "Nederīga naudas atlikuma vērtība.", "en": "Invalid cash balance value.", "ru": "Неверное значение остатка денежных средств.", "uk": "Невіrna vartība zaļā atlikumu.", "it": "Valore del saldo di cassa non valido."} # New key for specific error message
+    "error_invalid_cash_balance": {"lv": "Nederīga naudas atlikuma vērtība.", "en": "Invalid cash balance value.", "ru": "Неверное значение остатка денежных средств.", "uk": "Невіrna vartība zaļā atlikumu.", "it": "Valore del saldo di cassa non valido."}, # New key for specific error message
+
+    # New keys for Penny Stocks and New Stars (LEO ADDITION)
+    "btn_penny_stocks_hunter": {"lv": "🎯 Penny Stocks Mednieks (<$5)", "en": "🎯 Penny Stocks Hunter (<$5)", "ru": "🎯 Охотник за пенни-акциями (<$5)", "uk": "🎯 Мисливець за пенні-акціями (<$5)", "it": "🎯 Cacciatore di Penny Stock (<$5)"},
+    "btn_new_stars_hunter": {"lv": "🚀 Jaunās Zvaigznes (2021-2024 IPO)", "en": "🚀 New Stars (2021-2024 IPO)", "ru": "🚀 Новые Звезды (IPO 2021-2024)", "uk": "🚀 Нові Зірки (IPO 2021-2024)", "it": "🚀 Nuove Stelle (IPO 2021-2024)"},
+    "growth_penny_scan_progress": {"lv": "🔍 Kvarks meklē Valtera profilam piemērotas peniju akcijas (cena <$5, apgrozījums >300k)...", "en": "🔍 Quark is hunting for penny stocks suitable for Valter's profile (price <$5, volume >300k)...", "ru": "🔍 Кварк ищет пенни-акции, подходящие для профиля Валтера (цена <$5, объем >300k)...", "uk": "🔍 Кварк шукає пенні-акції, придатні для профілю Валтера (ціна <$5, обсяг >300k)...", "it": "🔍 Quark è a caccia di penny stock adatte al profilo di Valter (prezzo <$5, volume >300k)..."},
+    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Брата (IPO 2021-2024, з потенціалом зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
+    "growth_no_candidates_found": {"lv": "Komandants Kvarks neatrada piemērotus kandidātus.", "en": "Commander Quark found no suitable candidates.", "ru": "Командир Кварк не нашел подходящих кандидатов.", "uk": "Командир Кварк не знайшов відповідних кандидатів.", "it": "Il Comandante Quark non ha trovato candidati idonei."},
+    "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Кварк сканує ринок та збирає дані про ТОП-10 єдинорогів...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
+    "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та оцінює кандидатів за допомогою AI аналізу...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
 }
 
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
@@ -377,6 +386,14 @@ class InvestorStudioFrame(ctk.CTkFrame):
             current_btn_text = self.btn_scan_all_growth.cget("text")
             if not current_btn_text.startswith("⏳"):
                 self.btn_scan_all_growth.configure(text=i18n.t("btn_hunt_unicorns"))
+        if hasattr(self, 'btn_hunt_penny_stocks'):
+            current_btn_text = self.btn_hunt_penny_stocks.cget("text")
+            if not current_btn_text.startswith("⏳"):
+                self.btn_hunt_penny_stocks.configure(text=i18n.t("btn_penny_stocks_hunter"))
+        if hasattr(self, 'btn_hunt_new_stars'):
+            current_btn_text = self.btn_hunt_new_stars.cget("text")
+            if not current_btn_text.startswith("⏳"):
+                self.btn_hunt_new_stars.configure(text=i18n.t("btn_new_stars_hunter"))
         if hasattr(self, 'lbl_growth_resolution_title'): # NEW for Instruction 2
             self.lbl_growth_resolution_title.configure(text=i18n.t("lbl_inv_growth_resolution_title"))
         if hasattr(self, 'btn_copy_growth'):
@@ -484,8 +501,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.selected_source = new_source
         self.financial_summary_box.configure(state="normal")
         self.financial_summary_box.delete("0.0", "end")
-        # Fix 1: i18n parameter passing
-        self.financial_summary_box.insert("0.0", f"{i18n.t('source_changed_msg').split('{source}')[0]}{new_source}{i18n.t('source_changed_msg').split('{source}')[1]}")
+        self.financial_summary_box.insert("0.0", i18n.t('source_changed_msg', source=new_source))
         self.financial_summary_box.configure(state="disabled")
 
         self.resolution_box.configure(state="normal")
@@ -509,19 +525,13 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.resolution_box.configure(state="disabled")
             return
 
-        self.btn_analyze.configure(state="disabled", text=f"⏳ {i18n.t('btn_rentgens')}...")
+        self.btn_analyze.configure(state="disabled", text=i18n.t("btn_hunt_unicorns_loading", btn_text=i18n.t("btn_rentgens")))
         self.progress_bar.configure(mode="indeterminate") # Task 2
         self.progress_bar.start() # Task 2
 
         self.financial_summary_box.configure(state="normal")
         self.financial_summary_box.delete("0.0", "end")
-        # Fix 1: i18n parameter passing
-        # Original: f"{i18n.t('fetching_data_msg')} [{ticker}] ({self.selected_source})..."
-        # This one is trickier as it has two placeholders. Splitting the string `Nolasa tirgus datus par {ticker} no {source}...\n`
-        base_msg = i18n.t('fetching_data_msg')
-        # This assumes the placeholders are in this exact order and structure
-        formatted_msg = base_msg.replace('{ticker}', ticker).replace('{source}', self.selected_source)
-        self.financial_summary_box.insert("0.0", formatted_msg)
+        self.financial_summary_box.insert("0.0", i18n.t('fetching_data_msg', ticker=ticker, source=self.selected_source))
         self.financial_summary_box.configure(state="disabled")
 
         self.resolution_box.configure(state="normal")
@@ -532,7 +542,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         threading.Thread(target=self._analyze_ticker_worker, args=(ticker,)).start()
 
     def _analyze_ticker_worker(self, ticker):
-        stats_data, payload = self._fetch_stock_data(ticker)
+        stats_data, payload = self._fetch_stock_data_for_rentgen_tab(ticker)
         
         # Format stats_data for compact display
         formatted_stats_text = self._format_financial_summary(ticker, stats_data)
@@ -550,11 +560,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.master.after(0, lambda: self.resolution_box.configure(state="disabled"))
             resolution_text = self._get_gemini_resolution(payload)
         elif not HAS_GENAI:
-            resolution_text = i18n.t('error_gemini_api_contact').format(e='Google Generative AI library not found.') + "\n" + i18n.t('analysis_disclaimer_summary')
+            resolution_text = i18n.t('error_gemini_api_contact', e='Google Generative AI library not found.') + "\n" + i18n.t('analysis_disclaimer_summary')
         elif not self.get_gemini_key():
              resolution_text = i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
         else: # If there was an error in stats_data fetch
-            resolution_text = i18n.t('error_fetching_ticker_data').format(ticker=ticker, e='Data unavailable for analysis.') + "\n" + i18n.t('analysis_disclaimer_summary')
+            resolution_text = i18n.t('error_fetching_ticker_data', ticker=ticker, e='Data unavailable for analysis.') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         self.master.after(0, lambda: self.resolution_box.configure(state="normal"))
         self.master.after(0, lambda: self.resolution_box.delete("0.0", "end"))
@@ -570,24 +580,24 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def _format_financial_summary(self, ticker, stats_data):
         """Formats the financial data into a compact, readable string for the Textbox."""
         if stats_data.get('error'):
-            return f"{i18n.t('data_fetch_error')}: {stats_data['error']}"
+            return i18n.t('data_fetch_error') + f": {stats_data['error']}"
 
         name = stats_data.get("name", ticker)
         currency = stats_data.get("currency", "USD")
 
         lines = []
-        lines.append(i18n.t('ticker_info_header').format(short_name=name, ticker=ticker))
+        lines.append(i18n.t('ticker_info_header', short_name=name, ticker=ticker))
         lines.append(f"{i18n.t('source_label')}: {self.selected_source}")
         lines.append("-" * 30)
 
         # Use f-strings with fixed width for better alignment in a monospace font
-        price_str = f"{float(stats_data['price']):.2f}" if isinstance(stats_data['price'], (int, float)) else stats_data['price']
-        low52_str = f"{float(stats_data['52_low']):.2f}" if isinstance(stats_data['52_low'], (int, float)) else stats_data['52_low']
-        high52_str = f"{float(stats_data['52_high']):.2f}" if isinstance(stats_data['52_high'], (int, float)) else stats_data['52_high']
-        pe_str = f"{float(stats_data['pe']):.2f}" if isinstance(stats_data['pe'], (int, float)) else stats_data['pe']
-        fwd_pe_str = f"{float(stats_data['fwd_pe']):.2f}" if isinstance(stats_data['fwd_pe'], (int, float)) else stats_data['fwd_pe']
-        peg_str = f"{float(stats_data['peg']):.2f}" if isinstance(stats_data['peg'], (int, float)) else stats_data['peg']
-        target_mean_str = f"{float(stats_data['target_mean']):.2f}" if isinstance(stats_data['target_mean'], (int, float)) else stats_data['target_mean']
+        price_str = f"{float(stats_data['price']):.2f}" if isinstance(stats_data['price'], (int, float)) else str(stats_data['price'])
+        low52_str = f"{float(stats_data['52_low']):.2f}" if isinstance(stats_data['52_low'], (int, float)) else str(stats_data['52_low'])
+        high52_str = f"{float(stats_data['52_high']):.2f}" if isinstance(stats_data['52_high'], (int, float)) else str(stats_data['52_high'])
+        pe_str = f"{float(stats_data['pe']):.2f}" if isinstance(stats_data['pe'], (int, float)) else str(stats_data['pe'])
+        fwd_pe_str = f"{float(stats_data['fwd_pe']):.2f}" if isinstance(stats_data['fwd_pe'], (int, float)) else str(stats_data['fwd_pe'])
+        peg_str = f"{float(stats_data['peg']):.2f}" if isinstance(stats_data['peg'], (int, float)) else str(stats_data['peg'])
+        target_mean_str = f"{float(stats_data['target_mean']):.2f}" if isinstance(stats_data['target_mean'], (int, float)) else str(stats_data['target_mean'])
 
         lines.append(f"{i18n.t('price_label').split(':')[0].strip():<15}: {price_str} {currency}")
         lines.append(f"{i18n.t('52week_range_label').split(':')[0].strip():<15}: {low52_str} - {high52_str} {currency}")
@@ -607,104 +617,184 @@ class InvestorStudioFrame(ctk.CTkFrame):
         return "\n".join(lines)
 
 
-    def _fetch_stock_data(self, ticker):
-        payload = {}
-        stats_data = {}
+    def _fetch_stock_data_for_rentgen_tab(self, ticker):
+        """
+        Fetches stock data for the Rentgen tab based on the selected_source.
+        Does NOT use fallback logic.
+        """
+        payload = {"ticker": ticker, "error": None}
+        stats_data = {"ticker": ticker}
+
+        cfg = {}
         try:
-            cfg = {}
+            with open("config.json", "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        except Exception:
+            pass
+        av_key = cfg.get("alpha_vantage_api_key", "")
+        fmp_key = cfg.get("fmp_api_key", "")
+
+        yf_info = {}
+        yf_price = "N/A"
+        try:
+            stock = yf.Ticker(ticker)
+            yf_info = stock.info or {}
+            yf_price = yf_info.get("currentPrice") or yf_info.get("regularMarketPrice", "N/A")
+        except Exception:
+            pass
+
+        av_price, fmp_price = "N/A", "N/A"
+
+        if self.selected_source in ["Alpha Vantage", "⚔️ Cross-Check"] and av_key:
             try:
-                with open("config.json", "r", encoding="utf-8") as f:
-                    cfg = json.load(f)
+                url_av = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={av_key}"
+                r_av = requests.get(url_av, timeout=6).json()
+                gq = r_av.get("Global Quote", {})
+                if "05. price" in gq:
+                    av_price = gq.get("05. price")
             except Exception:
                 pass
-            av_key = cfg.get("alpha_vantage_api_key", "")
-            fmp_key = cfg.get("fmp_api_key", "")
 
+        if self.selected_source in ["FMP", "⚔️ Cross-Check"] and fmp_key:
+            try:
+                url_fmp = f"https://financialmodelingprep.com/api/v3/quote/{ticker}?apikey={fmp_key}"
+                r_fmp = requests.get(url_fmp, timeout=6).json()
+                if isinstance(r_fmp, list) and len(r_fmp) > 0:
+                    fmp_data = r_fmp[0]
+                    fmp_price = fmp_data.get("price")
+            except Exception:
+                pass
+        
+        display_price = yf_price # Default to YF
+
+        # Override display_price based on selected source
+        if self.selected_source == "Alpha Vantage" and av_price != "N/A":
+            display_price = av_price
+        elif self.selected_source == "FMP" and fmp_price != "N/A":
+            display_price = fmp_price
+        
+        # Populate stats_data with information from yf_info first, then override if specific source selected.
+        stats_data["name"] = yf_info.get("shortName", ticker)
+        stats_data["currency"] = yf_info.get("currency", "USD")
+        stats_data["price"] = display_price
+        stats_data["pe"] = yf_info.get("trailingPE", "N/A")
+        stats_data["fwd_pe"] = yf_info.get("forwardPE", "N/A")
+        stats_data["peg"] = yf_info.get("pegRatio", "N/A")
+        stats_data["52_high"] = yf_info.get("fiftyTwoWeekHigh", "N/A")
+        stats_data["52_low"] = yf_info.get("fiftyTwoWeekLow", "N/A")
+        stats_data["target_mean"] = yf_info.get("targetMeanPrice", "N/A")
+        stats_data["yf_price"] = yf_price
+        stats_data["av_price"] = av_price
+        stats_data["fmp_price"] = fmp_price
+        stats_data["source"] = self.selected_source # The source used for display_price
+
+        if yf_price == "N/A" and av_price == "N/A" and fmp_price == "N/A":
+            stats_data["error"] = "Failed to retrieve price from any source."
+        
+        payload = stats_data # Payload for Gemini is the same collected data
+        return stats_data, payload
+
+    # New fallback function for hunt tools (Task 2)
+    def _get_stock_data_with_fallback(self, ticker):
+        """
+        Fetches stock data using YFinance, then Finnhub, then FMP as fallbacks.
+        Returns a dictionary with parsed data or an error.
+        """
+        stats_data = {"ticker": ticker}
+        cfg = {}
+        try:
+            with open("config.json", "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        except Exception:
+            pass
+        finnhub_key = cfg.get("finnhub_api_key", "")
+        fmp_key = cfg.get("fmp_api_key", "")
+
+        # Initialize with N/A for all fields, or appropriate defaults for filtering
+        for key in ["name", "currency", "price", "pe", "fwd_pe", "peg", "52_high", "52_low", "target_mean", "ipo_date", "error"]:
+            stats_data[key] = "N/A"
+        stats_data["volume"] = 0 # Default volume to 0 for filtering
+
+        # 1. Try Yahoo Finance
+        try:
             stock = yf.Ticker(ticker)
             info = stock.info or {}
-            short_name = info.get("shortName", ticker)
-            currency = info.get("currency", "USD")
-            curr_price = info.get("currentPrice") or info.get("regularMarketPrice", "N/A")
-            pe = info.get("trailingPE", "N/A")
-            fwd_pe = info.get("forwardPE", "N/A")
-            peg = info.get("pegRatio", "N/A")
-            high52 = info.get("fiftyTwoWeekHigh", "N/A")
-            low52 = info.get("fiftyTwoWeekLow", "N/A")
-            target_mean = info.get("targetMeanPrice", "N/A")
+            if info:
+                stats_data["name"] = info.get("shortName", ticker)
+                stats_data["currency"] = info.get("currency", "USD")
+                stats_data["price"] = info.get("currentPrice") or info.get("regularMarketPrice")
+                stats_data["pe"] = info.get("trailingPE")
+                stats_data["fwd_pe"] = info.get("forwardPE")
+                stats_data["peg"] = info.get("pegRatio")
+                stats_data["52_high"] = info.get("fiftyTwoWeekHigh")
+                stats_data["52_low"] = info.get("fiftyTwoWeekLow")
+                stats_data["target_mean"] = info.get("targetMeanPrice")
+                stats_data["volume"] = info.get("volume", 0)
+                stats_data["ipo_date"] = info.get("ipoDate") # YYYY-MM-DD
+                if stats_data["price"] is not None and stats_data["price"] != "N/A":
+                    stats_data["source"] = "Yahoo Finance"
+                    return stats_data # YF succeeded, return
+        except Exception:
+            pass # Keep trying other sources
 
-            av_price, fmp_price = "N/A", "N/A" # Initialize to N/A
+        # 2. Try Finnhub
+        if finnhub_key:
+            try:
+                url_quote = f"https://finnhub.io/api/v1/quote?symbol={ticker}&token={finnhub_key}"
+                r_quote = requests.get(url_quote, timeout=6).json()
+                if r_quote and r_quote.get("c") is not None:
+                    stats_data["price"] = r_quote.get("c")
+                    stats_data["volume"] = r_quote.get("v", 0)
 
-            if self.selected_source in ["Alpha Vantage", "⚔️ Cross-Check"] and av_key:
-                try:
-                    url_av = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={ticker}&apikey={av_key}"
-                    r_av = requests.get(url_av, timeout=6).json()
-                    gq = r_av.get("Global Quote", {})
-                    if "05. price" in gq:
-                        av_price = gq.get("05. price")
-                except Exception:
-                    pass
+                    url_profile = f"https://finnhub.io/api/v1/stock/profile2?symbol={ticker}&token={finnhub_key}"
+                    r_profile = requests.get(url_profile, timeout=6).json()
+                    if r_profile:
+                        stats_data["name"] = r_profile.get("name", stats_data.get("name"))
+                        stats_data["currency"] = r_profile.get("currency", stats_data.get("currency", "USD"))
+                        ipo_date_str = r_profile.get("ipo")
+                        if ipo_date_str and ipo_date_str != "0000-00-00":
+                            stats_data["ipo_date"] = ipo_date_str
+                    stats_data["source"] = "Finnhub API"
+                    return stats_data # Finnhub succeeded, return
+            except Exception:
+                pass # Keep trying other sources
 
-            if self.selected_source in ["FMP", "⚔️ Cross-Check"] and fmp_key:
-                try:
-                    url_fmp = f"https://financialmodelingprep.com/api/v3/quote/{ticker}?apikey={fmp_key}" # Changed to quote for basic info
-                    r_fmp = requests.get(url_fmp, timeout=6).json()
-                    if isinstance(r_fmp, list) and len(r_fmp) > 0:
-                        fmp_data = r_fmp[0]
-                        fmp_price = fmp_data.get("price")
-                        if self.selected_source == "FMP":
-                            short_name = fmp_data.get("name", short_name)
-                            # FMP API might have different keys for 52-week range or P/E. Using YF for consistency if not FMP specific.
-                except Exception:
-                    pass
-            
-            # Prioritize price based on selected source for the main display,
-            # but keep all fetched prices for cross-check / payload.
-            display_price = curr_price
-            if self.selected_source == "Alpha Vantage" and av_price != "N/A":
-                display_price = av_price
-            elif self.selected_source == "FMP" and fmp_price != "N/A":
-                display_price = fmp_price
-
-            stats_data = {
-                "ticker": ticker,
-                "name": short_name,
-                "price": display_price,
-                "currency": currency,
-                "source": self.selected_source,
-                "pe": pe,
-                "fwd_pe": fwd_pe,
-                "peg": peg,
-                "52_high": high52,
-                "52_low": low52,
-                "target_mean": target_mean,
-                "yf_price": curr_price, # For cross-check display
-                "av_price": av_price,
-                "fmp_price": fmp_price
-            }
-            payload = stats_data # Payload for Gemini is the same collected data
-            
-        except Exception as e:
-            stats_data["error"] = str(e)
-            payload = {"error": str(e)} # Indicate error in payload too
-
-        return stats_data, payload
+        # 3. Try FMP
+        if fmp_key:
+            try:
+                url_quote = f"https://financialmodelingprep.com/api/v3/quote/{ticker}?apikey={fmp_key}"
+                r_quote = requests.get(url_quote, timeout=6).json()
+                if isinstance(r_quote, list) and len(r_quote) > 0:
+                    fmp_data = r_quote[0]
+                    stats_data["price"] = fmp_data.get("price", stats_data.get("price"))
+                    stats_data["name"] = fmp_data.get("name", stats_data.get("name"))
+                    stats_data["currency"] = fmp_data.get("currency", stats_data.get("currency", "USD"))
+                    stats_data["volume"] = fmp_data.get("volume", stats_data.get("volume", 0))
+                    stats_data["source"] = "Financial Modeling Prep (FMP)"
+                    return stats_data # FMP succeeded, return
+            except Exception:
+                pass # All sources failed for this ticker
+        
+        stats_data["error"] = i18n.t('data_fetch_error')
+        stats_data["source"] = "N/A"
+        return stats_data
 
     def _get_gemini_resolution(self, payload):
         if not HAS_GENAI or not self.get_gemini_key():
             return i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
         if payload.get('error'):
-            return i18n.t('error_fetching_ticker_data').format(ticker=payload.get('ticker', 'N/A'), e=payload['error']) + "\n" + i18n.t('analysis_disclaimer_summary')
+            return i18n.t('error_fetching_ticker_data', ticker=payload.get('ticker', 'N/A'), e=payload['error']) + "\n" + i18n.t('analysis_disclaimer_summary')
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash')
 
-            lang_instruction = get_llm_language_instruction() # Use the helper function
+            lang_instruction = get_llm_language_instruction()
 
             prompt = (
                 f"{lang_instruction}\n"
                 "You are Commander Quark, a fat cat from Liepaja garrison, focused on building a "
-                "personal cannery and fish factory empire. Your decisions and strategic calm are the "
+                "personal cannery and fish factory empire. Your decisions and strategic peace are the "
                 "top priority. Your ultimate goal is to build a personal cannery and fish factory empire. "
                 "Maximize profit extraction with minimal personal effort.\n\n"
                 "Analyze the following stock data and provide a concise, tactical resolution "
@@ -730,7 +820,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
             return response.text.strip()
         except Exception as e:
-            return i18n.t('error_gemini_analysis').format(e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
+            return i18n.t('error_gemini_analysis', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
 
     def _copy_rentgen_analysis(self):
         """Copies the content of the resolution_box to the clipboard."""
@@ -744,7 +834,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.clipboard_append(analysis_text)
             messagebox.showinfo(i18n.t("info_title"), i18n.t("status_copied"))
         except Exception as e:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying").format(e=e))
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
     def _export_rentgen_to_word(self):
         """Exports the content of the resolution_box to a Word (.docx) file."""
@@ -775,9 +865,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
             filename = OUTBOX_DIR / f"{i18n.t('word_output_filename_prefix_rentgen')}{self.ticker_input.get().strip().upper()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
             document.save(filename)
-            messagebox.showinfo(i18n.t("success_title"), f"{i18n.t('word_success_message')}{filename}")
+            messagebox.showinfo(i18n.t("success_title"), i18n.t('word_success_message', path=filename))
         except Exception as e:
-            messagebox.showerror(i18n.t("error_saving_word_title"), f"{i18n.t('word_error_saving_message')}{e}")
+            messagebox.showerror(i18n.t("error_saving_word_title"), i18n.t('word_error_saving_message', error_message=e))
 
 
     # ==========================================
@@ -862,8 +952,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                         self.seg_risk.set(i18n.t("seg_risk_conservative"))
 
             except Exception as e:
-                # Fix 1: i18n parameter passing
-                messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save").format(e=e))
+                messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=e))
 
     def _load_cash_balance(self):
         # This function is redundant now as _load_portfolio loads both.
@@ -896,11 +985,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.audit_log_box.insert("0.0", i18n.t("status_portfolio_saved"))
             self.audit_log_box.configure(state="disabled")
         except ValueError:
-            # Fix 1: i18n parameter passing
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save").format(e=i18n.t("error_invalid_cash_balance")))
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=i18n.t("error_invalid_cash_balance")))
         except Exception as e:
-            # Fix 1: i18n parameter passing
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save").format(e=e))
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=e))
 
 
     def _add_ticker_to_portfolio(self, ticker):
@@ -917,14 +1004,12 @@ class InvestorStudioFrame(ctk.CTkFrame):
             # Display feedback directly in audit_log_box or a temporary status label
             self.audit_log_box.configure(state="normal")
             self.audit_log_box.delete("0.0", "end")
-            # Fix 1: i18n parameter passing
-            self.audit_log_box.insert("0.0", i18n.t("feedback_added_to_portfolio").format(ticker=ticker))
+            self.audit_log_box.insert("0.0", i18n.t("feedback_added_to_portfolio", ticker=ticker))
             self.audit_log_box.configure(state="disabled")
         else:
             self.audit_log_box.configure(state="normal")
             self.audit_log_box.delete("0.0", "end")
-            # Fix 1: i18n parameter passing
-            self.audit_log_box.insert("0.0", i18n.t("feedback_already_in_portfolio").format(ticker=ticker))
+            self.audit_log_box.insert("0.0", i18n.t("feedback_already_in_portfolio", ticker=ticker))
             self.audit_log_box.configure(state="disabled")
 
 
@@ -944,15 +1029,13 @@ class InvestorStudioFrame(ctk.CTkFrame):
         try:
             cash_balance = float(cash_balance_str)
         except ValueError:
-            # Fix 1: i18n parameter passing
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save").format(e=i18n.t("error_invalid_cash_balance")))
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=i18n.t("error_invalid_cash_balance")))
             return
 
         self.btn_audit.configure(state="disabled", text=i18n.t("btn_audit_loading"))
         self.audit_log_box.configure(state="normal")
         self.audit_log_box.delete("0.0", "end")
-        # Fix 1: i18n parameter passing
-        self.audit_log_box.insert("0.0", i18n.t("audit_loading_msg").format(len_tickers=len(tickers_list)))
+        self.audit_log_box.insert("0.0", i18n.t("audit_loading_msg", len_tickers=len(tickers_list)))
         self.audit_log_box.configure(state="disabled")
 
         threading.Thread(target=self._audit_portfolio_worker, args=(tickers_list, cash_balance, risk_strategy)).start()
@@ -962,7 +1045,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
         full_stock_data = [] # To pass to Gemini for the overall audit
 
         for ticker in tickers_list:
-            stats_data, payload = self._fetch_stock_data(ticker) # Fetch data as dict now
+            # For audit, we don't need fallback, YF is generally good enough, or cross-check specific
+            # For this context, we will use the comprehensive fallback for robustness,
+            # as the audit should be as complete as possible.
+            stats_data = self._get_stock_data_with_fallback(ticker)
+            payload = stats_data # Use the comprehensive data for payload
             full_stock_data.append(payload)
             # Format individual ticker stats for display in audit log
             formatted_ticker_stats = self._format_financial_summary(ticker, stats_data)
@@ -972,11 +1059,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if HAS_GENAI and self.get_gemini_key():
             audit_resolution = self._get_gemini_audit_resolution(full_stock_data, cash_balance, risk_strategy)
         elif not HAS_GENAI:
-            audit_resolution = i18n.t('error_gemini_api_contact').format(e='Google Generative AI library not found.') + "\n" + i18n.t('analysis_disclaimer_summary')
+            audit_resolution = i18n.t('error_gemini_api_contact', e='Google Generative AI library not found.') + "\n" + i18n.t('analysis_disclaimer_summary')
         elif not self.get_gemini_key():
             audit_resolution = i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
         else:
-            audit_resolution = i18n.t('error_audit_gemini').format(e='Failed to fetch data for all tickers.') + "\n" + i18n.t('analysis_disclaimer_summary')
+            audit_resolution = i18n.t('error_audit_gemini', e='Failed to fetch data for all tickers.') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         final_audit_text = "\n".join(audit_results) + "\n\n" + audit_resolution
         self.master.after(0, self._update_audit_log_final, final_audit_text)
@@ -1000,7 +1087,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash')
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1042,8 +1129,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
             return f"{i18n.t('audit_copy_header')}\n\n{i18n.t('audit_copy_strategy')} {risk_strategy}\n\n{response.text.strip()}\n\n{i18n.t('audit_copy_footer')}"
         except Exception as e:
-            # Fix 1: i18n parameter passing
-            return i18n.t('error_audit_gemini').format(e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
+            return i18n.t('error_audit_gemini', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
 
     def _copy_audit_summary(self):
         try:
@@ -1053,8 +1139,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.audit_log_box.insert("0.0", i18n.t("status_copied") + "\n\n" + self.audit_log_box.get("0.0", "end"))
             self.audit_log_box.configure(state="disabled") # Re-disable
         except Exception as e:
-            # Fix 1: i18n parameter passing
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying").format(e=e))
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
     # ==========================================
     # 3. CILNE: KVARKA IZAUGSMES MEDNIEKS
@@ -1063,7 +1148,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         f = self.tab_growth
         f.grid_columnconfigure(0, weight=1)
         f.grid_columnconfigure(1, weight=1)
-        f.grid_rowconfigure(3, weight=1)
+        f.grid_rowconfigure(5, weight=1) # Allow resolution box to expand (was row 3, now row 5)
 
         self.lbl_growth_radar_title = ctk.CTkLabel(f, text=i18n.t("lbl_potential_radar"), font=ctk.CTkFont(size=16, weight="bold"))
         self.lbl_growth_radar_title.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
@@ -1079,31 +1164,41 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.growth_selector.set(i18n.t("growth_no_candidates"))
         self.growth_selector.grid(row=2, column=0, padx=(10, 5), pady=5, sticky="ew")
 
-        self.btn_scan_all_growth = ctk.CTkButton(f, text=i18n.t("btn_hunt_unicorns"), command=self._hunt_unicorns,
+        # Original "Hunt New Unicorns" button (Task 1: call _hunt_unicorns_general)
+        self.btn_scan_all_growth = ctk.CTkButton(f, text=i18n.t("btn_hunt_unicorns"), command=lambda: self._hunt_unicorns_general("unicorns"),
                                                  fg_color="#0e7490", hover_color="#086078")
         self.btn_scan_all_growth.grid(row=2, column=1, padx=(5, 10), pady=5, sticky="ew")
 
+        # New buttons for penny stocks and new stars (Task 1)
+        self.btn_hunt_penny_stocks = ctk.CTkButton(f, text=i18n.t("btn_penny_stocks_hunter"), command=lambda: self._hunt_unicorns_general("penny_stocks"),
+                                                    fg_color="#0e7490", hover_color="#086078")
+        self.btn_hunt_penny_stocks.grid(row=3, column=0, padx=(10, 5), pady=5, sticky="ew")
+
+        self.btn_hunt_new_stars = ctk.CTkButton(f, text=i18n.t("btn_new_stars_hunter"), command=lambda: self._hunt_unicorns_general("new_stars"),
+                                                fg_color="#0e7490", hover_color="#086078")
+        self.btn_hunt_new_stars.grid(row=3, column=1, padx=(5, 10), pady=5, sticky="ew")
+
         self.lbl_growth_resolution_title = ctk.CTkLabel(f, text=i18n.t("lbl_inv_growth_resolution_title"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.lbl_growth_resolution_title.grid(row=3, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
+        self.lbl_growth_resolution_title.grid(row=4, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew") # Adjusted row
 
         self.growth_analysis_box = ctk.CTkTextbox(f, height=300, wrap="word",
                                                   fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.growth_analysis_box.grid(row=4, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
+        self.growth_analysis_box.grid(row=5, column=0, columnspan=2, padx=10, pady=5, sticky="nsew") # Adjusted row
         self.growth_analysis_box.insert("0.0", i18n.t("growth_status_initial"))
         self.growth_analysis_box.configure(state="disabled")
 
         self.btn_copy_growth = ctk.CTkButton(f, text=i18n.t("btn_copy_analysis"), command=self._copy_growth_analysis,
                                              fg_color="#0e7490", hover_color="#086078")
-        self.btn_copy_growth.grid(row=5, column=0, padx=(10, 5), pady=5, sticky="ew")
+        self.btn_copy_growth.grid(row=6, column=0, padx=(10, 5), pady=5, sticky="ew") # Adjusted row
 
         self.btn_export_word = ctk.CTkButton(f, text=i18n.t("btn_save_word"), command=self._export_growth_to_word,
                                              fg_color="#0e7490", hover_color="#086078")
-        self.btn_export_word.grid(row=5, column=1, padx=(5, 10), pady=5, sticky="ew")
+        self.btn_export_word.grid(row=6, column=1, padx=(5, 10), pady=5, sticky="ew") # Adjusted row
 
         self.btn_add_growth_to_portfolio = ctk.CTkButton(f, text=i18n.t("btn_add_to_portfolio"),
                                                           command=self._add_selected_growth_to_portfolio,
                                                           fg_color="#28a745", hover_color="#218838")
-        self.btn_add_growth_to_portfolio.grid(row=6, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew")
+        self.btn_add_growth_to_portfolio.grid(row=7, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew") # Adjusted row
 
         self.growth_candidates_data = [] # Stores parsed unicorn data
 
@@ -1120,8 +1215,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             display_text = ""
             display_text += f"--- {selected_candidate.get('name')} ({selected_candidate.get('ticker')}) ---\n"
             if selected_candidate.get('red_flag'):
-                # Fix 1: i18n parameter passing
-                display_text += i18n.t('warning_red_flag').format(warning_message=selected_candidate['red_flag']) + "\n"
+                display_text += i18n.t('warning_red_flag', warning_message=selected_candidate['red_flag']) + "\n"
             display_text += f"{i18n.t('lbl_niche')} {selected_candidate.get('niche')}\n"
             display_text += f"{i18n.t('lbl_why_10x_100x')} {selected_candidate.get('why_10x_100x')}\n"
             display_text += f"{i18n.t('lbl_black_swan')} {selected_candidate.get('black_swan')}\n"
@@ -1137,80 +1231,163 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.growth_analysis_box.insert("0.0", i18n.t("growth_no_candidates"))
             self.growth_analysis_box.configure(state="disabled")
 
+    def _enable_all_growth_buttons(self):
+        self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns"))
+        self.btn_hunt_penny_stocks.configure(state="normal", text=i18n.t("btn_penny_stocks_hunter"))
+        self.btn_hunt_new_stars.configure(state="normal", text=i18n.t("btn_new_stars_hunter"))
 
-    def _hunt_unicorns(self):
+    def _hunt_unicorns_general(self, hunt_type):
         if not HAS_GENAI or not self.get_gemini_key():
             self.growth_analysis_box.configure(state="normal")
             self.growth_analysis_box.delete("0.0", "end")
             self.growth_analysis_box.insert("0.0", i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary'))
             self.growth_analysis_box.configure(state="disabled")
             return
+        
+        # Disable all hunt buttons during scan
+        self.btn_scan_all_growth.configure(state="disabled", text=i18n.t("btn_hunt_unicorns_loading", btn_text=i18n.t("btn_hunt_unicorns")))
+        self.btn_hunt_penny_stocks.configure(state="disabled", text=i18n.t("btn_hunt_unicorns_loading", btn_text=i18n.t("btn_penny_stocks_hunter")))
+        self.btn_hunt_new_stars.configure(state="disabled", text=i18n.t("btn_hunt_unicorns_loading", btn_text=i18n.t("btn_new_stars_hunter")))
 
-        # Fix 1: i18n parameter passing
-        self.btn_scan_all_growth.configure(state="disabled", text=i18n.t("btn_hunt_unicorns_loading").format(btn_text=i18n.t("btn_hunt_unicorns")))
         self.growth_analysis_box.configure(state="normal")
         self.growth_analysis_box.delete("0.0", "end")
-        self.growth_analysis_box.insert("0.0", i18n.t("growth_scanning_candidates"))
+        
+        initial_msg = ""
+        if hunt_type == "unicorns":
+            initial_msg = i18n.t("growth_scanning_top_10")
+        elif hunt_type == "penny_stocks":
+            initial_msg = i18n.t("growth_penny_scan_progress")
+        elif hunt_type == "new_stars":
+            initial_msg = i18n.t("growth_new_stars_scan_progress")
+            
+        self.growth_analysis_box.insert("0.0", initial_msg)
         self.growth_analysis_box.configure(state="disabled")
 
-        threading.Thread(target=self._hunt_unicorns_worker).start()
+        threading.Thread(target=self._hunt_unicorns_general_worker, args=(hunt_type,)).start()
 
-    def _hunt_unicorns_worker(self):
+    def _hunt_unicorns_general_worker(self, hunt_type):
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash')
 
             lang_instruction = get_llm_language_instruction()
 
-            # Step 1: Get raw list of unicorn candidates
-            self.master.after(0, self._update_growth_analysis_log, i18n.t("growth_scan_progress1"))
-            prompt_list = (
-                f"{lang_instruction}\n"
-                "You are Commander Quark. List 10 publicly traded companies that are 'unicorns' "
-                "or high-growth potential companies (e.g., AI, cutting-edge medicine, advanced energy, space tech, blockchain infrastructure). "
-                "Return the response as a JSON array of objects, each with 'ticker' (string), 'name' (string), "
-                "'sector' (string, e.g., 'AI', 'Space', 'Biotech'). "
-                "Ensure the JSON is perfectly parsable, with no introductory or concluding text. "
-                "Example: [{\"ticker\": \"SMCI\", \"name\": \"Super Micro Computer\", \"sector\": \"AI Servers\"}, ...]"
-            )
-            response_list = model.generate_content(prompt_list, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
-            raw_unicorns_json = response_list.text.strip()
-            # print(f"Raw Unicorns JSON: {raw_unicorns_json}") # Debugging
-
-            # Attempt to extract JSON using regex for robustness (Task 1)
-            json_match = re.search(r"\[.*\]", raw_unicorns_json, re.DOTALL)
+            candidates_prompt = ""
+            if hunt_type == "unicorns":
+                candidates_prompt = (
+                    f"{lang_instruction}\n"
+                    "You are Commander Quark. List 10 publicly traded companies that are 'unicorns' "
+                    "or high-growth potential companies (e.g., AI, cutting-edge medicine, advanced energy, space tech, blockchain infrastructure). "
+                    "Return the response as a JSON array of objects, each with 'ticker' (string), 'name' (string), "
+                    "'sector' (string, e.g., 'AI', 'Space', 'Biotech'). "
+                    "Ensure the JSON is perfectly parsable, with no introductory or concluding text. "
+                )
+            elif hunt_type == "penny_stocks":
+                candidates_prompt = (
+                    f"{lang_instruction}\n"
+                    "You are Commander Quark, a penny stock hunter for Valter's profile. List 10-15 publicly traded companies "
+                    "that are potential 'penny stocks' (trading below $5, high potential for volatility, in emerging sectors like "
+                    "small-cap biotech, micro-cap tech, green energy startups, or unique niche industries). "
+                    "Return the response as a JSON array of objects, each with 'ticker' (string), 'name' (string), "
+                    "'sector' (string, e.g., 'Bio-Pharma', 'Clean Energy'). "
+                    "Ensure the JSON is perfectly parsable, with no introductory or concluding text. "
+                )
+            elif hunt_type == "new_stars":
+                candidates_prompt = (
+                    f"{lang_instruction}\n"
+                    "You are Commander Quark, finding 'New Stars' for Brother's profile. List 10-15 publicly traded companies "
+                    "that have gone public recently (IPO between 2021-2024, i.e., 2-5 years ago). Focus on companies with significant "
+                    "growth potential in innovative sectors (e.g., SaaS, AI, cybersecurity, advanced materials, electric vehicles, space). "
+                    "Return the response as a JSON array of objects, each with 'ticker' (string), 'name' (string), "
+                    "'sector' (string, e.g., 'SaaS', 'Cybersecurity'). "
+                    "Ensure the JSON is perfectly parsable, with no introductory or concluding text. "
+                )
+            
+            response_list = model.generate_content(candidates_prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
+            raw_candidates_json = response_list.text.strip()
+            
+            json_match = re.search(r"\[.*\]", raw_candidates_json, re.DOTALL)
             if json_match:
-                raw_unicorns_json = json_match.group(0)
+                raw_candidates_json = json_match.group(0)
             else:
-                raise ValueError("Could not find a valid JSON array in the response.")
+                raise ValueError(f"Could not find a valid JSON array in the AI response for {hunt_type}.")
 
-            candidates = json.loads(raw_unicorns_json)
-            if not isinstance(candidates, list) or not all(isinstance(c, dict) for c in candidates):
-                raise ValueError("AI response for unicorn list was not a valid list of dictionaries.")
+            initial_candidates = json.loads(raw_candidates_json)
+            if not isinstance(initial_candidates, list) or not all(isinstance(c, dict) for c in initial_candidates):
+                raise ValueError(f"AI response for {hunt_type} list was not a valid list of dictionaries.")
 
-            if not candidates:
-                self.master.after(0, self._update_growth_analysis_log, i18n.t("growth_no_unicorns_fallback"))
-                self.master.after(0, lambda: self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns")))
+            if not initial_candidates:
+                self.master.after(0, self._update_growth_analysis_log, i18n.t("growth_no_candidates_found"))
+                self.master.after(0, self._enable_all_growth_buttons)
                 self.master.after(0, lambda: self.growth_selector.set(i18n.t("growth_no_candidates")))
                 return
 
             self.growth_candidates_data = []
-            for candidate in candidates:
-                ticker = candidate.get("ticker", "").upper()
-                name = candidate.get("name", "")
+            filtered_candidates = []
+
+            self.master.after(0, self._update_growth_analysis_log, i18n.t("growth_evaluating_candidates"))
+
+            for candidate_info in initial_candidates:
+                ticker = candidate_info.get("ticker", "").upper()
+                name = candidate_info.get("name", "")
                 if not ticker: continue
 
                 self.master.after(0, self._update_growth_analysis_log, f"Fetching data for {name} ({ticker})...")
-                # Fetch detailed stock data for each candidate
-                stats_data, payload = self._fetch_stock_data(ticker)
                 
-                # Update the UI with general progress
-                self.master.after(0, self._update_growth_analysis_log, i18n.t("growth_scan_progress2"))
+                # Use the new fallback data fetching (Task 2)
+                stock_data = self._get_stock_data_with_fallback(ticker)
+                if stock_data.get("error") and stock_data["error"] != "N/A":
+                    self.master.after(0, self._update_growth_analysis_log, i18n.t('error_fetching_ticker_data', ticker=ticker, e=stock_data['error']))
+                    continue
+                
+                # Apply specific filters based on hunt_type
+                keep_candidate = True
+                
+                # Convert price and volume to float/int, default to 0 for safe comparison
+                current_price = float(stock_data.get("price", "0").replace(",", "")) if isinstance(stock_data.get("price"), str) else (stock_data.get("price") or 0)
+                daily_volume = int(str(stock_data.get("volume", "0")).replace(",", "")) if isinstance(stock_data.get("volume"), str) else (stock_data.get("volume") or 0)
 
+                ipo_date_str = stock_data.get("ipo_date")
+                
+                if hunt_type == "penny_stocks":
+                    if not (current_price < 5 and daily_volume > 300000):
+                        keep_candidate = False
+                        self.master.after(0, self._update_growth_analysis_log, f"Skipping {ticker}: Price ${current_price:.2f}, Volume {daily_volume} (doesn't meet penny stock criteria)")
+                elif hunt_type == "new_stars":
+                    try:
+                        if ipo_date_str and ipo_date_str != "N/A":
+                            ipo_date = datetime.strptime(ipo_date_str, '%Y-%m-%d')
+                            today = datetime.now()
+                            # 2-5 years ago from today
+                            min_ipo_date = today - timedelta(days=5 * 365.25) # Approx 5 years ago
+                            max_ipo_date = today - timedelta(days=2 * 365.25) # Approx 2 years ago
+                            if not (min_ipo_date <= ipo_date <= max_ipo_date):
+                                keep_candidate = False
+                                self.master.after(0, self._update_growth_analysis_log, f"Skipping {ticker}: IPO Date {ipo_date_str} (not within 2-5 years range)")
+                        else:
+                            keep_candidate = False
+                            self.master.after(0, self._update_growth_analysis_log, f"Skipping {ticker}: No valid IPO date found.")
+                    except (ValueError, TypeError): # ipo_date_str might be None or invalid format
+                        keep_candidate = False
+                        self.master.after(0, self._update_growth_analysis_log, f"Skipping {ticker}: Invalid IPO date format {ipo_date_str}")
+                
+                if not keep_candidate:
+                    continue
+
+                filtered_candidates.append({**candidate_info, **stock_data}) # Merge all data
+
+            if not filtered_candidates:
+                self.master.after(0, self._update_growth_analysis_log, i18n.t("growth_no_candidates_found"))
+                self.master.after(0, self._enable_all_growth_buttons)
+                self.master.after(0, lambda: self.growth_selector.set(i18n.t("growth_no_candidates")))
+                return
+
+            for filtered_candidate in filtered_candidates:
+                # Gemini analysis for each *filtered* candidate
                 prompt_analysis = (
                     f"{lang_instruction}\n"
-                    "You are Commander Quark, the supreme commander. Analyze the following unicorn candidate "
-                    "for its 10x-100x potential, hidden risks (black swans), and its niche/secret weapon. "
+                    "You are Commander Quark, the supreme commander. Analyze the following stock candidate "
+                    "for its potential, hidden risks (black swans), and its niche/secret weapon. "
                     "Your assessment should be sharp, tactical, and focused on empire-building. "
                     "Return the analysis as a JSON object with the following keys:\n"
                     "- 'ticker': (string, e.g., 'SMCI')\n"
@@ -1223,48 +1400,45 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     "- 'resolution': (string, Commander Quark's concise, actionable tactical resolution for this specific ticker.)\n"
                     "Ensure the JSON is perfectly parsable, with no introductory or concluding text.\n\n"
                     "Stock Data:\n"
-                    f"- Ticker: {payload.get('ticker')}\n"
-                    f"- Name: {payload.get('name')}\n"
-                    f"- Price: {payload.get('price')} {payload.get('currency')}\n"
-                    f"- P/E (Trailing): {payload.get('pe')}\n"
-                    f"- P/E (Forward): {payload.get('fwd_pe')}\n"
-                    f"- PEG Ratio: {payload.get('peg')}\n"
-                    f"- 52-Week High: {payload.get('52_high')} {payload.get('currency')}\n"
-                    f"- 52-Week Low: {payload.get('52_low')} {payload.get('currency')}\n"
-                    f"- Sector (from initial list): {candidate.get('sector', 'Unknown')}\n\n"
+                    f"- Ticker: {filtered_candidate.get('ticker')}\n"
+                    f"- Name: {filtered_candidate.get('name')}\n"
+                    f"- Price: {filtered_candidate.get('price')} {filtered_candidate.get('currency')}\n"
+                    f"- P/E (Trailing): {filtered_candidate.get('pe', 'N/A')}\n" # Use .get with default 'N/A'
+                    f"- P/E (Forward): {filtered_candidate.get('fwd_pe', 'N/A')}\n"
+                    f"- PEG Ratio: {filtered_candidate.get('peg', 'N/A')}\n"
+                    f"- 52-Week High: {filtered_candidate.get('52_high', 'N/A')} {filtered_candidate.get('currency')}\n"
+                    f"- 52-Week Low: {filtered_candidate.get('52_low', 'N/A')} {filtered_candidate.get('currency')}\n"
+                    f"- Target Mean Price: {filtered_candidate.get('target_mean', 'N/A')} {filtered_candidate.get('currency')}\n"
+                    f"- Sector: {filtered_candidate.get('sector', 'Unknown')}\n"
+                    f"- IPO Date: {filtered_candidate.get('ipo_date', 'N/A')}\n"
+                    f"- Volume: {filtered_candidate.get('volume', 0)}\n\n"
                     "Consider a 'Red Flag' if P/E (trailing or forward) is > 80-100 OR PEG > 2 and no clear growth justification.\n"
                     "Conclude the 'resolution' with 'Komandants Kvarks ir izdevis Rīkojumu.'"
                 )
                 response_analysis = model.generate_content(prompt_analysis, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
                 raw_analysis_json = response_analysis.text.strip()
-                # print(f"Raw Analysis JSON for {ticker}: {raw_analysis_json}") # Debugging
-
-                # Attempt to extract JSON using regex for robustness (Task 1)
+                
                 json_match_analysis = re.search(r"\{.*\}", raw_analysis_json, re.DOTALL)
                 if json_match_analysis:
                     raw_analysis_json = json_match_analysis.group(0)
                 else:
-                    raise ValueError(f"Could not find a valid JSON object in the analysis response for {ticker}.")
+                    raise ValueError(f"Could not find a valid JSON object in the analysis response for {filtered_candidate.get('ticker')}.")
 
                 analysis = json.loads(raw_analysis_json)
-
                 self.growth_candidates_data.append(analysis)
 
             self.master.after(0, self._update_growth_ui_after_hunt)
 
         except json.JSONDecodeError as jde:
-            partial_response = raw_unicorns_json[:500] if 'raw_unicorns_json' in locals() else raw_analysis_json[:500] if 'raw_analysis_json' in locals() else "N/A"
-            # Fix 1: i18n parameter passing
-            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_parsing').format(e=jde, partial_response=partial_response))
-            self.master.after(0, lambda: self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns")))
+            partial_response = raw_candidates_json[:500] if 'raw_candidates_json' in locals() else raw_analysis_json[:500] if 'raw_analysis_json' in locals() else "N/A"
+            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_parsing', e=jde, partial_response=partial_response))
+            self.master.after(0, self._enable_all_growth_buttons)
         except ValueError as ve:
-            # Fix 1: i18n parameter passing
-            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_ai_unparsable').format(e=ve))
-            self.master.after(0, lambda: self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns")))
+            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_ai_unparsable', e=ve))
+            self.master.after(0, self._enable_all_growth_buttons)
         except Exception as e:
-            # Fix 1: i18n parameter passing
-            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_api_contact').format(e=e))
-            self.master.after(0, lambda: self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns")))
+            self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_api_contact', e=e))
+            self.master.after(0, self._enable_all_growth_buttons)
 
 
     def _update_growth_analysis_log(self, message):
@@ -1274,7 +1448,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.growth_analysis_box.configure(state="disabled")
 
     def _update_growth_ui_after_hunt(self):
-        self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns"))
+        self._enable_all_growth_buttons()
         self.growth_selector.configure(values=[c.get("name") for c in self.growth_candidates_data])
         if self.growth_candidates_data:
             self.growth_selector.set(self.growth_candidates_data[0]["name"])
@@ -1286,7 +1460,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.growth_selector.set(i18n.t("growth_no_candidates"))
             self.growth_analysis_box.configure(state="normal")
             self.growth_analysis_box.delete("0.0", "end")
-            self.growth_analysis_box.insert("0.0", i18n.t("growth_no_unicorns_fallback"))
+            self.growth_analysis_box.insert("0.0", i18n.t("growth_no_candidates_found"))
             self.growth_analysis_box.configure(state="disabled")
 
     def _copy_growth_analysis(self):
@@ -1297,25 +1471,19 @@ class InvestorStudioFrame(ctk.CTkFrame):
         try:
             summary_text = f"{i18n.t('growth_copy_header')}\n\n"
             for idx, candidate in enumerate(self.growth_candidates_data):
-                # Fix 1: i18n parameter passing
-                summary_text += i18n.t('growth_copy_candidate_header').format(idx_plus_1=idx+1, ticker=candidate.get('ticker'), name=candidate.get('name')) + "\n"
+                summary_text += i18n.t('growth_copy_candidate_header', idx_plus_1=idx+1, ticker=candidate.get('ticker'), name=candidate.get('name')) + "\n"
                 if candidate.get('red_flag'):
-                    # Fix 1: i18n parameter passing
-                    summary_text += "   " + i18n.t('warning_red_flag').format(warning_message=candidate['red_flag']) + "\n"
-                # Fix 1: i18n parameter passing
-                summary_text += i18n.t('growth_copy_niche').format(niche=candidate.get('niche')) + "\n"
-                # Fix 1: i18n parameter passing
-                summary_text += i18n.t('growth_copy_why').format(why=candidate.get('why_10x_100x')) + "\n"
-                # Fix 1: i18n parameter passing
-                summary_text += i18n.t('growth_copy_risk').format(risk=candidate.get('black_swan')) + "\n"
+                    summary_text += "   " + i18n.t('warning_red_flag', warning_message=candidate['red_flag']) + "\n"
+                summary_text += i18n.t('growth_copy_niche', niche=candidate.get('niche')) + "\n"
+                summary_text += i18n.t('growth_copy_why', why=candidate.get('why_10x_100x')) + "\n"
+                summary_text += i18n.t('growth_copy_risk', risk=candidate.get('black_swan')) + "\n"
                 summary_text += f"   {candidate.get('resolution', '')}\n\n"
 
             self.clipboard_clear()
             self.clipboard_append(summary_text)
             messagebox.showinfo(i18n.t("info_title"), i18n.t("status_copied"))
         except Exception as e:
-            # Fix 1: i18n parameter passing
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying").format(e=e))
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
     def _export_growth_to_word(self):
         if not HAS_DOCX:
@@ -1335,24 +1503,18 @@ class InvestorStudioFrame(ctk.CTkFrame):
             for idx, candidate in enumerate(self.growth_candidates_data):
                 document.add_heading(f"{idx+1}. {candidate.get('name')} ({candidate.get('ticker')})", level=2)
                 if candidate.get('red_flag'):
-                    # Fix 1: i18n parameter passing
-                    document.add_paragraph(f"{i18n.t('word_red_flag')}{candidate['red_flag']}")
-                # Fix 1: i18n parameter passing
-                document.add_paragraph(f"{i18n.t('word_secret_weapon')}{candidate.get('niche')}")
-                # Fix 1: i18n parameter passing
-                document.add_paragraph(f"{i18n.t('word_why_10x_100x')}{candidate.get('why_10x_100x')}")
-                # Fix 1: i18n parameter passing
-                document.add_paragraph(f"{i18n.t('word_black_swan')}{candidate.get('black_swan')}")
+                    document.add_paragraph(i18n.t('word_red_flag', value=candidate['red_flag']))
+                document.add_paragraph(i18n.t('word_secret_weapon', value=candidate.get('niche')))
+                document.add_paragraph(i18n.t('word_why_10x_100x', value=candidate.get('why_10x_100x')))
+                document.add_paragraph(i18n.t('word_black_swan', value=candidate.get('black_swan')))
                 document.add_paragraph(candidate.get('resolution', ''))
                 document.add_page_break()
 
             filename = OUTBOX_DIR / f"{i18n.t('word_output_filename_prefix')}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
             document.save(filename)
-            # Fix 1: i18n parameter passing
-            messagebox.showinfo(i18n.t("success_title"), f"{i18n.t('word_success_message')}{filename}")
+            messagebox.showinfo(i18n.t("success_title"), i18n.t('word_success_message', path=filename))
         except Exception as e:
-            # Fix 1: i18n parameter passing
-            messagebox.showerror(i18n.t("error_saving_word_title"), f"{i18n.t('word_error_saving_message')}{e}")
+            messagebox.showerror(i18n.t("error_saving_word_title"), i18n.t('word_error_saving_message', error_message=e))
 
     def _add_selected_growth_to_portfolio(self):
         selected_name = self.growth_selector.get()
@@ -1365,8 +1527,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self._add_ticker_to_portfolio(selected_candidate["ticker"])
             self.tabview.set(i18n.t("tab_inv_etoro")) # Switch to portfolio tab
         else:
-            # Fix 1: i18n parameter passing
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_fetching_ticker_data").format(ticker=selected_name, e="Ticker not found for selected candidate."))
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_fetching_ticker_data", ticker=selected_name, e="Ticker not found for selected candidate."))
 
     # ==========================================
     # 4. CILNE: DIVIDENDES & NAUDAS PLŪSMA
@@ -1425,15 +1586,16 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def _calculate_dividends_worker(self, tickers_list):
         dividend_data = []
         for ticker in tickers_list:
-            # Fix 1: i18n parameter passing
-            self.master.after(0, self._update_dividends_log, i18n.t("dividends_scan_progress1").format(len_tickers=len(tickers_list)))
+            self.master.after(0, self._update_dividends_log, i18n.t("dividends_scan_progress1", len_tickers=len(tickers_list)))
             try:
-                stock = yf.Ticker(ticker)
-                info = stock.info
-                name = info.get("shortName", ticker)
-                currency = info.get("currency", "USD")
+                # Use the fallback data fetch for consistency and robustness
+                stock_info_from_fallback = self._get_stock_data_with_fallback(ticker)
+                
+                name = stock_info_from_fallback.get("name", ticker)
+                currency = stock_info_from_fallback.get("currency", "USD")
+                current_price = stock_info_from_fallback.get("price")
 
-                # Get the last dividend payment
+                stock = yf.Ticker(ticker) # Still use yfinance for dividend history specifically
                 dividends = stock.dividends
                 last_dividend = None
                 if not dividends.empty:
@@ -1441,11 +1603,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     last_div_amount = dividends.iloc[-1]
                     last_dividend = {"date": last_div_date.strftime('%Y-%m-%d'), "amount": last_div_amount}
 
-                # Get current price
-                current_price = info.get("currentPrice") or info.get("regularMarketPrice")
-
                 # Get dividend yield (if available from yfinance info)
-                dividend_yield = info.get("dividendYield") # This is often annualized
+                # Fallback data might not have yield directly, so get from YF info
+                yf_full_info = stock.info or {}
+                dividend_yield = yf_full_info.get("dividendYield") # This is often annualized
 
                 dividend_data.append({
                     "ticker": ticker,
@@ -1456,8 +1617,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     "dividend_yield": dividend_yield,
                 })
             except Exception as e:
-                # Fix 1: i18n parameter passing
-                self.master.after(0, self._update_dividends_log, i18n.t('error_fetching_ticker_data').format(ticker=ticker, e=e))
+                self.master.after(0, self._update_dividends_log, i18n.t('error_fetching_ticker_data', ticker=ticker, e=e))
                 dividend_data.append({
                     "ticker": ticker,
                     "name": ticker,
@@ -1498,7 +1658,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash')
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1540,8 +1700,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
             return response.text.strip()
         except Exception as e:
-            # Fix 1: i18n parameter passing
-            return i18n.t('error_gemini_dividends').format(e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
+            return i18n.t('error_gemini_dividends', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
 
     # ==========================================
     # 5. CILNE: TIRGUS KLIMATS & INSAIDERI
@@ -1579,8 +1738,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.market_intel_box.configure(state="disabled")
             return
 
-        # Fix 1: i18n parameter passing
-        self.btn_refresh_market.configure(state="disabled", text=i18n.t("btn_refresh_market_intel_loading").format(btn_text="")) # btn_text is ignored in current translation
+        self.btn_refresh_market.configure(state="disabled", text=i18n.t("btn_refresh_market_intel_loading"))
         self.market_intel_box.configure(state="normal")
         self.market_intel_box.delete("0.0", "end")
         self.market_intel_box.insert("0.0", i18n.t("market_news_initial_msg"))
@@ -1724,8 +1882,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 news_headlines.append(i18n.t("news_no_aggressive"))
         except Exception as e:
             print(f"Error fetching market news: {e}")
-            # Fix 1: i18n parameter passing
-            news_headlines.append(i18n.t('error_fetching_ticker_data').format(ticker='Market News', e=e))
+            news_headlines.append(i18n.t('error_fetching_ticker_data', ticker='Market News', e=e))
         return news_headlines
 
     def _get_gemini_market_resolution(self, fng_value, fng_sentiment, macro_data, insider_sentiment, recent_insider_transactions, market_news):
@@ -1734,7 +1891,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         try:
             genai.configure(api_key=self.get_gemini_key())
-            model = genai.GenerativeModel('gemini-2.5-flash') # Replaced 'gemini-2.5-flash' with 'gemini-2.5-flash'
+            model = genai.GenerativeModel('gemini-2.5-flash')
 
             lang_instruction = get_llm_language_instruction()
 
@@ -1774,8 +1931,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
             return f"{i18n.t('kvark_strategic_resolution')}{response.text.strip()}"
         except Exception as e:
-            # Fix 1: i18n parameter passing
-            return i18n.t('error_kvark_market_intel').format(e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
+            return i18n.t('error_kvark_market_intel', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
 
     def _update_market_intel_final(self, text):
         self.market_intel_box.configure(state="normal")
