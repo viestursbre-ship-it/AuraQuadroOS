@@ -90,7 +90,7 @@ TRANSLATIONS = {
     "error_api_missing_data": {"lv": "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus.", "en": "⚠️ Missing API key or failed to retrieve data.", "ru": "⚠️ Отсутствует ключ API или не удалось получить данные.", "uk": "⚠️ Відсутній ключ API або не вдалося отримати дані.", "it": "⚠️ Chiave API mancante o impossibile recuperare i dati."},
 
     # Growth Tab
-    "lbl_growth_description": {"lv": "Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", "en": "Quark scans future markets and hunts for TOP 10 unicorns (AI, medicine, energy, space, etc.):", "ru": "Кварк сканирует будущие рынки и ищет ТОП-10 единорогов (ИИ, медицина, энергетика, космос и др.):", "uk": "Кварк сканує майбутні ринки та полює на ТОП-10 єдиноrogus...", "it": "Quark scansiona i mercati futuri e cerca i TOP 10 unicorni (AI, medicina, energia, spazio, ecc.):"},
+    "lbl_growth_description": {"lv": "Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", "en": "Quark scans future markets and hunts for TOP 10 unicorns (AI, medicine, energy, space, etc.):", "ru": "Кварк сканирует будущие рынки и ищет ТОП-10 единорогов (ИИ, медицина, энергетика, космос и др.):", "uk": "Кварк сканує майбутні ринки та полює na ТОП-10 єдиноrogus...", "it": "Quark scansiona i mercati futuri e cerca i TOP 10 unicorni (AI, medicina, energia, spazio, ecc.):"},
     "growth_no_candidates": {"lv": "Nav atlasīti vienradžu kandidāti.", "en": "No unicorn candidates selected.", "ru": "Не выбрано ни одного кандидата-единорога.", "uk": "Не вибрано жодного кандидата-єдинорога.", "it": "Nessun candidato unicorno selezionato."},
     "growth_status_initial": {"lv": "Gaidu Komandanta Kvarka rīkojumus...", "en": "Awaiting Commander Quark's orders...", "ru": "Ожидаю приказов Командира Кварка...", "uk": "Очікую наказів Командира Кварка...", "it": "In attesa degli ordini del Comandante Quark..."},
     "btn_hunt_unicorns_loading": {"lv": "⏳ {btn_text}...", "en": "⏳ {btn_text}...", "ru": "⏳ {btn_text}...", "uk": "⏳ {btn_text}...", "it": "⏳ {btn_text}..."},
@@ -146,7 +146,7 @@ TRANSLATIONS = {
     "btn_calc_dividends": {"lv": "⚡ Aprēķināt Dividenžu Plūsmu", "en": "⚡ Calculate Dividend Flow", "ru": "⚡ Рассчитать Дивидендный Поток", "uk": "⚡ Розрахувати Дивіденžu Potok", "it": "⚡ Calcola Flusso Dividendi"},
     "dividends_initial_msg": {"lv": "Nospiediet pogu, lai nolasītu dividenžu datus...", "en": "Press the button to fetch dividend data...", "ru": "Нажмите кнопку, чтобы получить данные о дивидендах...", "uk": "Натисніть кнопку, щоб отримати дані про дивіденди...", "it": "Premi il pulsante per recuperare i dati sui dividendi..."},
     "dividends_initial_analysis_msg": {"lv": "Gaidu dividenžu skenēšanas palaišanu...", "en": "Awaiting dividend scan initiation...", "ru": "Ожидаю запуск сканирования дивидендов...", "uk": "Очікую запуск сканування дивідендів...", "it": "In attesa dell'avvio della scansione dei dividendi..."},
-    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Збирает datus par dividendēm...", "it": "⏳ Raccolta dati dividendi..."},
+    "btn_calc_dividends_loading": {"lv": "⏳ Vāc dividenžu datus...", "en": "⏳ Collecting dividend data...", "ru": "⏳ Собирает данные о дивидендах...", "uk": "⏳ Zbirka datus par dividendēm...", "it": "⏳ Raccolta dati dividendi..."},
     "dividends_scan_progress1": {"lv": "Pārbauda {len_tickers} aktīvus tirgū...\n", "en": "Checking {len_tickers} assets in the market...\n", "ru": "Проверяет {len_tickers} активов на рынке...\n", "uk": "Перевіряє {len_tickers} активів на ринку...\n", "it": "Controllando {len_tickers} asset sul mercato...\n"},
     "dividends_scan_progress2": {"lv": "Kvarks apkopo naudas plūsmas kalendāru...\n", "en": "Quark compiles the cash flow calendar...\n", "ru": "Кварк составляет календарь денежного потока...\n", "uk": "Кварк складає календар grošas plūsmas...\n", "it": "Quark compila il calendario dei flussi di cassa...\n"},
     "dividends_summary_header": {"lv": "=== DIVIDENŽU PĀRSKATS ===", "en": "=== DIVIDEND OVERVIEW ===", "ru": "=== ОБЗОР ДИВИДЕНДОВ ===", "uk": "=== ОГЛЯД ДИВІДЕНДІВ ===", "it": "=== RIEPILOGO DIVIDENDI ==="},
@@ -173,7 +173,7 @@ TRANSLATIONS = {
     "macro_gold": {"lv": "Zelts (Gold)", "en": "Gold", "ru": "Золото (Gold)", "uk": "Золото (Gold)", "it": "Oro (Gold)"},
     "macro_bitcoin": {"lv": "Bitcoin (BTC)", "en": "Bitcoin (BTC)", "ru": "Биткойн (BTC)", "uk": "Біткойн (BTC)", "it": "Bitcoin (BTC)"},
     "macro_na": {"lv": "N/A", "en": "N/A", "ru": "Н/Д", "uk": "Н/Д", "it": "N/D"},
-    "insider_transactions_header": {"lv": "\n=== INSAIDERU TRANSAKCIJAS (Finnhub) ===", "en": "\n=== INSIDER TRANSACTIONS (Finnhub) ===", "ru": "\n=== ИНСАЙДЕРСКИЕ СДЕЛКИ (Finnhub) ===", "uk": "\n=== ІНСАЙДЕРСЬКІ ОПЕРАЦІЇ (Finnhub) ===", "it": "=== TRANSAZIONI INSIDER (Finnhub) ==="},
+    "insider_transactions_header": {"lv": "\n=== INSAIDERU TRANSAKCIJAS (Finnhub) ===", "en": "\n=== INSIDER TRANSACTIONS (Finnhub) ===", "ru": "\n=== ИНСАЙДЕРСКИЕ СДЕЛКИ (Finnhub) ===", "uk": "=== ІНСАЙДЕРСЬКІ ОПЕРАЦІЇ (Finnhub) ===", "it": "=== TRANSAZIONI INSIDER (Finnhub) ==="},
     "insider_buy": {"lv": "🟢 PĒRK", "en": "🟢 BUY", "ru": "🟢 ПОКУПАЕТ", "uk": "🟢 КУПУЄ", "it": "🟢 ACQUISTA"},
     "insider_sell": {"lv": "🔴 PĀRDOD", "en": "🔴 SELL", "ru": "🔴 ПРОДАЕТ", "uk": "🔴 ПРОДАЄ", "it": "🔴 VENDE"},
     "insider_neutral": {"lv": "⚪ NEITRĀLS", "en": "⚪ NEUTRAL", "ru": "⚪ НЕЙТРАЛЬНО", "uk": "⚪ НЕЙТРАЛЬНО", "it": "⚪ NEUTRALE"},
@@ -187,7 +187,7 @@ TRANSLATIONS = {
 
     # Shared/Generic:
     "rentgen_initial_msg": {"lv": "Ievadiet tikeri un nospiediet 'Rentgens'...", "en": "Enter ticker and press 'X-Ray'...", "ru": "Введите тикер и нажмите 'Рентген'...", "uk": "Введіть тікер і натисніть 'Рентген'...", "it": "Inserisci il ticker e premi 'Raggi X'..."},
-    "rentgen_generating_analysis_msg": {"lv": "Kvarks ģenerē fundamentālo analīzi...\n", "en": "Quark is generating fundamental analysis...\n", "ru": "Кварк генерирует фундаментальный анализ...\n", "uk": "Кварк генерує фундаментальний analīze...\n", "it": "Quark sta generando l'analisi fondamentale...\n"},
+    "rentgen_generating_analysis_msg": {"lv": "Kvarks ģenerē fundamentālo analīzi...\n", "en": "Quark is generating fundamental analysis...\n", "ru": "Кварк генерирует фундаментальный анализ...\n", "uk": "Кварк генерує фундаментальный analīze...\n", "it": "Quark sta generando l'analisi fondamentale...\n"},
     "source_changed_msg": {"lv": "Avota kanāls pārslēgts uz: {source}. Gaidu jaunu signālu 'Rentgens'!", "en": "Source channel switched to: {source}. Awaiting new 'X-Ray' signal!", "ru": "Канал источника переключен на: {source}. Ожидаю новый сигнал 'Рентген'!", "uk": "Канал джерела перемкņem na: {source}. Очікую новий сигнал 'Рентген'!", "it": "Canale sorgente cambiato in: {source}. In attesa di nuovo segnale 'Raggi X'!"},
     "fetching_data_msg": {"lv": "Nolasa tirgus datus par {ticker} no {source}...\n", "en": "Fetching market data for {ticker} from {source}...\n", "ru": "Получение рыночных данных для {ticker} из {source}...\n", "uk": "Отримання rinka datus par {ticker} no {source}...\n", "it": "Recupero dati di mercato per {ticker} da {source}...\n"},
     "ticker_info_header": {"lv": "=== {short_name} ({ticker}) ===", "en": "=== {short_name} ({ticker}) ===", "ru": "=== {short_name} ({ticker}) ===", "uk": "=== {short_name} ({ticker}) ===", "it": "=== {short_name} ({ticker}) ==="},
@@ -1212,23 +1212,22 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.growth_candidates_data = []
 
     def _select_growth_candidate(self, selected_name):
-        if selected_name == i18n.t("growth_no_candidates") or not self.growth_candidates_data:
+        if selected_name == "Nav atlasīti vienradžu kandidāti." or not self.growth_candidates_data:
             self.growth_analysis_box.configure(state="normal")
             self.growth_analysis_box.delete("0.0", "end")
-            self.growth_analysis_box.insert("0.0", i18n.t("growth_no_candidates"))
+            self.growth_analysis_box.insert("0.0", "Nav atlasīti vienradžu kandidāti.")
             self.growth_analysis_box.configure(state="disabled")
             return
 
         selected_candidate = next((c for c in self.growth_candidates_data if c.get("name") == selected_name), None)
         if selected_candidate:
-            display_text = ""
-            display_text += f"--- {selected_candidate.get('name')} ({selected_candidate.get('ticker')}) ---\n"
+            display_text = f"=== {selected_candidate.get('name')} ({selected_candidate.get('ticker')}) ===\n\n"
             if selected_candidate.get('red_flag'):
-                display_text += i18n.t('warning_red_flag', warning_message=selected_candidate['red_flag']) + "\n"
-            display_text += f"{i18n.t('lbl_niche')} {selected_candidate.get('niche')}\n"
-            display_text += f"{i18n.t('lbl_why_10x_100x')} {selected_candidate.get('why_10x_100x')}\n"
-            display_text += f"{i18n.t('lbl_black_swan')} {selected_candidate.get('black_swan')}\n"
-            display_text += "\n" + selected_candidate.get('resolution', '')
+                display_text += f"🚩 Sarkanais Karogs: {selected_candidate['red_flag']}\n\n"
+            display_text += f"🎯 Niša / Slepenais ierocis:\n{selected_candidate.get('niche', '')}\n\n"
+            display_text += f"🚀 Izaugsmes pamatojums (10x-100x):\n{selected_candidate.get('why_10x_100x', '')}\n\n"
+            display_text += f"⚠️ Melnais Gulbis (riski):\n{selected_candidate.get('black_swan', '')}\n\n"
+            display_text += f"📋 Slēdziens:\n{selected_candidate.get('resolution', '')}"
 
             self.growth_analysis_box.configure(state="normal")
             self.growth_analysis_box.delete("0.0", "end")
@@ -1237,7 +1236,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         else:
             self.growth_analysis_box.configure(state="normal")
             self.growth_analysis_box.delete("0.0", "end")
-            self.growth_analysis_box.insert("0.0", i18n.t("growth_no_candidates"))
+            self.growth_analysis_box.insert("0.0", "Nav atlasīti vienradžu kandidāti.")
             self.growth_analysis_box.configure(state="disabled")
 
     # UZDEVUMS 2: Sakārtot funkciju _enable_all_growth_buttons
@@ -1362,9 +1361,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 ipo_date_str = stock_data.get("ipo_date")
                 
                 if hunt_type == "penny_stocks":
-                    if not (current_price < 5 and daily_volume > 300000):
+                    # Pielaidīgāks slieksnis mazkapitāla akcijām (<\$10)
+                    if current_price > 10.0:
                         keep_candidate = False
-                        self.master.after(0, self._update_growth_analysis_log, f"Skipping {ticker}: Price ${current_price:.2f}, Volume {daily_volume} (doesn't meet penny stock criteria)")
+                        self.master.after(0, self._update_growth_analysis_log, f"Izlaiž {ticker}: cena \${current_price:.2f} pārsniedz \$10 slieksni")
                 elif hunt_type == "new_stars":
                     try:
                         if ipo_date_str and ipo_date_str != "N/A":
