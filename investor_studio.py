@@ -67,7 +67,7 @@ TRANSLATIONS = {
     "lbl_portfolio_title": {"lv": "💼 MANAS ETORO AKCIJAS", "en": "💼 MY ETORO STOCKS", "ru": "💼 МОИ АКЦИИ ETORO", "uk": "💼 МОЇ АКЦІЇ ETORO", "it": "💼 LE MIE AZIONI ETORO"},
     "lbl_portfolio_stocks_title": {"lv": "💼 MANAS ETORO AKCIJAS", "en": "💼 MY ETORO STOCKS", "ru": "💼 МОИ АКЦИИ ETORO", "uk": "💼 МОЇ АКЦІЇ ETORO", "it": "💼 LE MIE AZIONI ETORO"}, # New key for _setup_portfolio_tab
     "lbl_tickers_hint": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (через кому або новий рядок):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"}, # New key for _setup_portfolio_tab
-    "lbl_portfolio_tickers_desc": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (через кому або новий рядок):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"},
+    "lbl_portfolio_tickers_desc": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (чеļez komu abo novy rādok):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"},
     "lbl_portfolio_cash_balance": {"lv": "💵 Brīvais atlikums (USD):", "en": "💵 Free Balance (USD):", "ru": "💵 Свободный остаток (USD):", "uk": "💵 Вільний залишок (USD):", "it": "💵 Saldo disponibile (USD):"},
     "lbl_cash_balance": {"lv": "💵 Brīvais atlikums (USD):", "en": "💵 Free Balance (USD):", "ru": "💵 Свободный остаток (USD):", "uk": "💵 Вільний залишок (USD):", "it": "💵 Saldo disponibile (USD):"}, # New key for _setup_portfolio_tab
     "lbl_portfolio_risk_strategy": {"lv": "🎯 Riska Stratēģija:", "en": "🎯 Risk Strategy:", "ru": "🎯 Стратегия риска:", "uk": "🎯 Стратегія ризику:", "it": "🎯 Strategia di rischio:"},
@@ -1861,7 +1861,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def _calculate_dividends_worker(self, tickers_list):
         dividend_data = []
         for ticker in tickers_list:
-            self.master.after(0, self._update_dividends_log, i18n.t("dividends_scan_progress1", len_tickers=len(tickers_list)))
+            # ORIGINAL: self.master.after(0, self._update_dividends_log, i18n.t("dividends_scan_progress1", len_tickers=len(tickers_list)))
+            # FIX 1: Replace with safe f-string format
+            count_str = str(len(tickers_list))
+            self.master.after(0, self._update_dividends_log, f"🔍 Q.V.A.R.K. skenē dividenžu plūsmu {count_str} portfeļa aktīviem...\n")
             try:
                 # Use the fallback data fetch for consistency and robustness
                 stock_info_from_fallback = self._get_stock_data_with_fallback(ticker)
@@ -1892,7 +1895,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     "dividend_yield": dividend_yield,
                 })
             except Exception as e:
-                self.master.after(0, self._update_dividends_log, i18n.t('error_fetching_ticker_data', ticker=ticker, e=e))
+                # ORIGINAL: self.master.after(0, self._update_dividends_log, i18n.t('error_fetching_ticker_data', ticker=ticker, e=e))
+                # FIX 2: Replace with standard string formatting using .format()
+                error_msg_template = i18n.t('error_fetching_ticker_data')
+                formatted_error_msg = error_msg_template.format(ticker=ticker, e=e)
+                self.master.after(0, self._update_dividends_log, formatted_error_msg)
                 dividend_data.append({
                     "ticker": ticker,
                     "name": ticker,
