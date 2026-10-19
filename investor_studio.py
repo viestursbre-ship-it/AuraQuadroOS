@@ -1280,7 +1280,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         f = self.tab_growth
         f.grid_columnconfigure(0, weight=1)
         f.grid_columnconfigure(1, weight=1)
-        f.grid_rowconfigure(6, weight=1)
+        f.grid_rowconfigure(7, weight=1) # Adjusted for new progress bar
 
         self.lbl_growth_radar_title = ctk.CTkLabel(f, text=i18n.t("lbl_potential_radar"), font=ctk.CTkFont(size=16, weight="bold"))
         self.lbl_growth_radar_title.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
@@ -1321,27 +1321,32 @@ class InvestorStudioFrame(ctk.CTkFrame):
                                                 fg_color="#0e7490", hover_color="#086078")
         self.btn_hunt_new_stars.grid(row=4, column=1, padx=(5, 10), pady=5, sticky="ew")
 
+        # Task 1: Add progress bar here
+        self.growth_progress_bar = ctk.CTkProgressBar(f, mode="determinate", progress_color="#0e7490")
+        self.growth_progress_bar.grid(row=5, column=0, columnspan=2, padx=10, pady=(4, 6), sticky="ew")
+        self.growth_progress_bar.set(0)
+
         self.lbl_growth_resolution_title = ctk.CTkLabel(f, text=i18n.t("lbl_inv_growth_resolution_title"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.lbl_growth_resolution_title.grid(row=5, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
+        self.lbl_growth_resolution_title.grid(row=6, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew") # Adjusted row to 6
 
         self.growth_analysis_box = ctk.CTkTextbox(f, height=300, wrap="word",
                                                   fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.growth_analysis_box.grid(row=6, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
+        self.growth_analysis_box.grid(row=7, column=0, columnspan=2, padx=10, pady=5, sticky="nsew") # Adjusted row to 7
         self.growth_analysis_box.insert("0.0", i18n.t("growth_status_initial"))
         self.growth_analysis_box.configure(state="disabled")
 
         self.btn_copy_growth = ctk.CTkButton(f, text=i18n.t("btn_copy_analysis"), command=self._copy_growth_analysis,
                                              fg_color="#0e7490", hover_color="#086078")
-        self.btn_copy_growth.grid(row=7, column=0, padx=(10, 5), pady=5, sticky="ew")
+        self.btn_copy_growth.grid(row=8, column=0, padx=(10, 5), pady=5, sticky="ew") # Adjusted row to 8
 
         self.btn_export_word = ctk.CTkButton(f, text=i18n.t("btn_save_word"), command=self._export_growth_to_word,
                                              fg_color="#0e7490", hover_color="#086078")
-        self.btn_export_word.grid(row=7, column=1, padx=(5, 10), pady=5, sticky="ew")
+        self.btn_export_word.grid(row=8, column=1, padx=(5, 10), pady=5, sticky="ew") # Adjusted row to 8
 
         self.btn_add_growth_to_portfolio = ctk.CTkButton(f, text=i18n.t("btn_add_to_portfolio"),
                                                           command=self._add_selected_growth_to_portfolio,
                                                           fg_color="#28a745", hover_color="#218838")
-        self.btn_add_growth_to_portfolio.grid(row=8, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew")
+        self.btn_add_growth_to_portfolio.grid(row=9, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew") # Adjusted row to 9
 
         self.growth_candidates_data = []
 
@@ -1395,6 +1400,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.btn_hunt_penny_stocks.configure(state="disabled", text="⏳ Meklē...")
         self.btn_hunt_new_stars.configure(state="disabled", text="⏳ Meklē...")
 
+        # Task 2: Progresjoslas vadība - start
+        if hasattr(self, 'growth_progress_bar'):
+            self.growth_progress_bar.configure(mode="indeterminate")
+            self.growth_progress_bar.start()
+
         self.growth_analysis_box.configure(state="normal")
         self.growth_analysis_box.delete("0.0", "end")
         
@@ -1412,6 +1422,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
         threading.Thread(target=self._hunt_unicorns_general_worker, args=(hunt_type,), daemon=True).start()
 
     def _hunt_unicorns_general_worker(self, hunt_type):
+        raw_candidates_json = "" # Initialize for potential logging in except block
+        raw_analysis_json = ""   # Initialize for potential logging in except block
         try:
             genai.configure(api_key=self.get_gemini_key())
             model = genai.GenerativeModel('gemini-2.5-flash')
@@ -1504,9 +1516,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
                         if ipo_date_str and ipo_date_str != "N/A":
                             ipo_date = datetime.strptime(str(ipo_date_str)[:10], '%Y-%m-%d')
                             today = datetime.now()
-                            min_ipo_date = today - timedelta(days=6 * 365.25)
+                            min_ipo_date = today - timedelta(days=6 * 365.25) # Approx 6 years ago
                             # Pārbauda tikai tad, ja datums ir reāli derīgs nākotnes vai pārāk vecs
-                            if ipo_date < min_ipo_date:
+                            if ipo_date < datetime(2020, 1, 1): # Hardcode 2020 start for 2021-2024 IPO range
                                 keep_candidate = False
                                 self.master.after(0, self._update_growth_analysis_log, f"Izlaiž {ticker}: dibināts/IPO pirms 2020. gada")
                         # Ja datuma nav, uzticamies Gemini atlasei un NEIZMETAM kandidātu
@@ -1524,6 +1536,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 return
 
             for filtered_candidate in filtered_candidates:
+                analysis = {} # Initialize analysis dictionary
                 try:
                     self.master.after(0, self._update_growth_analysis_log, f"🧠 Kvarks analizē {filtered_candidate.get('ticker')}...")
                     # Izsaucam Gemini modeli...
@@ -1563,15 +1576,27 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     
                     json_match_analysis = re.search(r"\{.*\}", raw_analysis_json, re.DOTALL)
                     if json_match_analysis:
-                        analysis = json.loads(json_match_analysis.group(0))
+                        # Task 3: JSON parsing error handling
+                        try:
+                            analysis = json.loads(json_match_analysis.group(0))
+                        except json.JSONDecodeError as jde:
+                            self.master.after(0, self._update_growth_analysis_log, 
+                                            f"⚠️ JSON parsēšanas kļūda {filtered_candidate.get('ticker')}: {jde}. Tiks izmantots tekstuāls kopsavilkums.")
+                            analysis = {
+                                'ticker': filtered_candidate.get('ticker'),
+                                'name': filtered_candidate.get('name'),
+                                'red_flag': 'AI atbilde nav strukturēta.',
+                                'niche': 'Analīze sagatavota teksta formātā.',
+                                'why_10x_100x': 'Analīze sagatavota teksta formātā.',
+                                'black_swan': 'Analīze sagatavota teksta formātā.',
+                                'resolution': raw_analysis_json or 'Analīze sagatavota teksta formātā.'
+                            }
+                        
                         self.growth_candidates_data.append(analysis)
                     time.sleep(2)  # 2 sekunžu pauze, lai neatsistos pret Gemini API limitu
                 except Exception as candidate_err:
                     self.master.after(0, self._update_growth_analysis_log, f"⚠️ {filtered_candidate.get('ticker')} analīzes kļūda: {candidate_err}")
                     continue
-
-            # This line was originally here, moved to finally for unconditional execution.
-            # self.master.after(0, self._update_growth_ui_after_hunt)
 
         except json.JSONDecodeError as jde:
             partial_response = raw_candidates_json[:500] if 'raw_candidates_json' in locals() else raw_analysis_json[:500] if 'raw_analysis_json' in locals() else "N/A"
@@ -1584,6 +1609,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
             # UZDEVUMS 3: Pārliecināties, ka noslēgumā (arī pie jebkuras kļūdas except blokā) vienmēr tiek izsaukts
             self.master.after(0, self._update_growth_ui_after_hunt)
             self.master.after(0, self._enable_all_growth_buttons)
+            # Task 2: Progresjoslas vadība - stop
+            if hasattr(self, 'growth_progress_bar'):
+                self.growth_progress_bar.stop()
+                self.growth_progress_bar.configure(mode="determinate")
+                self.growth_progress_bar.set(1.0)
 
 
     def _update_growth_analysis_log(self, message):
@@ -1633,47 +1663,56 @@ class InvestorStudioFrame(ctk.CTkFrame):
         except Exception as err:
             messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=err)) # Use i18n key
 
+    # Task 4: Replace _export_growth_to_word with the provided code
     def _export_growth_to_word(self):
         if not HAS_DOCX:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing")) # Use i18n key
+            messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
             return
-        if not self.growth_candidates_data:
-            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export")) # Use i18n key
+
+        report_text = self.growth_analysis_box.get("0.0", "end").strip()
+        if not report_text or "Kvarks analizē" in report_text or "Gaidu" in report_text or "Nav atlasīti vienradžu kandidāti." in report_text: # Added new initial message check
+            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Vispirms veiciet aktīvu meklēšanu un analīzi.")
+            return
+
+        from tkinter import filedialog
+        time_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_filename = "QVARK_Izaugsmes_Mednieks_" + time_tag + ".docx"
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".docx",
+            filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
+            initialfile=default_filename,
+            title="Saglabāt Izaugsmes Mednieka atskaiti kā Word failu"
+        )
+        if not save_path:
             return
 
         try:
             document = Document()
-            document.add_heading(i18n.t("word_report_title"), level=1) # Use i18n key
-            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}") # Use i18n key
-            document.add_paragraph(i18n.t("word_analysis_basis")) # Use i18n key
-            document.add_page_break()
+            document.add_heading("Q.V.A.R.K. Perspektīvo Aktīvu & Vienradžu Rezolūcija", level=1)
+            time_now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            document.add_paragraph("Ģenerēts: " + time_now_str)
+            document.add_paragraph("Analīze sagatavota ar AuraQuadroOS kvantitatīvās analīzes dzinēju.")
+            document.add_paragraph("-" * 40)
 
-            for idx, candidate in enumerate(self.growth_candidates_data):
-                document.add_heading(f"{idx+1}. {candidate.get('name', '')} ({candidate.get('ticker', '')})", level=2)
-                if candidate.get('red_flag'):
-                    document.add_paragraph(i18n.t("word_red_flag", value=candidate['red_flag'])) # Use i18n key
-                document.add_paragraph(i18n.t("word_secret_weapon", value=candidate.get('niche', ''))) # Use i18n key
-                document.add_paragraph(i18n.t("word_why_10x_100x", value=candidate.get('why_10x_100x', ''))) # Use i18n key
-                document.add_paragraph(i18n.t("word_black_swan", value=candidate.get('black_swan', ''))) # Use i18n key
-                document.add_paragraph(candidate.get('resolution', ''))
-                document.add_page_break()
+            for line in report_text.split('\n'):
+                line_str = line.strip()
+                if line_str:
+                    document.add_paragraph(line_str)
 
-            # Task 4: Pievienot drošo Q.V.A.R.K. audita bloku
             document.add_paragraph()
-            growth_audit_lines = [
+            audit_lines = [
                 "─" * 45,
                 "Verification status: CLEARED & AUDITED",
                 "Quantitative Engine: Q.V.A.R.K. Core v2.5 (Quantitative Value Assessment & Risk Kernel)",
                 "Division: Strategic Risk Analytics | AuraQuadroOS Financial Division"
             ]
-            p_growth_audit = document.add_paragraph("\n".join(growth_audit_lines))
-            p_growth_audit.italic = True
+            p_audit = document.add_paragraph("\n".join(audit_lines))
+            p_audit.italic = True
 
-            filename = OUTBOX_DIR / f"{i18n.t('word_output_filename_prefix')}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use i18n key
-            document.save(filename)
-            messagebox.showinfo(i18n.t("success_title"), i18n.t("word_success_message", path=filename)) # Use i18n key
+            document.save(save_path)
+            messagebox.showinfo("Veiksmīgi saglabāts!", "Atskaite veiksmīgi saglabāta:\n" + str(save_path))
         except Exception as err:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("word_error_saving_message", error_message=err)) # Use i18n key
+            messagebox.showerror("Kļūda", "Neizdevās saglabāt Word failu:\n" + str(err))
 
     def _add_selected_growth_to_portfolio(self):
         selected_name = self.growth_selector.get()
