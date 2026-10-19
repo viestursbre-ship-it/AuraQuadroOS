@@ -124,7 +124,7 @@ TRANSLATIONS = {
     # Word Export specific strings
     "word_report_title": {"lv": "🚀 Komandanta Kvarka Vienradžu Medību Atskaite", "uk": "🚀 Звіт про Полювання на Єдинорогів Командира Кварка", "ru": "🚀 Отчет об Охоте на Единорогов Командира Кварка", "it": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark", "en": "🚀 Commander Quark's Unicorn Hunt Report"},
     "word_generated_on": {"lv": "Ģenerēts: ", "uk": "Згенеровано: ", "ru": "Сгенерировано: ", "it": "Generato il: ", "en": "Generated: "},
-    "word_analysis_basis": {"lv": "Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.", "uk": "Аналіз згенеровано на основі 4 золотих критеріjів Командира Кварка.", "ru": "Анализ сгенерирован на основе 4 золотых критериев Командира Кварка.", "it": "Analisi generata in base ai 4 criteri d'oro del Comandante Quark.", "en": "Analysis generated based on Commander Quark's 4 golden criteria."},
+    "word_analysis_basis": {"lv": "Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.", "uk": "Аналіз згенеровано на основі 4 золотих критеріjів Командира Кварка.", "ru": "Аналіз згенеровано на основі 4 золотих критеріjів Командира Кварка.", "it": "Analisi generata in base ai 4 criteri d'oro del Comandante Quark.", "en": "Analysis generated based on Commander Quark's 4 golden criteria."},
     "word_red_flag": {"lv": "🚩 Sarkanais Karogs: {value}", "uk": "🚩 Червоний Прапор: {value}", "ru": "🚩 Красный Флаг: {value}", "it": "🚩 Bandiera Rossa: {value}", "en": "🚩 Red Flag: {value}"},
     "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): {value}", "uk": "Секретна зброя (Ніша): {value}", "ru": "Секретное оружие (Ниша): {value}", "it": "Arma Segreta (Nicchia): {value}", "en": "Secret Weapon (Niche): {value}"},
     "word_why_10x_100x": {"lv": "Kāpēc 10x-100x: {value}", "uk": "Чому 10x-100x: {value}", "ru": "Почему 10x-100x: {value}", "it": "Perché 10x-100x: {value}", "en": "Why 10x-100x: {value}"},
@@ -219,7 +219,7 @@ TRANSLATIONS = {
     "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Браta (IPO 2021-2024, з потенціалом зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
     "growth_no_candidates_found": {"lv": "Komandants Kvarks neatrada piemērotus kandidātus.", "en": "Commander Quark found no suitable candidates.", "ru": "Командир Кварк не нашел подходящих кандидатов.", "uk": "Командир Кварк не знайшов відповідних кандидатів.", "it": "Il Comandante Quark non ha trovato candidati idonei."},
     "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Кварк skenē tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
-    "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та оцінює kandidātus ar AI analīzi...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
+    "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та novērtē kandidātus ar AI analīzi...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
 }
 
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
@@ -1480,56 +1480,58 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
     def _copy_growth_analysis(self):
         if not self.growth_candidates_data:
-            messagebox.showinfo(i18n.t("info_title"), i18n.t("growth_no_analysis_to_copy"))
+            messagebox.showinfo("Info", "Nav atrasta neviena analīze, ko kopēt.")
             return
 
         try:
-            summary_text = f"{i18n.t('growth_copy_header')}\n\n"
+            summary_text = "🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBU REZULTĀTI 🚀\n\n"
             for idx, candidate in enumerate(self.growth_candidates_data):
-                summary_text += i18n.t('growth_copy_candidate_header', idx_plus_1=idx+1, ticker=candidate.get('ticker'), name=candidate.get('name')) + "\n"
+                ticker = candidate.get('ticker', '')
+                name = candidate.get('name', '')
+                summary_text += f"--- Kandidāts {idx + 1}: {ticker} - {name} ---\n"
                 if candidate.get('red_flag'):
-                    summary_text += "   " + i18n.t('warning_red_flag', warning_message=candidate['red_flag']) + "\n"
-                summary_text += i18n.t('growth_copy_niche', niche=candidate.get('niche')) + "\n"
-                summary_text += i18n.t('growth_copy_why', why=candidate.get('why_10x_100x')) + "\n"
-                summary_text += i18n.t('growth_copy_risk', risk=candidate.get('black_swan')) + "\n"
+                    summary_text += f"   🚩 Sarkanais Karogs: {candidate['red_flag']}\n"
+                summary_text += f"   Slepenais ierocis (Niša): {candidate.get('niche', '')}\n"
+                summary_text += f"   Kāpēc 10x-100x: {candidate.get('why_10x_100x', '')}\n"
+                summary_text += f"   Melnais Gulbis (risks): {candidate.get('black_swan', '')}\n"
                 summary_text += f"   {candidate.get('resolution', '')}\n\n"
 
             self.clipboard_clear()
             self.clipboard_append(summary_text)
-            messagebox.showinfo(i18n.t("info_title"), i18n.t("status_copied"))
-        except Exception as e:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
+            messagebox.showinfo("Info", "✅ Nokopēts starpliktuvē!")
+        except Exception as err:
+            messagebox.showerror("Kļūda", f"Kļūda kopējot: {err}")
 
     def _export_growth_to_word(self):
         if not HAS_DOCX:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing"))
+            messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
             return
         if not self.growth_candidates_data:
-            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export"))
+            messagebox.showinfo("Info", "Nav datu, ko eksportēt.")
             return
 
         try:
             document = Document()
-            document.add_heading(i18n.t("word_report_title"), level=1)
-            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            document.add_paragraph(i18n.t("word_analysis_basis"))
+            document.add_heading("🚀 Komandanta Kvarka Vienradžu Medību Atskaite", level=1)
+            document.add_paragraph(f"Ģenerēts: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            document.add_paragraph("Analīze ģenerēta, balstoties uz Komandanta Kvarka kritērijiem.")
             document.add_page_break()
 
             for idx, candidate in enumerate(self.growth_candidates_data):
-                document.add_heading(f"{idx+1}. {candidate.get('name')} ({candidate.get('ticker')})", level=2)
+                document.add_heading(f"{idx+1}. {candidate.get('name', '')} ({candidate.get('ticker', '')})", level=2)
                 if candidate.get('red_flag'):
-                    document.add_paragraph(i18n.t('word_red_flag', value=candidate['red_flag']))
-                document.add_paragraph(i18n.t('word_secret_weapon', value=candidate.get('niche')))
-                document.add_paragraph(i18n.t('word_why_10x_100x', value=candidate.get('why_10x_100x')))
-                document.add_paragraph(i18n.t('word_black_swan', value=candidate.get('black_swan')))
+                    document.add_paragraph(f"🚩 Sarkanais Karogs: {candidate['red_flag']}")
+                document.add_paragraph(f"Slepenais ierocis (Niša): {candidate.get('niche', '')}")
+                document.add_paragraph(f"Kāpēc 10x-100x: {candidate.get('why_10x_100x', '')}")
+                document.add_paragraph(f"Melnais Gulbis (risks): {candidate.get('black_swan', '')}")
                 document.add_paragraph(candidate.get('resolution', ''))
                 document.add_page_break()
 
-            filename = OUTBOX_DIR / f"{i18n.t('word_output_filename_prefix')}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+            filename = OUTBOX_DIR / f"Kvarka_Vienradzi_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
             document.save(filename)
-            messagebox.showinfo(i18n.t("success_title"), i18n.t('word_success_message', path=filename))
-        except Exception as e:
-            messagebox.showerror(i18n.t("error_saving_word_title"), i18n.t('word_error_saving_message', error_message=e))
+            messagebox.showinfo("Saglabāts!", f"Atskaite saglabāta:\n{filename}")
+        except Exception as err:
+            messagebox.showerror("Kļūda", f"Radās kļūda saglabājot Word failu: {err}")
 
     def _add_selected_growth_to_portfolio(self):
         selected_name = self.growth_selector.get()
