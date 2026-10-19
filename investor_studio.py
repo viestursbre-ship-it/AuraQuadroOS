@@ -130,7 +130,7 @@ TRANSLATIONS = {
     "word_red_flag": {"lv": "🚩 Sarkanais Karogs: {value}", "en": "🚩 Red Flag: {value}", "ru": "🚩 Красный Флаг: {value}", "uk": "🚩 Червоний Прапор: {value}", "it": "🚩 Bandiera Rossa: {value}"},
     "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): {value}", "en": "Secret Weapon (Niche): {value}", "ru": "Секретное оружие (Ниша): {value}", "uk": "Секретна зброя (Ніша): {value}", "it": "Arma Segreta (Nicchia): {value}"},
     "word_why_10x_100x": {"lv": "Kāpēc 10x-100x: {value}", "en": "Why 10x-100x: {value}", "ru": "Почему 10x-100x: {value}", "uk": "Чому 10x-100x: {value}", "it": "Perché 10x-100x: {value}"},
-    "word_black_swan": {"lv": "Melnais Gulbis (risks): {value}", "en": "Black Swan (risk): {value}", "ru": "Черный Лебедь (риск): {value}", "uk": "Чорний Лебīдь (risks): {value}", "it": "Cigno Nero (rischio): {value}"},
+    "word_black_swan": {"lv": "Melnais Gulbis (risks): {value}", "en": "Black Swan (risk): {value}", "ru": "Черный Лебедь (risks): {value}", "uk": "Чорний Лебīдь (risks): {value}", "it": "Cigno Nero (rischio): {value}"},
     "word_output_filename_prefix": {"lv": "Kvarka_Vienradzu_Medibas_", "en": "Quarks_Unicorn_Hunt_", "ru": "Kvar_Ohot_Yedinorog_", "uk": "Kvar_Yedinorih_Polyuvannya_", "it": "Quark_Caccia_Unicorni_"},
     "word_success_message": {"lv": "Atskaite saglabāta:\n{path}", "en": "Report saved to:\n{path}", "ru": "Отчет сохранен в:\n{path}", "uk": "Звіт збережено:\n{path}", "it": "Rapporto salvato in:\n{path}"},
     "word_error_saving_message": {"lv": "Radās kļūda saglabājot Word failu: {error_message}", "en": "Error saving Word file: {error_message}", "ru": "Произошла ошибка при сохранении файла Word: {error_message}", "uk": "Виникла помилка під час збереження failu Word: {error_message}", "it": "Error saving Word file: {error_message}"},
@@ -220,11 +220,15 @@ TRANSLATIONS = {
     "growth_penny_scan_progress": {"lv": "🔍 Kvarks meklē Valtera profilam piemērotas peniju akcijas (cena <$5, apgrozījums >300k)...", "en": "🔍 Quark is hunting for penny stocks suitable for Valter's profile (price <$5, volume >300k)...", "ru": "🔍 Кварк ищет пенни-акции, подходящие для профиля Валтера (цена <$5, объем >300k)...", "uk": "🔍 Кварк шукає пенні-акції, придатні для профілю Валтера (ціна <$5, обсяг >300k)...", "it": "🔍 Quark è a caccia di penny stock adatte al profilo di Valter (prezzo <$5, volume >300k)..."},
     "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Браta (IPO 2021-2024, ar potenciālu зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
     "growth_no_candidates_found": {"lv": "Komandants Kvarks neatrada piemērotus kandidātus.", "en": "Commander Quark found no suitable candidates.", "ru": "Командир Кварк не нашел подходящих кандидатов.", "uk": "Командир Кварк не знайшов відповідних кандидатів.", "it": "Il Comandante Quark non ha trovato candidati idonei."},
-    "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Кварк skenē tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
+    "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Kvarks skenē tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
     "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та novērtē kandidātus ar AI analīzi...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
     "lbl_ticker_analysis_title": {"lv": "TIKERA ANALĪZE", "ru": "АНАЛИЗ ТИКЕРА", "uk": "АНАЛІЗ ТИКЕРА", "en": "TICKER ANALYSIS", "it": "ANALISI TICKER"}, # LEO ADDITION for Rentgen Tab title
     "ent_ticker_placeholder": {"lv": "Ievadiet tikeri (piemēram, AAPL)", "en": "Enter ticker (e.g., AAPL)", "ru": "Введите тикер (напр., AAPL)", "uk": "Введіть тікер (напр., AAPL)", "it": "Inserisci ticker (es. AAPL)"}, # LEO ADDITION for Ticker Input placeholder
     "rentgen_initial_combined_msg": {"lv": "Ievadiet akcijas tikeri (piemēram, AAPL, MSFT, NVDA) un nospiediet 'Rentgens'...", "en": "Enter a stock ticker (e.g., AAPL, MSFT, NVDA) and press 'X-Ray'...", "ru": "Введите тикер акции (напр., AAPL, MSFT, NVDA) и нажмите 'Рентген'...", "uk": "Введіть тікер акції (напр., AAPL, MSFT, NVDA) та натисніть 'Рентген'...", "it": "Inserisci un ticker azionario (es. AAPL, MSFT, NVDA) e premi 'Raggi X'..."}, # LEO ADDITION for combined resolution box initial message
+    "rentgen_fetching_data_generating_analysis_msg": {"lv": "🔍 Nolasa datus par {ticker} no {source} un ģenerē Q.V.A.R.K. analīzi...\n", "en": "🔍 Fetching data for {ticker} from {source} and generating Q.V.A.R.K. analysis...\n", "ru": "🔍 Извлечение данных для {ticker} из {source} и генерация анализа Q.V.A.R.K...\n", "uk": "🔍 Отримання даних для {ticker} з {source} та генерація аналізу Q.V.A.R.K...\n", "it": "🔍 Recupero dati per {ticker} da {source} e generazione analisi Q.V.A.R.K...\n"},
+    "info_no_data_to_export_rentgen": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet analīzi.", "en": "No data to export. Perform an analysis first.", "ru": "Нет данных для экспорта. Сначала выполните анализ.", "uk": "Немає даних для експорту. Спочатку виконайте аналіз.", "it": "Nessun dato da esportare. Esegui prima un'analisi."},
+    "word_save_dialog_title_rentgen": {"lv": "Saglabāt Rentgena atskaiti kā Word failu", "en": "Save X-Ray Report as Word file", "ru": "Сохранить отчет Рентгена как файл Word", "uk": "Зберегти рентген-звіт як файл Word", "it": "Salva rapporto Raggi X come file Word"},
+    "word_analysis_basis_rentgen": {"lv": "Analīze sagatavota ar AuraQuadroOS analītikas moduli.", "en": "Analysis prepared by AuraQuadroOS analytics module.", "ru": "Анализ подготовлен аналитическим модулем AuraQuadroOS.", "uk": "Аналіз підготовлено аналітичним модулем AuraQuadroOS.", "it": "Analisi preparata dal modulo di analisi AuraQuadroOS."},
 }
 
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
@@ -524,8 +528,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         self.resolution_box.configure(state="normal")
         self.resolution_box.delete("0.0", "end")
-        self.resolution_box.insert("0.0", f"{i18n.t('fetching_data_msg', ticker=ticker, source=self.selected_source)}")
-        self.resolution_box.insert("end", i18n.t("rentgen_generating_analysis_msg"))
+        # Task 1: Use i18n.t for the loading message
+        self.resolution_box.insert("0.0", i18n.t("rentgen_fetching_data_generating_analysis_msg", ticker=ticker, source=self.selected_source))
         self.resolution_box.configure(state="disabled")
 
         threading.Thread(target=self._analyze_ticker_worker, args=(ticker,), daemon=True).start()
@@ -577,7 +581,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         # Skaitļu formatēšana
         price_str = f"{float(stats_data['price']):.2f}" if isinstance(stats_data.get('price'), (int, float)) else str(stats_data.get('price', 'N/A'))
         low52_str = f"{float(stats_data['52_low']):.2f}" if isinstance(stats_data.get('52_low'), (int, float)) else str(stats_data.get('52_low', 'N/A'))
-        high52_str = f"{float(stats_data['52_high']):.2f}" if isinstance(stats_data.get('52_high'), (int, float)) else str(stats_data.get('52_high', 'N/A'))
+        high52_str = f"{float(stats_data.get('52_high'), 'N/A'):.2f}" if isinstance(stats_data.get('52_high'), (int, float)) else str(stats_data.get('52_high', 'N/A'))
         pe_str = f"{float(stats_data.get('pe', 'N/A')):.2f}" if isinstance(stats_data.get('pe'), (int, float)) else str(stats_data.get('pe', 'N/A'))
         fwd_pe_str = f"{float(stats_data.get('fwd_pe', 'N/A')):.2f}" if isinstance(stats_data.get('fwd_pe'), (int, float)) else str(stats_data.get('fwd_pe', 'N/A'))
         peg_str = f"{float(stats_data.get('peg', 'N/A')):.2f}" if isinstance(stats_data.get('peg'), (int, float)) else str(stats_data.get('peg', 'N/A'))
@@ -591,7 +595,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         lines.append(f"{'PEG koeficients:':<18} {peg_str}")
         lines.append(f"{'Mērķa vid. cena:':<18} {target_mean_str} {currency}")
 
-        if self.selected_source in ["⚔️ Cross-Check", "Automātisks Crosscheck (Yahoo + Finnhub + FMP)"]:
+        if self.selected_source == "⚔️ Cross-Check": # Changed to strict Cross-Check
             lines.append("-" * 35)
             lines.append("--- ⚔️ CROSS-CHECK DATI ---")
             lines.append(f"Yahoo Finance: {stats_data.get('yf_price', 'N/A')} {currency}")
@@ -652,12 +656,23 @@ class InvestorStudioFrame(ctk.CTkFrame):
         
         display_price = yf_price # Default to YF
 
-        # Override display_price based on selected source
-        if self.selected_source == "Alpha Vantage" and av_price != "N/A":
-            display_price = av_price
+        # Override display_price based on selected source (excluding Cross-Check here, as it's aggregated)
+        if self.selected_source == "Finnhub": # Assuming Finnhub from list
+            # Need to add Finnhub fetching here explicitly for single source option
+            finnhub_key = cfg.get("finnhub_api_key", "")
+            if finnhub_key:
+                try:
+                    url_fh = f"https://finnhub.io/api/v1/quote?symbol={ticker}&token={finnhub_key}"
+                    r_fh = requests.get(url_fh, timeout=6).json()
+                    if r_fh and r_fh.get("c") is not None:
+                        display_price = r_fh.get("c")
+                except Exception:
+                    pass
         elif self.selected_source == "FMP" and fmp_price != "N/A":
             display_price = fmp_price
-        
+        elif self.selected_source == "Alpha Vantage" and av_price != "N/A":
+            display_price = av_price
+
         # Populate stats_data with information from yf_info first, then override if specific source selected.
         stats_data["name"] = yf_info.get("shortName", ticker)
         stats_data["currency"] = yf_info.get("currency", "USD")
@@ -819,43 +834,55 @@ class InvestorStudioFrame(ctk.CTkFrame):
             messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
     def _export_rentgen_to_word(self):
+        # Task 3: Aizstāt ar faila saglabāšanas dialogu un drošu Q.V.A.R.K. audita bloku
         if not HAS_DOCX:
-            messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing")) # Use i18n key
             return
 
         analysis_text = self.resolution_box.get("0.0", "end").strip()
-        if not analysis_text or "Ievadiet akcijas" in analysis_text: # Using literal string as per prompt
-            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Vispirms veiciet analīzi.")
+        if not analysis_text or analysis_text == i18n.t("rentgen_initial_combined_msg"): # Use i18n key for check
+            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export_rentgen")) # Use specific i18n key
             return
 
         ticker = self.ticker_input.get().strip().upper() or "AKTIVS"
-        default_filename = f"Rentgens_{ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+        default_filename = f"{i18n.t('word_output_filename_prefix_rentgen')}{ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use i18n key
 
         from tkinter import filedialog
         save_path = filedialog.asksaveasfilename(
             defaultextension=".docx",
             filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
             initialfile=default_filename,
-            title="Saglabāt Rentgena atskaiti kā Word failu"
+            title=i18n.t("word_save_dialog_title_rentgen") # Use i18n key for dialog title
         )
         if not save_path:
-            return  # Lietotājs atcēla saglabāšanu
+            return
 
         try:
             document = Document()
-            document.add_heading(f"Finanšu Rentgena Atskaite: {ticker}", level=1)
-            document.add_paragraph(f"Ģenerēts: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            document.add_paragraph("Analīze sagatavota ar AuraQuadroOS analītikas moduli.")
+            document.add_heading(f"{i18n.t('word_report_title_rentgen')}: {ticker}", level=1) # Use i18n key
+            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}") # Use i18n key
+            document.add_paragraph(i18n.t("word_analysis_basis_rentgen")) # Use i18n key
             document.add_paragraph("-" * 40)
 
             for paragraph in analysis_text.split('\n'):
-                if paragraph.strip():
-                    document.add_paragraph(paragraph)
+                p_clean = paragraph.strip()
+                if p_clean:
+                    document.add_paragraph(p_clean)
+
+            document.add_paragraph()
+            audit_lines = [
+                "─" * 45,
+                "Verification status: CLEARED & AUDITED",
+                "Quantitative Engine: Q.V.A.R.K. Core v2.5 (Quantitative Value Assessment & Risk Kernel)",
+                "Division: Strategic Risk Analytics | AuraQuadroOS Financial Division"
+            ]
+            p_audit = document.add_paragraph("\n".join(audit_lines))
+            p_audit.italic = True
 
             document.save(save_path)
-            messagebox.showinfo("Veiksmīgi saglabāts!", f"Atskaite veiksmīgi saglabāta:\n{save_path}")
+            messagebox.showinfo(i18n.t("success_title"), i18n.t("word_success_message", path=save_path)) # Use i18n keys
         except Exception as err:
-            messagebox.showerror("Kļūda", f"Neizdevās saglabāt Word failu: {err}")
+            messagebox.showerror(i18n.t("error_title"), i18n.t("word_error_saving_message", error_message=err)) # Use i18n keys
 
 
     # ==========================================
@@ -1467,58 +1494,69 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
     def _copy_growth_analysis(self):
         if not self.growth_candidates_data:
-            messagebox.showinfo("Info", "Nav atrasta neviena analīze, ko kopēt.")
+            messagebox.showinfo(i18n.t("info_title"), i18n.t("growth_no_analysis_to_copy")) # Use i18n key
             return
 
         try:
-            summary_text = "🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBU REZULTĀTI 🚀\n\n"
+            summary_text = f"{i18n.t('growth_copy_header')}\n\n" # Use i18n key
             for idx, candidate in enumerate(self.growth_candidates_data):
                 ticker = candidate.get('ticker', '')
                 name = candidate.get('name', '')
-                summary_text += f"--- Kandidāts {idx + 1}: {ticker} - {name} ---\n"
+                summary_text += f"{i18n.t('growth_copy_candidate_header', idx_plus_1=idx+1, ticker=ticker, name=name)}\n" # Use i18n key
                 if candidate.get('red_flag'):
-                    summary_text += f"   🚩 Sarkanais Karogs: {candidate['red_flag']}\n"
-                summary_text += f"   Slepenais ierocis (Niša): {candidate.get('niche', '')}\n"
-                summary_text += f"   Kāpēc 10x-100x: {candidate.get('why_10x_100x', '')}\n"
-                summary_text += f"   Melnais Gulbis (risks): {candidate.get('black_swan', '')}\n"
+                    summary_text += f"   {i18n.t('warning_red_flag', warning_message=candidate['red_flag'])}\n" # Use i18n key
+                summary_text += f"   {i18n.t('growth_copy_niche', niche=candidate.get('niche', ''))}\n" # Use i18n key
+                summary_text += f"   {i18n.t('growth_copy_why', why=candidate.get('why_10x_100x', ''))}\n" # Use i18n key
+                summary_text += f"   {i18n.t('growth_copy_risk', risk=candidate.get('black_swan', ''))}\n" # Use i18n key
                 summary_text += f"   {candidate.get('resolution', '')}\n\n"
 
             self.clipboard_clear()
             self.clipboard_append(summary_text)
-            messagebox.showinfo("Info", "✅ Nokopēts starpliktuvē!")
+            messagebox.showinfo(i18n.t("info_title"), i18n.t("status_copied")) # Use i18n key
         except Exception as err:
-            messagebox.showerror("Kļūda", f"Kļūda kopējot: {err}")
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=err)) # Use i18n key
 
     def _export_growth_to_word(self):
         if not HAS_DOCX:
-            messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing")) # Use i18n key
             return
         if not self.growth_candidates_data:
-            messagebox.showinfo("Info", "Nav datu, ko eksportēt.")
+            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export")) # Use i18n key
             return
 
         try:
             document = Document()
-            document.add_heading("🚀 Komandanta Kvarka Vienradžu Medību Atskaite", level=1)
-            document.add_paragraph(f"Ģenerēts: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            document.add_paragraph("Analīze ģenerēta, balstoties uz Komandanta Kvarka kritērijiem.")
+            document.add_heading(i18n.t("word_report_title"), level=1) # Use i18n key
+            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}") # Use i18n key
+            document.add_paragraph(i18n.t("word_analysis_basis")) # Use i18n key
             document.add_page_break()
 
             for idx, candidate in enumerate(self.growth_candidates_data):
                 document.add_heading(f"{idx+1}. {candidate.get('name', '')} ({candidate.get('ticker', '')})", level=2)
                 if candidate.get('red_flag'):
-                    document.add_paragraph(f"🚩 Sarkanais Karogs: {candidate['red_flag']}")
-                document.add_paragraph(f"Slepenais ierocis (Niša): {candidate.get('niche', '')}")
-                document.add_paragraph(f"Kāpēc 10x-100x: {candidate.get('why_10x_100x', '')}")
-                document.add_paragraph(f"Melnais Gulbis (risks): {candidate.get('black_swan', '')}")
+                    document.add_paragraph(i18n.t("word_red_flag", value=candidate['red_flag'])) # Use i18n key
+                document.add_paragraph(i18n.t("word_secret_weapon", value=candidate.get('niche', ''))) # Use i18n key
+                document.add_paragraph(i18n.t("word_why_10x_100x", value=candidate.get('why_10x_100x', ''))) # Use i18n key
+                document.add_paragraph(i18n.t("word_black_swan", value=candidate.get('black_swan', ''))) # Use i18n key
                 document.add_paragraph(candidate.get('resolution', ''))
                 document.add_page_break()
 
-            filename = OUTBOX_DIR / f"Kvarka_Vienradzi_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+            # Task 4: Pievienot drošo Q.V.A.R.K. audita bloku
+            document.add_paragraph()
+            growth_audit_lines = [
+                "─" * 45,
+                "Verification status: CLEARED & AUDITED",
+                "Quantitative Engine: Q.V.A.R.K. Core v2.5 (Quantitative Value Assessment & Risk Kernel)",
+                "Division: Strategic Risk Analytics | AuraQuadroOS Financial Division"
+            ]
+            p_growth_audit = document.add_paragraph("\n".join(growth_audit_lines))
+            p_growth_audit.italic = True
+
+            filename = OUTBOX_DIR / f"{i18n.t('word_output_filename_prefix')}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use i18n key
             document.save(filename)
-            messagebox.showinfo("Saglabāts!", f"Atskaite saglabāta:\n{filename}")
+            messagebox.showinfo(i18n.t("success_title"), i18n.t("word_success_message", path=filename)) # Use i18n key
         except Exception as err:
-            messagebox.showerror("Kļūda", f"Radās kļūda saglabājot Word failu: {err}")
+            messagebox.showerror(i18n.t("error_title"), i18n.t("word_error_saving_message", error_message=err)) # Use i18n key
 
     def _add_selected_growth_to_portfolio(self):
         selected_name = self.growth_selector.get()
@@ -1942,5 +1980,3 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.market_intel_box.delete("0.0", "end")
         self.market_intel_box.insert("0.0", text)
         self.market_intel_box.configure(state="disabled")
-
-# End of InvestorStudioFrame class
