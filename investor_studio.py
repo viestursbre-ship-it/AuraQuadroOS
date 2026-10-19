@@ -443,6 +443,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 self.btn_calc_dividends.configure(text=i18n.t("btn_calc_dividends"))
         if hasattr(self, 'lbl_dividends_resolution_title'): # NEW for Instruction 2
             self.lbl_dividends_resolution_title.configure(text=i18n.t("lbl_inv_dividends_resolution_title"))
+        if hasattr(self, 'btn_copy_dividends'):
+            self.btn_copy_dividends.configure(text=i18n.t("btn_copy_analysis"))
+        if hasattr(self, 'btn_export_dividends'):
+            self.btn_export_dividends.configure(text=i18n.t("btn_save_word"))
 
         # Update elements in Market tab
         if hasattr(self, 'lbl_market_sentiment_title'):
@@ -1769,7 +1773,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         f = self.tab_dividends
         f.grid_columnconfigure(0, weight=1)
         f.grid_columnconfigure(1, weight=1)
-        f.grid_rowconfigure(3, weight=1)
+        f.grid_rowconfigure(5, weight=1) # Adjusted for the new layout (dividends_analysis_box is now in row 5)
 
         self.lbl_cashflow_radar_title = ctk.CTkLabel(f, text=i18n.t("lbl_cashflow_radar_title"), font=ctk.CTkFont(size=16, weight="bold"))
         self.lbl_cashflow_radar_title.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
@@ -1781,14 +1785,46 @@ class InvestorStudioFrame(ctk.CTkFrame):
                                                 fg_color="#0e7490", hover_color="#086078")
         self.btn_calc_dividends.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
 
-        self.lbl_dividends_resolution_title = ctk.CTkLabel(f, text=i18n.t("lbl_inv_dividends_resolution_title"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.lbl_dividends_resolution_title.grid(row=3, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
+        # 1. Funkcijā _setup_dividends_tab: Virs rezultātu loga self.dividends_box pievienot kustīgo joslu self.dividends_progress_bar
+        self.dividends_progress_bar = ctk.CTkProgressBar(f, mode="determinate", progress_color="#0e7490")
+        self.dividends_progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=(4, 6), sticky="ew")
+        self.dividends_progress_bar.set(0)
 
+        # lbl_dividends_resolution_title moves to row 4
+        self.lbl_dividends_resolution_title = ctk.CTkLabel(f, text=i18n.t("lbl_inv_dividends_resolution_title"), font=ctk.CTkFont(size=16, weight="bold"))
+        self.lbl_dividends_resolution_title.grid(row=4, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
+
+        # dividends_analysis_box moves to row 5
         self.dividends_analysis_box = ctk.CTkTextbox(f, height=400, wrap="word",
                                                     fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.dividends_analysis_box.grid(row=4, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
+        self.dividends_analysis_box.grid(row=5, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
         self.dividends_analysis_box.insert("0.0", i18n.t("dividends_initial_msg"))
         self.dividends_analysis_box.configure(state="disabled")
+
+        # 1. Funkcijā _setup_dividends_tab: Apakšā pievienot pogas "Kopēt analīzi" un "Saglabāt Word (.docx)"
+        btn_frame = ctk.CTkFrame(f, fg_color="transparent")
+        btn_frame.grid(row=6, column=0, columnspan=2, padx=10, pady=(6, 10), sticky="ew")
+        btn_frame.grid_columnconfigure(0, weight=1)
+        btn_frame.grid_columnconfigure(1, weight=1)
+
+        self.btn_copy_dividends = ctk.CTkButton(
+            btn_frame, 
+            text=i18n.t("btn_copy_analysis"), 
+            command=self._copy_dividends_analysis,
+            fg_color="#0e7490", 
+            hover_color="#086078"
+        )
+        self.btn_copy_dividends.grid(row=0, column=0, padx=(0, 5), sticky="ew")
+
+        self.btn_export_dividends = ctk.CTkButton(
+            btn_frame, 
+            text=i18n.t("btn_save_word"), 
+            command=self._export_dividends_to_word,
+            fg_color="#0e7490", 
+            hover_color="#086078"
+        )
+        self.btn_export_dividends.grid(row=0, column=1, padx=(5, 0), sticky="ew")
+
 
     def _calculate_dividends(self):
         if not HAS_GENAI or not self.get_gemini_key():
@@ -1808,13 +1844,19 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.dividends_analysis_box.configure(state="disabled")
             return
 
-        self.btn_calc_dividends.configure(state="disabled", text=i18n.t("btn_calc_dividends_loading"))
+        self.btn_calc_dividends.configure(state="disabled", text="⏳ Vāc dividenžu datus...")
+        # 2. Novērst pavediena argumentu kļūdu funkcijā _calculate_dividends: Nodrošināt, ka tickers_list tiek padots kā viens vienīgs tuple elements args=(tickers_list,)
+        if hasattr(self, 'dividends_progress_bar'):
+            self.dividends_progress_bar.configure(mode="indeterminate")
+            self.dividends_progress_bar.start()
+
         self.dividends_analysis_box.configure(state="normal")
         self.dividends_analysis_box.delete("0.0", "end")
         self.dividends_analysis_box.insert("0.0", i18n.t("dividends_initial_analysis_msg"))
         self.dividends_analysis_box.configure(state="disabled")
 
-        threading.Thread(target=self._calculate_dividends_worker, args=(tickers_list)).start()
+        import threading
+        threading.Thread(target=self._calculate_dividends_worker, args=(tickers_list,), daemon=True).start()
 
     def _calculate_dividends_worker(self, tickers_list):
         dividend_data = []
@@ -1870,7 +1912,13 @@ class InvestorStudioFrame(ctk.CTkFrame):
             resolution_text = i18n.t('error_api_key_unavailable') + "\n" + i18n.t('analysis_disclaimer_summary')
 
         self.master.after(0, self._update_dividends_log_final, resolution_text)
-        self.master.after(0, lambda: self.btn_calc_dividends.configure(state="normal", text=i18n.t("btn_calc_dividends")))
+        
+        # 3. Funkcijas _calculate_dividends_worker noslēgumā atjaunot UI:
+        if hasattr(self, 'dividends_progress_bar'):
+            self.dividends_progress_bar.stop()
+            self.dividends_progress_bar.configure(mode="determinate")
+            self.dividends_progress_bar.set(1.0)
+        self.master.after(0, lambda: self.btn_calc_dividends.configure(state="normal", text="💰 Vākt dividenžu datus..."))
 
 
     def _update_dividends_log(self, message):
@@ -1934,6 +1982,72 @@ class InvestorStudioFrame(ctk.CTkFrame):
             return response.text.strip()
         except Exception as e:
             return i18n.t('error_gemini_dividends', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
+
+    # 4. Pievienot drošas metodes _copy_dividends_analysis un _export_dividends_to_word:
+    def _copy_dividends_analysis(self):
+        try:
+            txt = self.dividends_analysis_box.get("0.0", "end").strip()
+            if not txt or "Gaidu" in txt:
+                messagebox.showinfo("Info", "Nav datu, ko kopēt.")
+                return
+            self.master.clipboard_clear()
+            self.master.clipboard_append(txt)
+            messagebox.showinfo("Kopēts!", "Dividenžu analīze nokopēta starpliktuvei!")
+        except Exception as err:
+            messagebox.showerror("Kļūda", "Neizdevās nokopēt: " + str(err))
+
+    def _export_dividends_to_word(self):
+        if not HAS_DOCX:
+            messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
+            return
+
+        report_text = self.dividends_analysis_box.get("0.0", "end").strip()
+        if not report_text or "Gaidu" in report_text or "Vāc" in report_text:
+            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Vispirms veiciet dividenžu analīzi.")
+            return
+
+        from tkinter import filedialog
+        time_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_filename = "QVARK_Dividenzu_Atskaite_" + time_tag + ".docx"
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".docx",
+            filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
+            initialfile=default_filename,
+            title="Saglabāt Dividenžu analīzes atskaiti"
+        )
+        if not save_path:
+            return
+
+        try:
+            document = Document()
+            document.add_heading("Q.V.A.R.K. Dividenžu & Naudas Plūsmas Audits", level=1)
+            time_now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            document.add_paragraph("Ģenerēts: " + time_now_str)
+            document.add_paragraph("Analīze sagatavota ar AuraQuadroOS naudas plūsmas moduli.")
+            document.add_paragraph("-" * 40)
+
+            for line in report_text.split('\n'):
+                line_str = line.strip()
+                if line_str:
+                    document.add_paragraph(line_str)
+
+            document.add_paragraph()
+            p_sep = document.add_paragraph("─" * 45)
+            p_sep.italic = True
+            
+            audit_lines = [
+                "Verification status: CLEARED & AUDITED",
+                "Quantitative Engine: Q.V.A.R.K. Core v2.5 (Quantitative Value Assessment & Risk Kernel)",
+                "Division: Strategic Risk Analytics | AuraQuadroOS Financial Division"
+            ]
+            for aline in audit_lines:
+                p_line = document.add_paragraph(aline)
+                p_line.italic = True
+
+            document.save(save_path)
+            messagebox.showinfo("Veiksmīgi saglabāts!", "Dividenžu atskaite saglabāta:\n" + str(save_path))
+        except Exception as err:
+            messagebox.showerror("Kļūda", "Neizdevās saglabāt Word failu:\n" + str(err))
 
     # ==========================================
     # 5. CILNE: TIRGUS KLIMATS & INSAIDERI
