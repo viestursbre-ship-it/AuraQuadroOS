@@ -126,18 +126,18 @@ TRANSLATIONS = {
     "word_report_title": {"lv": "🚀 Komandanta Kvarka Vienradžu Medību Atskaite", "uk": "🚀 Звіт про Полювання на Єдинорогів Командира Кварка", "ru": "🚀 Отчет об Охоте на Единорогов Командира Кварка", "it": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark", "en": "🚀 Commander Quark's Unicorn Hunt Report"},
     "word_generated_on": {"lv": "Ģenerēts: ", "uk": "Згенеровано: ", "ru": "Сгенерировано: ", "it": "Generato il: ", "en": "Generated: "},
     "word_analysis_basis": {"lv": "Analīze ģenerēta, balstoties uz Komandanta Kvarka 4 zelta kritērijiem.", "uk": "Аналіз згенеровано на основі 4 золотих критеріjів Командира Кварка.", "ru": "Аналіз згенеровано на основі 4 золотих критеріjів Командира Кварка.", "it": "Analisi generata in base ai 4 criteri d'oro del Comandante Quark.", "en": "Analysis generated based on Commander Quark's 4 golden criteria."},
-    "word_red_flag": {"lv": "🚩 Sarkanais Karogs: {value}", "uk": "🚩 Червоний Прапор: {value}", "ru": "🚩 Красный Флаг: {value}", "it": "🚩 Bandiera Rossa: {value}", "en": "🚩 Red Flag: {value}"},
-    "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): {value}", "uk": "Секретна зброя (Ніша): {value}", "ru": "Секретное оружие (Ниша): {value}", "it": "Arma Segreta (Nicchia): {value}", "en": "Secret Weapon (Niche): {value}"},
-    "word_why_10x_100x": {"lv": "Kāpēc 10x-100x: {value}", "uk": "Чому 10x-100x: {value}", "ru": "Почему 10x-100x: {value}", "it": "Perché 10x-100x: {value}", "en": "Why 10x-100x: {value}"},
-    "word_black_swan": {"lv": "Melnais Gulbis (risks): {value}", "uk": "Чорний Лебīдь (risks): {value}", "ru": "Черный Лебедь (риск): {value}", "it": "Cigno Nero (rischio): {value}", "en": "Black Swan (risk): {value}"},
-    "word_output_filename_prefix": {"lv": "Kvarka_Vienradzu_Medibas_", "uk": "Kvar_Yedinorih_Polyuvannya_", "ru": "Kvar_Ohot_Yedinorog_", "it": "Quark_Caccia_Unicorni_", "en": "Quarks_Unicorn_Hunt_"},
-    "word_success_message": {"lv": "Atskaite saglabāta:\n{path}", "uk": "Звіт збережено:\n{path}", "ru": "Отчет сохранен в:\n{path}", "it": "Rapporto salvato in:\n{path}", "en": "Report saved to:\n{path}"},
-    "word_error_saving_message": {"lv": "Radās kļūda saglabājot Word failu: {error_message}", "uk": "Виникла помилка під час збереження файlu Word: {error_message}", "ru": "Произошла ошибка при сохранении файла Word: {error_message}", "it": "Error saving Word file: {error_message}", "en": "Error saving Word file: {error_message}"},
+    "word_red_flag": {"lv": "🚩 Sarkanais Karogs: {value}", "en": "🚩 Red Flag: {value}", "ru": "🚩 Красный Флаг: {value}", "uk": "🚩 Червоний Прапор: {value}", "it": "🚩 Bandiera Rossa: {value}"},
+    "word_secret_weapon": {"lv": "Slepenais ierocis (Niša): {value}", "en": "Secret Weapon (Niche): {value}", "ru": "Секретное оружие (Ниша): {value}", "uk": "Секретна зброя (Ніша): {value}", "it": "Arma Segreta (Nicchia): {value}"},
+    "word_why_10x_100x": {"lv": "Kāpēc 10x-100x: {value}", "en": "Why 10x-100x: {value}", "ru": "Почему 10x-100x: {value}", "uk": "Чому 10x-100x: {value}", "it": "Perché 10x-100x: {value}"},
+    "word_black_swan": {"lv": "Melnais Gulbis (risks): {value}", "en": "Black Swan (risk): {value}", "ru": "Черный Лебедь (риск): {value}", "uk": "Чорний Лебīдь (risks): {value}", "it": "Cigno Nero (rischio): {value}"},
+    "word_output_filename_prefix": {"lv": "Kvarka_Vienradzu_Medibas_", "en": "Quarks_Unicorn_Hunt_", "ru": "Kvar_Ohot_Yedinorog_", "uk": "Kvar_Yedinorih_Polyuvannya_", "it": "Quark_Caccia_Unicorni_"},
+    "word_success_message": {"lv": "Atskaite saglabāta:\n{path}", "en": "Report saved to:\n{path}", "ru": "Отчет сохранен в:\n{path}", "uk": "Звіт збережено:\n{path}", "it": "Rapporto salvato in:\n{path}"},
+    "word_error_saving_message": {"lv": "Radās kļūda saglabājot Word failu: {error_message}", "en": "Error saving Word file: {error_message}", "ru": "Произошла ошибка при сохранении файла Word: {error_message}", "uk": "Виникла помилка під час збереження файlu Word: {error_message}", "it": "Error saving Word file: {error_message}"},
 
     # Rentgen specific Word export keys (NEW)
-    "word_report_title_rentgen": {"lv": "🔍 Komandanta Kvarka Tikera Rentgena Atskaite", "uk": "🔍 Звіт Рентген Тикера Командира Кварка", "ru": "🔍 Отчет Рентген Тикера Командира Кварка", "it": "🔍 Rapporto Raggi X Titolo del Comandante Quark", "en": "🔍 Commander Quark's Ticker X-Ray Report"},
-    "word_output_filename_prefix_rentgen": {"lv": "Kvarka_Tikera_Rentgens_", "uk": "Kvar_Tikera_Renthen_", "ru": "Kvar_Tikera_Rentgen_", "it": "Quark_Ticker_RaggiX_", "en": "Quarks_Ticker_XRay_"},
-    "word_data_summary": {"lv": "Datu kopsavilkums:", "uk": "Зведення даних:", "ru": "Сводка данных:", "it": "Riepilogo dati:", "en": "Data Summary:"},
+    "word_report_title_rentgen": {"lv": "🔍 Finanšu Rentgena Atskaite", "uk": "🔍 Фінансовий рентген-звіт", "ru": "🔍 Отчет финансового рентгена", "it": "🔍 Rapporto Raggi X Finanziario", "en": "🔍 Financial X-Ray Report"},
+    "word_output_filename_prefix_rentgen": {"lv": "Rentgens_", "uk": "Renthen_", "ru": "Rentgen_", "it": "RaggiX_", "en": "XRay_"},
+    "word_data_summary": {"lv": "Tirgus datu kopsavilkums", "uk": "Зведення ринкових даних", "ru": "Сводка рыночных данных", "it": "Riepilogo dati di mercato", "en": "Market Data Summary"},
 
 
     # Dividends Tab:
@@ -794,28 +794,25 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
             prompt = (
                 f"{lang_instruction}\n"
-                "You are Commander Quark, a fat cat from Liepaja garrison, focused on building a "
-                "personal cannery and fish factory empire. Your decisions and strategic peace are the "
-                "top priority. Your ultimate goal is to build a personal cannery and fish factory empire. "
-                "Maximize profit extraction with minimal personal effort.\n\n"
-                "Analyze the following stock data and provide a concise, tactical resolution "
-                "for the Initiator. Your response should be direct, professional, sharp, and in a "
-                "tactical military garrison tone. Conclude with 'Komandants Kvarks ir izdevis Rīkojumu.'\n\n"
-                "Stock Data:\n"
-                f"- Ticker: {payload.get('ticker')}\n"
-                f"- Name: {payload.get('name')}\n"
-                f"- Price: {payload.get('price')} {payload.get('currency')}\n"
-                f"- Source: {payload.get('source')}\n"
+                "Jūs esat vecākais akciju tirgus stratēģis un kvantitatīvais analītiķis (Senior Equity Research Analyst). "
+                "Jūsu uzdevums ir sniegt precīzu, akadēmiski un praktiski pamatotu fundamentālo un tehnisko vērtējumu institucionālam investoram.\n\n"
+                "Stils: lietišķs, kodolīgs, analītisks un profesionāls (Wall Street / Bloomberg tonis). Neizmantot jokus, metaforas vai karavīru žargonu.\n\n"
+                "Strukturējiet atbildi šādos blokos:\n"
+                "1. FUNDAMENTĀLAIS VĒRTĒJUMS (P/E, PEG, 52 nedēļu koridors, izaugsmes ilgtspēja)\n"
+                "2. GALVENIE RISKI & TIRGUS ZIŅAS (potenciālie šķēršļi, nozares konkurence, burbuļa riski pie augsta PEG)\n"
+                "3. STRATĒĢISKAIS SLĒDZIENS (Skaidrs signāls: Pirkt / Nogaidīt / Pārdot ar mērķa argumentāciju)\n\n"
+                "Aktīva dati:\n"
+                f"- Tikeris: {payload.get('ticker')}\n"
+                f"- Nosaukums: {payload.get('name')}\n"
+                f"- Cena: {payload.get('price')} {payload.get('currency')}\n"
+                f"- Avots: {payload.get('source')}\n"
                 f"- P/E (Trailing): {payload.get('pe')}\n"
                 f"- P/E (Forward): {payload.get('fwd_pe')}\n"
                 f"- PEG Ratio: {payload.get('peg')}\n"
                 f"- 52-Week High: {payload.get('52_high')} {payload.get('currency')}\n"
                 f"- 52-Week Low: {payload.get('52_low')} {payload.get('currency')}\n"
-                f"- Target Mean Price: {payload.get('target_mean')} {payload.get('currency')}\n\n"
-                "Provide actionable insights for a strategic investor. Your goal is to identify if "
-                "this stock serves Commander Quark's empire-building goals efficiently. "
-                "Consider both potential gains and hidden risks. If P/E is above 80 and PEG is above 2, "
-                "mention it as a potential bubble."
+                f"- Analītiķu mērķa cena: {payload.get('target_mean')} {payload.get('currency')}\n\n"
+                "Noslēdziet ar: 'AuraQuadro Finanšu Izpētes Slēdziens.'"
             )
 
             response = model.generate_content(prompt, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
@@ -846,15 +843,15 @@ class InvestorStudioFrame(ctk.CTkFrame):
         analysis_text = self.resolution_box.get("0.0", "end").strip()
         financial_summary_text = self.financial_summary_box.get("0.0", "end").strip()
 
-        if not analysis_text or analysis_text == i18n.t("txt_waiting"):
-            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export"))
+        if not analysis_text or i18n.t("txt_waiting") in analysis_text:
+            messagebox.showinfo(i18n.t("info_title"), "Nav datu, ko eksportēt. Vispirms veiciet analīzi.") # Literal string as per prompt
             return
 
         try:
             document = Document()
-            document.add_heading(i18n.t("word_report_title_rentgen"), level=1)
+            document.add_heading(f"{i18n.t('word_report_title_rentgen')}: {self.ticker_input.get().strip().upper()}", level=1)
             document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            document.add_paragraph(i18n.t("word_analysis_basis"))
+            document.add_paragraph("Analīze sagatavota ar AuraQuadroOS kvantitatīvās un fundamentālās analīzes dzinēju.") # Literal string as per prompt
             
             document.add_heading(i18n.t("word_data_summary"), level=2)
             document.add_paragraph(financial_summary_text)
@@ -867,8 +864,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
             filename = OUTBOX_DIR / f"{i18n.t('word_output_filename_prefix_rentgen')}{self.ticker_input.get().strip().upper()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
             document.save(filename)
             messagebox.showinfo(i18n.t("success_title"), i18n.t('word_success_message', path=filename))
-        except Exception as e:
-            messagebox.showerror(i18n.t("error_saving_word_title"), i18n.t('word_error_saving_message', error_message=e))
+        except Exception as err:
+            messagebox.showerror(i18n.t("error_saving_word_title"), i18n.t('word_error_saving_message', error_message=err))
 
 
     # ==========================================
