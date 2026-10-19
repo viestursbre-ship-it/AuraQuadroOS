@@ -184,7 +184,7 @@ TRANSLATIONS = {
     "news_headlines_header": {"lv": "=== SVARĪGĀKĀS ZIŅAS ===", "en": "=== TOP HEADLINES ===", "ru": "=== ВАЖНЕЙШИЕ НОВОСТИ ===", "uk": "=== НАЙВАЖЛІШІ НОВИНИ ===", "it": "=== TITOLI PRINCIPALI ==="},
     "news_no_aggressive": {"lv": "Nav agresīvu ziņu triecienu", "en": "No aggressive news strikes", "ru": "Нет агрессивных новостных ударов", "uk": "Немає agresīvu jaunumu streiku", "it": "Nessun attacco di notizie aggressive"},
     "kvark_strategic_resolution": {"lv": "🐾 KOMANDANTA KVARKA STRATĒĢISKĀ REZOLŪCIJA:\n", "en": "🐾 COMMANDER KVARK'S STRATEGIC RESOLUTION:\n", "ru": "🐾 СТРАТЕГИЧЕСКАЯ РЕЗОЛЮЦИЯ КОМАНДИРА КВАРКА:\n", "uk": "🐾 СТРАТЕГІЧНА РЕЗОЛЮЦІЯ КОМАНДИРА КВАРКА:\n", "it": "🐾 RISOLUZIONE STRATEGICA DEL COMANDANTE QUARK:\n"},
-    "error_kvark_market_intel": {"lv": "⚠️ Kvarka kļūda: {e}", "en": "⚠️ Quark's error: {e}", "ru": "⚠️ Ошибка Кварка: {e}", "uk": "⚠️ Помилка Kvarka: {e}", "it": "⚠️ Errore di Quark: {e}"},
+    "error_kvark_market_intel": {"lv": "⚠️ Kvarka kļūda: {e}", "en": "⚠️ Quark's error: {e}", "ru": "⚠️ Oшибка Кварка: {e}", "uk": "⚠️ Помилка Kvarka: {e}", "it": "⚠️ Errore di Quark: {e}"},
 
     # Shared/Generic:
     "rentgen_initial_msg": {"lv": "Ievadiet tikeri un nospiediet 'Rentgens'...", "en": "Enter ticker and press 'X-Ray'...", "ru": "Введите тикер и нажмите 'Рентген'...", "uk": "Введіть тікер і натисніть 'Рентген'...", "it": "Inserisci il ticker e premi 'Raggi X'..."},
@@ -228,12 +228,12 @@ TRANSLATIONS = {
     "rentgen_fetching_data_generating_analysis_msg": {"lv": "🔍 Nolasa datus par {ticker} no {source} un ģenerē Q.V.A.R.K. analīzi...\n", "en": "🔍 Fetching data for {ticker} from {source} and generating Q.V.A.R.K. analysis...\n", "ru": "🔍 Извлечение данных для {ticker} из {source} и генерация анализа Q.V.A.R.K...\n", "uk": "🔍 Отримання даних для {ticker} з {source} та генерація аналізу Q.V.A.R.K...\n", "it": "🔍 Recupero dati per {ticker} da {source} e generazione analisi Q.V.A.R.K...\n"},
     "info_no_data_to_export_rentgen": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet analīzi.", "en": "No data to export. Perform an analysis first.", "ru": "Нет данных для экспорта. Сначала выполните анализ.", "uk": "Немає даних для експорту. Спочатку виконайте аналіз.", "it": "Nessun dato da esportare. Esegui prima un'analisi."},
     "word_save_dialog_title_rentgen": {"lv": "Saglabāt Rentgena atskaiti kā Word failu", "en": "Save X-Ray Report as Word file", "ru": "Сохранить отчет Рентгена как файл Word", "uk": "Зберегти рентген-звіт як файл Word", "it": "Salva rapporto Raggi X come file Word"},
-    "word_analysis_basis_rentgen": {"lv": "Analīze sagatavota ar AuraQuadroOS analītikas moduli.", "en": "Analysis prepared by AuraQuadroOS analytics module.", "ru": "Анализ подготовлен аналитическим модулем AuraQuadroOS.", "uk": "Аналіз підготовлено аналітичним модулем AuraQuadroOS.", "it": "Analisi preparata dal modulo di analisi AuraQuadroOS."},
+    "word_analysis_basis_rentgen": {"lv": "Analīze sagatavota ar AuraQuadroOS analītikas moduli.", "en": "Analysis prepared by AuraQuadroOS analytics module.", "ru": "Анализ подготовлен аналитическим модулем AuraQuadroOS.", "uk": "Аналіз підготовлено аналітичним модуliu AuraQuadroOS.", "it": "Analisi preparata dal modulo di analisi AuraQuadroOS."},
     # New keys for Portfolio Audit Word export (LEO ADDITION)
     "info_no_data_to_export_portfolio_audit": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet portfeļa auditu.", "en": "No data to export. Perform a portfolio audit first.", "ru": "Нет данных для экспорта. Сначала проведите аудит портфеля.", "uk": "Немає даних для експорту. Спочатку виконайте аудит портфеля.", "it": "Nessun dato da esportare. Esegui prima un audit del portfolio."},
     "word_save_dialog_title_portfolio_audit": {"lv": "Saglabāt portfeļa audita atskaiti", "en": "Save Portfolio Audit Report", "ru": "Сохранить отчет аудита портфеля", "uk": "Зберегти звіт аудиту portfeļa", "it": "Salva rapporto audit portfolio"},
-    "word_report_title_portfolio_audit": {"lv": "eToro Portfeļa Audita & Risku Atskaite", "en": "eToro Portfolio Audit & Risk Report", "ru": "Отчет об аудите и рисках портфеля eToro", "uk": "Звіт про аудит та ризики portfeļa eToro", "it": "Report Audit & Rischio Portfolio eToro"},
-    "word_analysis_basis_portfolio_audit": {"lv": "Analīze sagatavota ar AuraQuadroOS portfeļa vadības moduli.", "en": "Analysis prepared by AuraQuadroOS portfolio management module.", "ru": "Анализ подготовлен модулем управления портфелем AuraQuadroOS.", "uk": "Аналіз підготовлено модулем управління portfeļa AuraQuadroOS.", "it": "Analisi preparata dal modulo di gestione del portfolio AuraQuadroOS."},
+    "word_report_title_portfolio_audit": {"lv": "eToro Portfeļa Audita & Risku Atskaite", "en": "eToro Portfolio Audit & Risk Report", "ru": "Отчет об аудите и рисках портфеля eToro", "uk": "Звіт про аудит та risku portfeļa eToro", "it": "Report Audit & Rischio Portfolio eToro"},
+    "word_analysis_basis_portfolio_audit": {"lv": "Analīze sagatavota ar AuraQuadroOS portfeļa vadības moduli.", "en": "Analysis prepared by AuraQuadroOS portfolio management module.", "ru": "Анализ подготовлен модулем управления портфелем AuraQuadroOS.", "uk": "Аналіз підготовлено moduļu vadības portfeļa AuraQuadroOS.", "it": "Analisi preparata dal modulo di gestione del portfolio AuraQuadroOS."},
     "word_output_filename_prefix_portfolio_audit": {"lv": "Portfela_Audits_", "en": "Portfolio_Audit_", "ru": "Audit_Portfelya_", "uk": "Audyt_Portfelya_", "it": "Audit_Portfolio_"},
 }
 
@@ -850,34 +850,35 @@ class InvestorStudioFrame(ctk.CTkFrame):
             messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
     def _export_rentgen_to_word(self):
-        # Task 3: Aizstāt ar faila saglabāšanas dialogu un drošu Q.V.A.R.K. audita bloku
+        # Task: Aizstāt TypeError kļūdas funkcijā _export_rentgen_to_word
+        # Aizstāt `messagebox` izsaukumus rindās ap 895-905 ar drošiem paziņojumiem bez i18n keyword argumentiem.
         if not HAS_DOCX:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing")) # Use i18n key
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing"))
             return
 
         analysis_text = self.resolution_box.get("0.0", "end").strip()
-        if not analysis_text or analysis_text == i18n.t("rentgen_initial_combined_msg"): # Use i18n key for check
-            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export_rentgen")) # Use specific i18n key
+        if not analysis_text or analysis_text == i18n.t("rentgen_initial_combined_msg"):
+            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export_rentgen"))
             return
 
         ticker = self.ticker_input.get().strip().upper() or "AKTIVS"
-        default_filename = f"{i18n.t('word_output_filename_prefix_rentgen')}{ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use i18n key
+        default_filename = f"{i18n.t('word_output_filename_prefix_rentgen')}{ticker}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
 
         from tkinter import filedialog
         save_path = filedialog.asksaveasfilename(
             defaultextension=".docx",
             filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
             initialfile=default_filename,
-            title=i18n.t("word_save_dialog_title_rentgen") # Use i18n key for dialog title
+            title=i18n.t("word_save_dialog_title_rentgen")
         )
         if not save_path:
             return
 
         try:
             document = Document()
-            document.add_heading(f"{i18n.t('word_report_title_rentgen')}: {ticker}", level=1) # Use i18n key
-            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}") # Use i18n key
-            document.add_paragraph(i18n.t("word_analysis_basis_rentgen")) # Use i18n key
+            document.add_heading(f"{i18n.t('word_report_title_rentgen')}: {ticker}", level=1)
+            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            document.add_paragraph(i18n.t("word_analysis_basis_rentgen"))
             document.add_paragraph("-" * 40)
 
             for paragraph in analysis_text.split('\n'):
@@ -896,9 +897,11 @@ class InvestorStudioFrame(ctk.CTkFrame):
             p_audit.italic = True
 
             document.save(save_path)
-            messagebox.showinfo(i18n.t("success_title"), i18n.t("word_success_message", path=save_path)) # Use i18n keys
+            # FIX: Replace messagebox calls with i18n.t()
+            messagebox.showinfo(i18n.t("success_title"), i18n.t("word_success_message", path=save_path))
         except Exception as err:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("word_error_saving_message", error_message=err)) # Use i18n keys
+            # FIX: Replace messagebox calls with i18n.t()
+            messagebox.showerror(i18n.t("error_title"), i18n.t("word_error_saving_message", error_message=err))
 
 
     # ==========================================
