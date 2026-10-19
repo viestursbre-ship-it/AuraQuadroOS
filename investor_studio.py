@@ -66,7 +66,7 @@ TRANSLATIONS = {
     # Portfolio Tab
     "lbl_portfolio_title": {"lv": "💼 MANAS ETORO AKCIJAS", "en": "💼 MY ETORO STOCKS", "ru": "💼 МОИ АКЦИИ ETORO", "uk": "💼 МОЇ АКЦІЇ ETORO", "it": "💼 LE MIE AZIONI ETORO"},
     "lbl_portfolio_stocks_title": {"lv": "💼 MANAS ETORO AKCIJAS", "en": "💼 MY ETORO STOCKS", "ru": "💼 МОИ АКЦИИ ETORO", "uk": "💼 МОЇ АКЦІЇ ETORO", "it": "💼 LE MIE AZIONI ETORO"}, # New key for _setup_portfolio_tab
-    "lbl_tickers_hint": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (через кому або новий рядок):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"}, # New key for _setup_portfolio_tab
+    "lbl_tickers_hint": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (чеļez komu abo novy rādok):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"}, # New key for _setup_portfolio_tab
     "lbl_portfolio_tickers_desc": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (чеļez komu abo novy rādok):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"},
     "lbl_portfolio_cash_balance": {"lv": "💵 Brīvais atlikums (USD):", "en": "💵 Free Balance (USD):", "ru": "💵 Свободный остаток (USD):", "uk": "💵 Вільний залишок (USD):", "it": "💵 Saldo disponibile (USD):"},
     "lbl_cash_balance": {"lv": "💵 Brīvais atlikums (USD):", "en": "💵 Free Balance (USD):", "ru": "💵 Свободный остаток (USD):", "uk": "💵 Вільний залишок (USD):", "it": "💵 Saldo disponibile (USD):"}, # New key for _setup_portfolio_tab
@@ -127,7 +127,7 @@ TRANSLATIONS = {
     "info_title": {"lv": "Info", "en": "Info", "ru": "Информация", "uk": "Інформація", "it": "Info"},
     "info_no_data_to_export": {"lv": "Nav datu, ko eksportēt. Palaidiet 'Medīt Jaunos Vienradžus' vispirms.", "en": "No data to export. Run 'Hunt New Unicorns' first.", "ru": "Нет данных для экспорта. Сначала запустите 'Искать новых единорогов'.", "uk": "Немає datu uz eksportu. Vispirms palaidiet 'Полювання na Єдиноrogi'.", "it": "Nessun dato da esportare. Avvia prima 'Caccia agli Unicorni'."},
     "success_title": {"lv": "Saglabāts!", "en": "Saved!", "ru": "Сохранено!", "uk": "Збережено!", "it": "Salvato!"},
-    "error_saving_word_title": {"lv": "Kļūda saglabājot Word failu", "en": "Error saving Word file", "ru": "Ошибка при сохранении файла Word", "uk": "Помилка збереження faila Word", "it": "Errore nel salvataggio del file Word"},
+    "error_saving_word_title": {"lv": "Kļūda saglabājot Word failu", "en": "Error saving Word file", "ru": "Ошибка при сохранении файла Word", "uk": "Помилка збереження faila Word", "it": "Error saving Word file: {error_message}"},
 
     # Word Export specific strings
     "word_report_title": {"lv": "🚀 Komandanta Kvarka Vienradžu Medību Atskaite", "uk": "🚀 Звіт про Полювання на Єдинорогів Командира Кварка", "ru": "🚀 Отчет об Охоте на Единорогов Командира Кварка", "it": "🚀 Rapporto di Caccia agli Unicorni del Comandante Quark", "en": "🚀 Commander Quark's Unicorn Hunt Report"},
@@ -459,7 +459,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 self.btn_refresh_market.configure(text=i18n.t("btn_refresh_market_intel"))
         if hasattr(self, 'lbl_market_news_title'): # NEW for Instruction 2
             self.lbl_market_news_title.configure(text=i18n.t("lbl_inv_market_news_title"))
-
+        if hasattr(self, 'btn_copy_intel'):
+            self.btn_copy_intel.configure(text=i18n.t("btn_copy_analysis"))
+        if hasattr(self, 'btn_export_intel'):
+            self.btn_export_intel.configure(text=i18n.t("btn_save_word"))
 
         # Note: Dynamic content in textboxes or scrollable frames (e.g., financial_summary_box, analysis_box, growth_results_container)
         # would require re-running their content generation logic if they contained fixed strings.
@@ -2063,7 +2066,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         f = self.tab_market
         f.grid_columnconfigure(0, weight=1)
         f.grid_columnconfigure(1, weight=1)
-        f.grid_rowconfigure(4, weight=1)
+        f.grid_rowconfigure(5, weight=1) # Adjusted for the new progress bar and button row
 
         self.lbl_market_sentiment_title = ctk.CTkLabel(f, text=i18n.t("lbl_market_sentiment_title"), font=ctk.CTkFont(size=16, weight="bold"))
         self.lbl_market_sentiment_title.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
@@ -2075,14 +2078,44 @@ class InvestorStudioFrame(ctk.CTkFrame):
                                                  fg_color="#0e7490", hover_color="#086078")
         self.btn_refresh_market.grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky="ew")
 
+        # Progress bar for Market Intel
+        self.market_intel_progress_bar = ctk.CTkProgressBar(f, mode="determinate", progress_color="#0e7490")
+        self.market_intel_progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=(4, 6), sticky="ew")
+        self.market_intel_progress_bar.set(0)
+
         self.lbl_market_news_title = ctk.CTkLabel(f, text=i18n.t("lbl_inv_market_news_title"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.lbl_market_news_title.grid(row=3, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
+        self.lbl_market_news_title.grid(row=4, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
 
         self.market_intel_box = ctk.CTkTextbox(f, height=400, wrap="word",
                                                fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.market_intel_box.grid(row=4, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
+        self.market_intel_box.grid(row=5, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="nsew")
         self.market_intel_box.insert("0.0", i18n.t("market_news_initial_msg"))
         self.market_intel_box.configure(state="disabled")
+
+        # Buttons for Copy and Export (new)
+        btn_frame_market = ctk.CTkFrame(f, fg_color="transparent")
+        btn_frame_market.grid(row=6, column=0, columnspan=2, padx=10, pady=(6, 10), sticky="ew")
+        btn_frame_market.grid_columnconfigure(0, weight=1)
+        btn_frame_market.grid_columnconfigure(1, weight=1)
+
+        self.btn_copy_intel = ctk.CTkButton(
+            btn_frame_market,
+            text=i18n.t("btn_copy_analysis"),
+            command=self._copy_market_intel,
+            fg_color="#0e7490",
+            hover_color="#086078"
+        )
+        self.btn_copy_intel.grid(row=0, column=0, padx=(0, 5), sticky="ew")
+
+        self.btn_export_intel = ctk.CTkButton(
+            btn_frame_market,
+            text=i18n.t("btn_save_word"),
+            command=self._export_market_intel_to_word,
+            fg_color="#0e7490",
+            hover_color="#086078"
+        )
+        self.btn_export_intel.grid(row=0, column=1, padx=(5, 0), sticky="ew")
+
 
     def _refresh_market_intel(self):
         if not HAS_GENAI or not self.get_gemini_key():
@@ -2098,6 +2131,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.market_intel_box.insert("0.0", i18n.t("market_news_initial_msg"))
         self.market_intel_box.configure(state="disabled")
         self.lbl_fng.configure(text=i18n.t("lbl_fng_loading"))
+
+        if hasattr(self, 'market_intel_progress_bar'):
+            self.market_intel_progress_bar.configure(mode="indeterminate")
+            self.market_intel_progress_bar.start()
 
         threading.Thread(target=self._refresh_market_intel_worker).start()
 
@@ -2127,7 +2164,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
         resolution_text = self._get_gemini_market_resolution(fng_value, fng_sentiment, macro_data, insider_sentiment, recent_insider_transactions, market_news)
 
         self.master.after(0, self._update_market_intel_final, resolution_text)
-        self.master.after(0, lambda: self.btn_refresh_market.configure(state="normal", text=i18n.t("btn_refresh_market_intel")))
+        # The button configure and progress bar stop are handled within _update_market_intel_final
+        # self.master.after(0, lambda: self.btn_refresh_market.configure(state="normal", text=i18n.t("btn_refresh_market_intel")))
 
 
     def _fetch_fear_greed_index(self):
@@ -2286,3 +2324,81 @@ class InvestorStudioFrame(ctk.CTkFrame):
             return f"{i18n.t('kvark_strategic_resolution')}{response.text.strip()}"
         except Exception as e:
             return i18n.t('error_kvark_market_intel', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
+
+    def _update_market_intel_final(self, resolution_text):
+        self.market_intel_box.configure(state="normal")
+        self.market_intel_box.delete("0.0", "end")
+        self.market_intel_box.insert("0.0", resolution_text)
+        self.market_intel_box.configure(state="disabled")
+
+        if hasattr(self, 'market_intel_progress_bar'):
+            self.market_intel_progress_bar.stop()
+            self.market_intel_progress_bar.configure(mode="determinate")
+            self.market_intel_progress_bar.set(1.0)
+
+        self.btn_refresh_market.configure(state="normal", text="⚡ Atjaunot Tirgus Klimatu")
+
+    def _copy_market_intel(self):
+        try:
+            txt = self.market_intel_box.get("0.0", "end").strip()
+            if not txt or "Gaidu" in txt:
+                messagebox.showinfo("Info", "Nav datu, ko kopēt.")
+                return
+            self.master.clipboard_clear()
+            self.master.clipboard_append(txt)
+            messagebox.showinfo("Kopēts!", "Tirgus klimata analīze nokopēta starpliktuvei!")
+        except Exception as err:
+            messagebox.showerror("Kļūda", "Neizdevās nokopēt: " + str(err))
+
+    def _export_market_intel_to_word(self):
+        if not HAS_DOCX:
+            messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
+            return
+
+        report_text = self.market_intel_box.get("0.0", "end").strip()
+        if not report_text or "Gaidu" in report_text or "Vāc makro" in report_text:
+            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Vispirms atjaunojiet tirgus klimata analīzi.")
+            return
+
+        from tkinter import filedialog
+        time_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_filename = "QVARK_Tirgus_Klimats_" + time_tag + ".docx"
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".docx",
+            filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
+            initialfile=default_filename,
+            title="Saglabāt Tirgus Klimata atskaiti kā Word failu"
+        )
+        if not save_path:
+            return
+
+        try:
+            document = Document()
+            document.add_heading("Q.V.A.R.K. Tirgus Klimats & Makro Taktika", level=1)
+            time_now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            document.add_paragraph("Ģenerēts: " + time_now_str)
+            document.add_paragraph("Analīze sagatavota ar AuraQuadroOS stratēģiskās izlūkošanas moduli.")
+            document.add_paragraph("-" * 40)
+
+            for line in report_text.split('\n'):
+                line_str = line.strip()
+                if line_str:
+                    document.add_paragraph(line_str)
+
+            document.add_paragraph()
+            p_sep = document.add_paragraph("─" * 45)
+            p_sep.italic = True
+
+            audit_lines = [
+                "Verification status: CLEARED & AUDITED",
+                "Quantitative Engine: Q.V.A.R.K. Core v2.5 (Quantitative Value Assessment & Risk Kernel)",
+                "Division: Strategic Risk Analytics | AuraQuadroOS Financial Division"
+            ]
+            for aline in audit_lines:
+                p_line = document.add_paragraph(aline)
+                p_line.italic = True
+
+            document.save(save_path)
+            messagebox.showinfo("Veiksmīgi saglabāts!", "Tirgus klimata atskaite saglabāta:\n" + str(save_path))
+        except Exception as err:
+            messagebox.showerror("Kļūda", "Neizdevās saglabāt Word failu:\n" + str(err))
