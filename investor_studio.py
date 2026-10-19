@@ -239,7 +239,7 @@ TRANSLATIONS = {
     "info_no_data_to_export_portfolio_audit": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet portfeļa auditu.", "en": "No data to export. Perform a portfolio audit first.", "ru": "Нет данных для экспорта. Сначала проведите аудит портфеля.", "uk": "Немає даних для експорту. Спочатку виконайте аудит портфеля.", "it": "Nessun dato da esportare. Esegui prima un audit del portfolio."},
     "word_save_dialog_title_portfolio_audit": {"lv": "Saglabāt portfeļa audita atskaiti", "en": "Save Portfolio Audit Report", "ru": "Сохранить отчет аудита портфеля", "uk": "Зберегти звіт аудиту portfeļa", "it": "Salva rapporto audit portfolio"},
     "word_report_title_portfolio_audit": {"lv": "eToro Portfeļa Audita & Risku Atskaite", "en": "eToro Portfolio Audit & Risk Report", "ru": "Отчет об аудите и рисках портфеля eToro", "uk": "Звіт про аудит та risku portfeļa eToro", "it": "Report Audit & Rischio Portfolio eToro"},
-    "word_analysis_basis_portfolio_audit": {"lv": "Analīze sagatavota ar AuraQuadroOS portfeļa vadības moduli.", "en": "Analysis prepared by AuraQuadroOS portfolio management module.", "ru": "Анализ подготовлен модулем управления портфелем AuraQuadroOS.", "uk": "Аналіз підготовлено moduļu vadības portfeļa AuraQuadroOS.", "it": "Analisi preparata dal modulo di gestione del portfolio AuraQuadroOS."},
+    "word_analysis_basis_portfolio_audit": {"lv": "Analīze sagatavota ar AuraQuadroOS portfeļa vadības moduli.", "en": "Analysis prepared by AuraQuadroOS portfolio management module.", "ru": "Анализ подготовлен модулем управления портфелем AuraQuadroOS.", "uk": "Analīze підготовлено moduļu vadības portfeļa AuraQuadroOS.", "it": "Analisi preparata dal modulo di gestione del portfolio AuraQuadroOS."},
     "word_output_filename_prefix_portfolio_audit": {"lv": "Portfela_Audits_", "en": "Portfolio_Audit_", "ru": "Audit_Portfelya_", "uk": "Audyt_Portfelya_", "it": "Audit_Portfolio_"},
 }
 
@@ -982,6 +982,19 @@ class InvestorStudioFrame(ctk.CTkFrame):
         # before attempting to load data into them.
         self._load_portfolio()
 
+    # FIX: Add the missing method
+    def _copy_portfolio_summary(self):
+        try:
+            text_to_copy = self.audit_log_box.get("0.0", "end").strip()
+            if not text_to_copy:
+                messagebox.showinfo("Info", "Nav teksta, ko kopēt.")
+                return
+
+            self.master.clipboard_clear()
+            self.master.clipboard_append(text_to_copy)
+            messagebox.showinfo("Kopēts!", "Portfeļa audita kopsavilkums nokopēts starptiplē!")
+        except Exception as err:
+            messagebox.showerror("Kļūda", "Neizdevās nokopēt: " + str(err))
 
     def _load_portfolio(self):
         if PORTFOLIO_FILE.exists():
