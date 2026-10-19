@@ -186,7 +186,7 @@ TRANSLATIONS = {
 
     # Shared/Generic:
     "rentgen_initial_msg": {"lv": "Ievadiet tikeri un nospiediet 'Rentgens'...", "en": "Enter ticker and press 'X-Ray'...", "ru": "Введите тикер и нажмите 'Рентген'...", "uk": "Введіть тікер і натисніть 'Рентген'...", "it": "Inserisci il ticker e premi 'Raggi X'..."},
-    "rentgen_generating_analysis_msg": {"lv": "Kvarks ģenerē fundamentālo analīzi...\n", "en": "Quark is generating fundamental analysis...\n", "ru": "Кварк генерирует фундаментальный анализ...\n", "uk": "Кварк генерує фундаментальний аналіз...\n", "it": "Quark sta generando l'analisi fondamentale...\n"},
+    "rentgen_generating_analysis_msg": {"lv": "Kvarks ģenerē fundamentālo analīzi...\n", "en": "Quark is generating fundamental analysis...\n", "ru": "Кварк генерирует фундаментальный анализ...\n", "uk": "Кварк генерує фундаментальний analīze...\n", "it": "Quark sta generando l'analisi fondamentale...\n"},
     "source_changed_msg": {"lv": "Avota kanāls pārslēgts uz: {source}. Gaidu jaunu signālu 'Rentgens'!", "en": "Source channel switched to: {source}. Awaiting new 'X-Ray' signal!", "ru": "Канал источника переключен на: {source}. Ожидаю новый сигнал 'Рентген'!", "uk": "Канал джерела перемкņem na: {source}. Очікую новий сигнал 'Рентген'!", "it": "Canale sorgente cambiato in: {source}. In attesa di nuovo segnale 'Raggi X'!"},
     "fetching_data_msg": {"lv": "Nolasa tirgus datus par {ticker} no {source}...\n", "en": "Fetching market data for {ticker} from {source}...\n", "ru": "Получение рыночных данных для {ticker} из {source}...\n", "uk": "Отримання rinka datus par {ticker} no {source}...\n", "it": "Recupero dati di mercato per {ticker} da {source}...\n"},
     "ticker_info_header": {"lv": "=== {short_name} ({ticker}) ===", "en": "=== {short_name} ({ticker}) ===", "ru": "=== {short_name} ({ticker}) ===", "uk": "=== {short_name} ({ticker}) ===", "it": "=== {short_name} ({ticker}) ==="},
@@ -216,9 +216,9 @@ TRANSLATIONS = {
     "btn_penny_stocks_hunter": {"lv": "🎯 Penny Stocks Mednieks (<$5)", "en": "🎯 Penny Stocks Hunter (<$5)", "ru": "🎯 Охотник за пенни-акциями (<$5)", "uk": "🎯 Мисливець за пенні-акціями (<$5)", "it": "🎯 Cacciatore di Penny Stock (<$5)"},
     "btn_new_stars_hunter": {"lv": "🚀 Jaunās Zvaigznes (2021-2024 IPO)", "en": "🚀 New Stars (2021-2024 IPO)", "ru": "🚀 Новые Звезды (IPO 2021-2024)", "uk": "🚀 Нові Зірки (IPO 2021-2024)", "it": "🚀 Nuove Stelle (IPO 2021-2024)"},
     "growth_penny_scan_progress": {"lv": "🔍 Kvarks meklē Valtera profilam piemērotas peniju akcijas (cena <$5, apgrozījums >300k)...", "en": "🔍 Quark is hunting for penny stocks suitable for Valter's profile (price <$5, volume >300k)...", "ru": "🔍 Кварк ищет пенни-акции, подходящие для профиля Валтера (цена <$5, объем >300k)...", "uk": "🔍 Кварк шукає пенні-акції, придатні для профілю Валтера (ціна <$5, обсяг >300k)...", "it": "🔍 Quark è a caccia di penny stock adatte al profilo di Valter (prezzo <$5, volume >300k)..."},
-    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Брата (IPO 2021-2024, з потенціалом зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
+    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Браta (IPO 2021-2024, з потенціалом зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
     "growth_no_candidates_found": {"lv": "Komandants Kvarks neatrada piemērotus kandidātus.", "en": "Commander Quark found no suitable candidates.", "ru": "Командир Кварк не нашел подходящих кандидатов.", "uk": "Командир Кварк не знайшов відповідних кандидатів.", "it": "Il Comandante Quark non ha trovato candidati idonei."},
-    "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Кварк сканує tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
+    "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Кварк skenē tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
     "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та оцінює kandidātus ar AI analīzi...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
 }
 
@@ -525,9 +525,10 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.resolution_box.configure(state="disabled")
             return
 
-        self.btn_analyze.configure(state="disabled", text=i18n.t("btn_hunt_unicorns_loading", btn_text=i18n.t("btn_rentgens")))
-        self.progress_bar.configure(mode="indeterminate") # Task 2
-        self.progress_bar.start() # Task 2
+        # UZDEVUMS 1: Aizstāt ielādes tekstu
+        self.btn_analyze.configure(state="disabled", text="⏳ Analizē...")
+        self.progress_bar.configure(mode="indeterminate")
+        self.progress_bar.start()
 
         self.financial_summary_box.configure(state="normal")
         self.financial_summary_box.delete("0.0", "end")
@@ -1098,8 +1099,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     f"Price: {data.get('price')} {data.get('currency')}\n"
                     f"P/E (Trailing): {data.get('pe')}\n"
                     f"P/E (Forward): {data.get('fwd_pe')}\n"
-                    f"PEG Ratio: {data.get('peg')}\n"
-                    f"52-Week High: {data.get('52_high')} {data.get('currency')}\n"
+                    f"- PEG Ratio: {data.get('peg')}\n"
+                    f"- 52-Week High: {data.get('52_high')} {data.get('currency')}\n"
                     f"- 52-Week Low: {data.get('52_low')} {data.get('currency')}\n"
                     f"- Target Mean Price: {data.get('target_mean')} {data.get('currency')}\n\n"
                 )
@@ -1242,10 +1243,14 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.growth_analysis_box.insert("0.0", i18n.t("growth_no_candidates"))
             self.growth_analysis_box.configure(state="disabled")
 
+    # UZDEVUMS 2: Sakārtot funkciju _enable_all_growth_buttons
     def _enable_all_growth_buttons(self):
-        self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns"))
-        self.btn_hunt_penny_stocks.configure(state="normal", text=i18n.t("btn_penny_stocks_hunter"))
-        self.btn_hunt_new_stars.configure(state="normal", text=i18n.t("btn_new_stars_hunter"))
+        try:
+            self.btn_scan_all_growth.configure(state="normal", text=i18n.t("btn_hunt_unicorns"))
+            self.btn_hunt_penny_stocks.configure(state="normal", text=i18n.t("btn_penny_stocks_hunter"))
+            self.btn_hunt_new_stars.configure(state="normal", text=i18n.t("btn_new_stars_hunter"))
+        except Exception:
+            pass
 
     def _hunt_unicorns_general(self, hunt_type):
         if not HAS_GENAI or not self.get_gemini_key():
@@ -1329,7 +1334,6 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
             if not initial_candidates:
                 self.master.after(0, self._update_growth_analysis_log, i18n.t("growth_no_candidates_found"))
-                self.master.after(0, self._enable_all_growth_buttons)
                 self.master.after(0, lambda: self.growth_selector.set(i18n.t("growth_no_candidates")))
                 return
 
@@ -1389,7 +1393,6 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
             if not filtered_candidates:
                 self.master.after(0, self._update_growth_analysis_log, i18n.t("growth_no_candidates_found"))
-                self.master.after(0, self._enable_all_growth_buttons)
                 self.master.after(0, lambda: self.growth_selector.set(i18n.t("growth_no_candidates")))
                 return
 
@@ -1443,12 +1446,12 @@ class InvestorStudioFrame(ctk.CTkFrame):
         except json.JSONDecodeError as jde:
             partial_response = raw_candidates_json[:500] if 'raw_candidates_json' in locals() else raw_analysis_json[:500] if 'raw_analysis_json' in locals() else "N/A"
             self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_parsing', e=jde, partial_response=partial_response))
-            self.master.after(0, self._enable_all_growth_buttons)
         except ValueError as ve:
             self.master.after(0, self._update_growth_analysis_log, i18n.t('error_ai_unparsable', e=ve))
-            self.master.after(0, self._enable_all_growth_buttons)
         except Exception as e:
             self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_api_contact', e=e))
+        finally:
+            # UZDEVUMS 3: Pārliecināties, ka noslēgumā (arī pie jebkuras kļūdas except blokā) vienmēr tiek izsaukts
             self.master.after(0, self._enable_all_growth_buttons)
 
 
@@ -1459,7 +1462,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.growth_analysis_box.configure(state="disabled")
 
     def _update_growth_ui_after_hunt(self):
-        self._enable_all_growth_buttons()
+        # This function also calls _enable_all_growth_buttons, which is fine.
+        self._enable_all_growth_buttons() 
         self.growth_selector.configure(values=[c.get("name") for c in self.growth_candidates_data])
         if self.growth_candidates_data:
             self.growth_selector.set(self.growth_candidates_data[0]["name"])
