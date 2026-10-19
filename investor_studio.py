@@ -204,7 +204,7 @@ TRANSLATIONS = {
 
     # Additional keys for prompts and UI (LEO ADDITION)
     "lbl_inv_portfolio_audit_plan": {"lv": "🐾 KOMANDANTA KVARKA AUDITA PLĀNS", "en": "🐾 COMMANDER KVARK'S AUDIT PLAN", "ru": "🐾 ПЛАН АУДИТА КОМАНДИРА КВАРКА", "uk": "🐾 ПЛАН АУДИТУ КОМАНДИРА КВАРКА", "it": "🐾 PIANO DI AUDIT DEL COMANDANTE KVARKS"},
-    "audit_sell_liquidate": {"lv": "✂️ LIKVIDĒT / PĀRDOT", "en": "✂️ LIQUIDATE / SELL", "ru": "✂️ ЛИКВИДИРОВАТЬ / ПРОДАТЬ", "uk": "✂️ ЛІКВІДУВАТИ / ПРОДАТИ", "it": "✂️ LIQUIDARE / VENDERE"},
+    "audit_sell_liquidate": {"lv": "✂️ LIKVIDĒT / PĀRDOD", "en": "✂️ LIQUIDATE / SELL", "ru": "✂️ ЛИКВИДИРОВАТЬ / ПРОДАТЬ", "uk": "✂️ ЛІКВІДУВАТИ / ПРОДАТИ", "it": "✂️ LIQUIDARE / VENDERE"},
     "audit_cash_allocation": {"lv": "🎯 BRĪVO LĪDZEKĻU SADALE", "en": "🎯 FREE CASH ALLOCATION", "ru": "🎯 РАСПРЕДЕЛЕНИЕ СВОБОДНЫХ СРЕДСТВ", "uk": "🎯 РОЗПОДІЛ ВІЛЬНИХ КОШТІВ", "it": "🎯 ALLOCAZIONE DEL CAPITALE DISPONIBILE"},
     "llm_default_lang_instruction": {"lv": "Atbildi latviešu valodā.", "en": "Respond in English.", "ru": "Ответь на русском языке.", "uk": "Відповідайте українською мовою.", "it": "Rispondi in italiano."},
     "source_label": {"lv": "Avots", "en": "Source", "ru": "Источник", "uk": "Джерело", "it": "Fonte"},
@@ -216,7 +216,7 @@ TRANSLATIONS = {
     "btn_penny_stocks_hunter": {"lv": "🎯 Penny Stocks Mednieks (<$5)", "en": "🎯 Penny Stocks Hunter (<$5)", "ru": "🎯 Охотник за пенни-акциями (<$5)", "uk": "🎯 Мисливець за пенні-акціями (<$5)", "it": "🎯 Cacciatore di Penny Stock (<$5)"},
     "btn_new_stars_hunter": {"lv": "🚀 Jaunās Zvaigznes (2021-2024 IPO)", "en": "🚀 New Stars (2021-2024 IPO)", "ru": "🚀 Новые Звезды (IPO 2021-2024)", "uk": "🚀 Нові Зірки (IPO 2021-2024)", "it": "🚀 Nuove Stelle (IPO 2021-2024)"},
     "growth_penny_scan_progress": {"lv": "🔍 Kvarks meklē Valtera profilam piemērotas peniju akcijas (cena <$5, apgrozījums >300k)...", "en": "🔍 Quark is hunting for penny stocks suitable for Valter's profile (price <$5, volume >300k)...", "ru": "🔍 Кварк ищет пенни-акции, подходящие для профиля Валтера (цена <$5, объем >300k)...", "uk": "🔍 Кварк шукає пенні-акції, придатні для профілю Валтера (ціна <$5, обсяг >300k)...", "it": "🔍 Quark è a caccia di penny stock adatte al profilo di Valter (prezzo <$5, volume >300k)..."},
-    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Браta (IPO 2021-2024, з потенціалом зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
+    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Браta (IPO 2021-2024, з potenciālu зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
     "growth_no_candidates_found": {"lv": "Komandants Kvarks neatrada piemērotus kandidātus.", "en": "Commander Quark found no suitable candidates.", "ru": "Командир Кварк не нашел подходящих кандидатов.", "uk": "Командир Кварк не знайшов відповідних кандидатів.", "it": "Il Comandante Quark non ha trovato candidati idonei."},
     "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Кварк skenē tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
     "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та novērtē kandidātus ar AI analīzi...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
@@ -517,30 +517,29 @@ class InvestorStudioFrame(ctk.CTkFrame):
         if not ticker:
             self.financial_summary_box.configure(state="normal")
             self.financial_summary_box.delete("0.0", "end")
-            self.financial_summary_box.insert("0.0", i18n.t("rentgen_initial_msg"))
+            self.financial_summary_box.insert("0.0", "Ievadiet tikeri un nospiediet 'Rentgens'...")
             self.financial_summary_box.configure(state="disabled")
             self.resolution_box.configure(state="normal")
             self.resolution_box.delete("0.0", "end")
-            self.resolution_box.insert("0.0", i18n.t("txt_waiting"))
+            self.resolution_box.insert("0.0", "Gaidu pieprasījumu...")
             self.resolution_box.configure(state="disabled")
             return
 
-        # UZDEVUMS 1: Aizstāt ielādes tekstu
         self.btn_analyze.configure(state="disabled", text="⏳ Analizē...")
         self.progress_bar.configure(mode="indeterminate")
         self.progress_bar.start()
 
         self.financial_summary_box.configure(state="normal")
         self.financial_summary_box.delete("0.0", "end")
-        self.financial_summary_box.insert("0.0", i18n.t('fetching_data_msg', ticker=ticker, source=self.selected_source))
+        self.financial_summary_box.insert("0.0", f"Nolasa tirgus datus par {ticker} no {self.selected_source}...\n")
         self.financial_summary_box.configure(state="disabled")
 
         self.resolution_box.configure(state="normal")
         self.resolution_box.delete("0.0", "end")
-        self.resolution_box.insert("0.0", i18n.t("rentgen_generating_analysis_msg"))
+        self.resolution_box.insert("0.0", "Kvarks ģenerē fundamentālo analīzi...\n")
         self.resolution_box.configure(state="disabled")
 
-        threading.Thread(target=self._analyze_ticker_worker, args=(ticker,)).start()
+        threading.Thread(target=self._analyze_ticker_worker, args=(ticker,), daemon=True).start()
 
     def _analyze_ticker_worker(self, ticker):
         stats_data, payload = self._fetch_stock_data_for_rentgen_tab(ticker)
