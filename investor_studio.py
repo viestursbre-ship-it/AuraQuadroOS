@@ -224,7 +224,7 @@ TRANSLATIONS = {
     "btn_penny_stocks_hunter": {"lv": "🎯 Penny Stocks Mednieks (<$5)", "en": "🎯 Penny Stocks Hunter (<$5)", "ru": "🎯 Охотник за пенни-акциями (<$5)", "uk": "🎯 Мисливець за пенні-акціями (<$5)", "it": "🎯 Cacciatore di Penny Stock (<$5)"},
     "btn_new_stars_hunter": {"lv": "🚀 Jaunās Zvaigznes (2021-2024 IPO)", "en": "🚀 New Stars (2021-2024 IPO)", "ru": "🚀 Новые Звезды (IPO 2021-2024)", "uk": "🚀 Нові Зірки (IPO 2021-2024)", "it": "🚀 Nuove Stelle (IPO 2021-2024)"},
     "growth_penny_scan_progress": {"lv": "🔍 Kvarks meklē Valtera profilam piemērotas peniju akcijas (cena <$5, apgrozījums >300k)...", "en": "🔍 Quark is hunting for penny stocks suitable for Valter's profile (price <$5, volume >300k)...", "ru": "🔍 Кварк ищет пенни-акции, подходящие для профиля Валтера (цена <$5, объем >300k)...", "uk": "🔍 Кварк шукає пенні-акції, придатні для профілю Валтера (ціна <$5, обсяг >300k)...", "it": "🔍 Quark è a caccia di penny stock adatte al profilo di Valter (prezzo <$5, volume >300k)..."},
-    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Браta (IPO 2021-2024, ar potenciālu зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
+    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Валтера (IPO 2021-2024, ar potenciālu зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
     "growth_no_candidates_found": {"lv": "Komandants Kvarks neatrada piemērotus kandidātus.", "en": "Commander Quark found no suitable candidates.", "ru": "Командир Кварк не нашел подходящих кандидатов.", "uk": "Командир Кварк не знайшов відповідних кандидатів.", "it": "Il Comandante Quark non ha trovato candidati idonei."},
     "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Kvarks skenē tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
     "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та novērtē kandidātus ar AI analīzi...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
@@ -1663,25 +1663,19 @@ class InvestorStudioFrame(ctk.CTkFrame):
         except Exception as err:
             messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=err)) # Use i18n key
 
-    # Task 4: Replace _export_growth_to_word with the provided code
     def _export_growth_to_word(self):
         if not HAS_DOCX:
             messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
             return
 
-        report_text = self.growth_analysis_box.get("0.0", "end").strip()
-        if not report_text or "Kvarks analizē" in report_text or "Gaidu" in report_text or "Nav atlasīti vienradžu kandidāti." in report_text: # Added new initial message check
-            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Vispirms veiciet aktīvu meklēšanu un analīzi.")
-            return
-
         from tkinter import filedialog
         time_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
-        default_filename = "QVARK_Izaugsmes_Mednieks_" + time_tag + ".docx"
+        default_filename = "QVARK_Izaugsmes_Mednieks_Pilna_Atskaite_" + time_tag + ".docx"
         save_path = filedialog.asksaveasfilename(
             defaultextension=".docx",
             filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
             initialfile=default_filename,
-            title="Saglabāt Izaugsmes Mednieka atskaiti kā Word failu"
+            title="Saglabāt Izaugsmes Mednieka pilno atskaiti"
         )
         if not save_path:
             return
@@ -1689,28 +1683,69 @@ class InvestorStudioFrame(ctk.CTkFrame):
         try:
             document = Document()
             document.add_heading("Q.V.A.R.K. Perspektīvo Aktīvu & Vienradžu Rezolūcija", level=1)
-            time_now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            document.add_paragraph("Ģenerēts: " + time_now_str)
+            document.add_paragraph("Ģenerēts: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             document.add_paragraph("Analīze sagatavota ar AuraQuadroOS kvantitatīvās analīzes dzinēju.")
             document.add_paragraph("-" * 40)
 
-            for line in report_text.split('\n'):
-                line_str = line.strip()
-                if line_str:
-                    document.add_paragraph(line_str)
+            candidates = self.growth_candidates_data
+            # Check if candidates list is populated with full analysis dictionaries
+            has_full_list_with_data = isinstance(candidates, list) and len(candidates) > 0 and \
+                                      isinstance(candidates[0], dict) and candidates[0].get('resolution') is not None
 
+            if has_full_list_with_data:
+                for c in candidates:
+                    c_name = c.get('name', c.get('ticker', 'Kandidāts'))
+                    c_ticker = c.get('ticker', '')
+                    document.add_heading(f"{c_name} ({c_ticker})", level=2)
+                    
+                    if c.get('red_flag'):
+                        document.add_paragraph(f"🚩 Riska Faktors: {c.get('red_flag')}")
+                    if c.get('niche'):
+                        document.add_paragraph(f"🎯 Niša / Pārsvars: {c.get('niche')}")
+                    if c.get('why_10x_100x'): # This maps to 'thesis' in the prompt sample
+                        document.add_paragraph(f"🚀 Izaugsmes pamatojums: {c.get('why_10x_100x')}")
+                    if c.get('black_swan'):
+                        document.add_paragraph(f"⚠️ Melnais Gulbis: {c.get('black_swan')}")
+                    if c.get('resolution'): # This maps to 'verdict' in the prompt sample
+                        document.add_paragraph(f"📋 Slēdziens: {c.get('resolution')}")
+                    document.add_paragraph("-" * 30)
+            else:
+                # Fallback to current text box content if no full list of candidates is available
+                report_text_fallback = self.growth_analysis_box.get("0.0", "end").strip()
+                
+                if not report_text_fallback or \
+                   report_text_fallback == i18n.t("growth_status_initial") or \
+                   report_text_fallback == i18n.t("growth_no_candidates_found") or \
+                   report_text_fallback == i18n.t("growth_no_candidates") or \
+                   "Kvarks analizē" in report_text_fallback:
+
+                    messagebox.showinfo("Info", "Nav datu, ko eksportēt. Vispirms veiciet aktīvu meklēšanu un analīzi.")
+                    return # Exit function if no data even in fallback
+
+                # Clean the phrase for fallback
+                report_text_fallback = report_text_fallback.replace("Komandants Kvarks ir izdevis Rīkojumu.", "Q.V.A.R.K. Stratēģiskā Rezolūcija Apstiprināta.")
+                for line in report_text_fallback.split('\n'):
+                    line_str = line.strip()
+                    if line_str:
+                        document.add_paragraph(line_str)
+
+            # Audita zīmogs ar atstarpēm
             document.add_paragraph()
+            p_sep = document.add_paragraph("─" * 45)
+            p_sep.italic = True
+            
             audit_lines = [
-                "─" * 45,
                 "Verification status: CLEARED & AUDITED",
                 "Quantitative Engine: Q.V.A.R.K. Core v2.5 (Quantitative Value Assessment & Risk Kernel)",
                 "Division: Strategic Risk Analytics | AuraQuadroOS Financial Division"
             ]
-            p_audit = document.add_paragraph("\n".join(audit_lines))
-            p_audit.italic = True
+            for aline in audit_lines:
+                p_line = document.add_paragraph(aline)
+                p_line.italic = True
+                p_line.paragraph_format.space_after = 2
 
             document.save(save_path)
-            messagebox.showinfo("Veiksmīgi saglabāts!", "Atskaite veiksmīgi saglabāta:\n" + str(save_path))
+            messagebox.showinfo("Veiksmīgi saglabāts!", "Pilnā vienradžu atskaite saglabāta:\n" + str(save_path))
         except Exception as err:
             messagebox.showerror("Kļūda", "Neizdevās saglabāt Word failu:\n" + str(err))
 
