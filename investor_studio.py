@@ -9,6 +9,7 @@ import yfinance as yf
 from datetime import datetime, timedelta
 import re # Added for safe JSON extraction (Task 1)
 import requests # LEO ADDITION: Import requests for Alpha Vantage, Finnhub, and FMP
+import time # LEO ADDITION: Import time for API rate limiting
 
 # Import for messagebox (FIX 1)
 from tkinter import messagebox
@@ -96,7 +97,7 @@ TRANSLATIONS = {
     "growth_scanning_candidates": {"lv": "🔍 Kvarks skenē... Gaidiet jaunus kandidātus!", "en": "🔍 Quark is scanning... Awaiting new candidates!", "ru": "🔍 Кварк сканирует... Ожидайте новых кандидатов!", "uk": "🔍 Кварк сканує... Чекайте нових кандидатів!", "it": "🔍 Quark sta scansionando... In attesa di nuovi candidati!"},
     "growth_scan_progress1": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о единорогах...", "uk": "🔍 Кварк сканує ринок та збирає дані про єдиноrogus...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sugli unicorni..."},
     "growth_scan_progress2": {"lv": "📊 Atlasa jaunos vienradžus ar AI analīzi...", "en": "📊 Selecting new unicorns with AI analysis...", "ru": "📊 Выбирает новых единорогов с помощью AI анализа...", "uk": "📊 Вибирає нових єдинорогів за допомогою AI аналізу...", "it": "📊 Seleziona nuovi unicorni con analisi AI..."},
-    "growth_initial_results": {"lv": "Izvēlieties uzņēmumu vai nospiediet '🚀 Medīt Jaunos Vienradžus', lai Kvarks atlasa nākamo lielo lēcienu...", "en": "Select a company or press '🚀 Hunt New Unicorns' for Quark to select the next big leap...", "ru": "Выберите компанию или нажмите '🚀 Искать новых единорогов', чтобы Кварк выбрал следующий большой скачок...", "uk": "Виберіть компанію або натисніть '🚀 Шукати нових єдинорогів', щоб Кварк вибрав наступний великий стрижок...", "it": "Seleziona un'azienda o premi '🚀 Caccia agli Unicorni' per far sì che Quark selezioni il prossimo grande salto..."},
+    "growth_initial_results": {"lv": "Izvēlieties uzņēmumu vai nospiediet '🚀 Medīt Jaunos Vienradžus', lai Kvarks atlasa nākamo lielo lēcienu...", "en": "Select a company or press '🚀 Hunt New Unicorns' for Quark to select the next big leap...", "ru": "Выберите компанию или нажмите '🚀 Искать новых единорогов', чтобы Кварк выбрал следующий большой скачок...", "uk": "Виберіть компанію або натисніть '🚀 Шукати нових єдинорогів', щоб Кварк вибрав наступний великий стрижок...", "it": "Selecciona un'azienda o premi '🚀 Caccia agli Unicorni' per far sì che Quark selezioni il prossimo grande salto..."},
     "btn_copy_analysis": {"lv": "📋 Kopēt analīzi", "en": "📋 Copy Analysis", "ru": "📋 Копировать анализ", "uk": "📋 Копіювати аналіз", "it": "📋 Copia analisi"},
     "growth_no_unicorns_fallback": {"lv": "Kvarks neatrada piemērotus vienradžus vai radās kļūda.", "en": "Quark found no suitable unicorns or an error occurred.", "ru": "Кварк не нашел подходящих единорогов или произошла ошибка.", "uk": "Кварк не знайшов відповідних єдинорогів або сталася помилка.", "it": "Quark non ha trovato unicorni adatti o si è verificato un errore."},
     "error_gemini_parsing": {"lv": "⚠️ Gemini atgrieza nestrukturētu atbildi vai kļūda parsēšanā: {e}. Daļa: {partial_response}...", "en": "⚠️ Gemini returned unstructured response or parsing error: {e}. Part: {partial_response}...", "ru": "⚠️ Gemini вернул неструктурированный ответ или ошибка парсинга: {e}. Часть: {partial_response}...", "uk": "⚠️ Gemini повернув неструктуровану відповідь або помилка парсингу: {e}. Частина: {partial_response}...", "it": "⚠️ Gemini ha restituito una risposta non strutturata o errore di parsing: {e}. Parte: {partial_response}..."},
@@ -108,7 +109,7 @@ TRANSLATIONS = {
     "lbl_why_10x_100x": {"lv": "Kāpēc 10x-100x:", "en": "Why 10x-100x:", "ru": "Почему 10x-100x:", "uk": "Чому 10x-100x:", "it": "Perché 10x-100x:"},
     "lbl_black_swan": {"lv": "Melnais Gulbis (risks):", "en": "Black Swan (risk):", "ru": "Черный Лебедь (риск):", "uk": "Чорний Лебīдь (ризик):", "it": "Cigno Nero (rischio):"},
     "btn_add_to_portfolio": {"lv": "➕ Pievienot manam eToro sarakstam", "en": "➕ Add to my eToro list", "ru": "➕ Добавить в мой список eToro", "uk": "➕ Додати до мого списку eToro", "it": "➕ Aggiungi alla mia lista eToro"},
-    "growth_copy_header": {"lv": "🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBAS REZULTĀTI 🚀", "en": "🚀 COMMANDER KVARK'S UNICORN HUNT RESULTS 🚀", "ru": "🚀 РЕЗУЛЬТАТЫ ОХОТЫ НА ЕДИНОРОГОВ КОМАНДИРА КВАРКА 🚀", "uk": "🚀 РЕЗУЛЬТАТИ ПОЛЮВАННЯ НА ЄДИНОРОГІВ КОМАНДИРА КВАРКА 🚀", "it": "🚀 RISULTATI DELLA CACCIA AGLI UNICORNI DEL COMANDANTE QUARK 🚀"},
+    "growth_copy_header": {"lv": "🚀 KOMANDANTA KVARKA VIENRADŽU MEDĪBU REZULTĀTI 🚀", "en": "🚀 COMMANDER KVARK'S UNICORN HUNT RESULTS 🚀", "ru": "🚀 РЕЗУЛЬТАТЫ ОХОТЫ НА ЕДИНОРОГОВ КОМАНДИРА КВАРКА 🚀", "uk": "🚀 РЕЗУЛЬТАТИ ПОЛЮВАННЯ НА ЄДИНОРОГІВ КОМАНДИРА КВАРКА 🚀", "it": "🚀 RISULTATI DELLA CACCIA AGLI UNICORNI DEL COMANDANTE QUARK 🚀"},
     "growth_copy_candidate_header": {"lv": "--- Kandidāts {idx_plus_1}: {ticker} - {name} ---", "en": "--- Candidate {idx_plus_1}: {ticker} - {name} ---", "ru": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "uk": "--- Кандидат {idx_plus_1}: {ticker} - {name} ---", "it": "--- Candidato {idx_plus_1}: {ticker} - {name} ---"},
     "growth_copy_niche": {"lv": "   Slepenais ierocis (Niša): {niche}", "en": "   Secret Weapon (Niche): {niche}", "ru": "   Секретное оружие (Ниша): {niche}", "uk": "   Секретна зброя (Ніша): {niche}", "it": "   Arma Segreta (Nicchia): {niche}"},
     "growth_copy_why": {"lv": "   Kāpēc 10x-100x: {why}", "en": "   Why 10x-100x: {why}", "ru": "   Почему 10x-100x: {why}", "uk": "   Чому 10x-100x: {why}", "it": "   Perché 10x-100x:"},
@@ -216,7 +217,7 @@ TRANSLATIONS = {
     "btn_penny_stocks_hunter": {"lv": "🎯 Penny Stocks Mednieks (<$5)", "en": "🎯 Penny Stocks Hunter (<$5)", "ru": "🎯 Охотник за пенни-акциями (<$5)", "uk": "🎯 Мисливець за пенні-акціями (<$5)", "it": "🎯 Cacciatore di Penny Stock (<$5)"},
     "btn_new_stars_hunter": {"lv": "🚀 Jaunās Zvaigznes (2021-2024 IPO)", "en": "🚀 New Stars (2021-2024 IPO)", "ru": "🚀 Новые Звезды (IPO 2021-2024)", "uk": "🚀 Нові Зірки (IPO 2021-2024)", "it": "🚀 Nuove Stelle (IPO 2021-2024)"},
     "growth_penny_scan_progress": {"lv": "🔍 Kvarks meklē Valtera profilam piemērotas peniju akcijas (cena <$5, apgrozījums >300k)...", "en": "🔍 Quark is hunting for penny stocks suitable for Valter's profile (price <$5, volume >300k)...", "ru": "🔍 Кварк ищет пенни-акции, подходящие для профиля Валтера (цена <$5, объем >300k)...", "uk": "🔍 Кварк шукає пенні-акції, придатні для профілю Валтера (ціна <$5, обсяг >300k)...", "it": "🔍 Quark è a caccia di penny stock adatte al profilo di Valter (prezzo <$5, volume >300k)..."},
-    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Браta (IPO 2021-2024, з potenciālu зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
+    "growth_new_stars_scan_progress": {"lv": "🌟 Kvarks skenē jaunas zvaigznes Brāļa profilam (2021-2024 IPO, ar izaugsmes potenciālu)...", "en": "🌟 Quark is scanning for new stars suitable for Brother's profile (2021-2024 IPO, with growth potential)...", "ru": "🌟 Кварк сканирует новые звезды для профиля Брата (IPO 2021-2024, с потенциалом роста)...", "uk": "🌟 Кварк сканує нові зірки, придатні для профілю Браta (IPO 2021-2024, ar potenciālu зростання)...", "it": "🌟 Quark sta cercando nuove stelle adatte al profilo del Fratello (IPO 2021-2024, con potenziale di crescita)..."},
     "growth_no_candidates_found": {"lv": "Komandants Kvarks neatrada piemērotus kandidātus.", "en": "Commander Quark found no suitable candidates.", "ru": "Командир Кварк не нашел подходящих кандидатов.", "uk": "Командир Кварк не знайшов відповідних кандидатів.", "it": "Il Comandante Quark non ha trovato candidati idonei."},
     "growth_scanning_top_10": {"lv": "🔍 Kvarks skenē tirgu un vāc datus par TOP 10 vienradžiem...", "en": "🔍 Quark is scanning the market and collecting data on TOP 10 unicorns...", "ru": "🔍 Кварк сканирует рынок и собирает данные о ТОП-10 единорогах...", "uk": "🔍 Кварк skenē tirgu un vāc dati par TOP-10 vienradžiem...", "it": "🔍 Quark sta scansionando il mercato e raccogliendo dati sui TOP 10 unicorni..."},
     "growth_evaluating_candidates": {"lv": "📊 Atlasa un novērtē kandidātus ar AI analīzi...", "en": "📊 Selecting and evaluating candidates with AI analysis...", "ru": "📊 Выбирает и оценивает кандидатов с помощью AI анализа...", "uk": "📊 Вибирає та novērtē kandidātus ar AI analīzi...", "it": "📊 Selezione e valutazione dei candidati con analisi AI..."},
@@ -1396,51 +1397,54 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 return
 
             for filtered_candidate in filtered_candidates:
-                # Gemini analysis for each *filtered* candidate
-                prompt_analysis = (
-                    f"{lang_instruction}\n"
-                    "You are Commander Quark, the supreme commander. Analyze the following stock candidate "
-                    "for its potential, hidden risks (black swans), and its niche/secret weapon. "
-                    "Your assessment should be sharp, tactical, and focused on empire-building. "
-                    "Return the analysis as a JSON object with the following keys:\n"
-                    "- 'ticker': (string, e.g., 'SMCI')\n"
-                    "- 'name': (string, e.g., 'Super Micro Computer')\n"
-                    "- 'red_flag': (string, brief warning if P/E > 80, PEG > 2, or other major concern, otherwise empty string.)\n"
-                    "- 'niche': (string, the company's unique 'secret weapon' or market niche.)\n"
-                    "- 'why_10x_100x': (string, detailed tactical reasons for its exponential growth potential, "
-                    "referencing relevant tech/market trends like AI, monopolistic tendencies, infrastructure importance.)\n"
-                    "- 'black_swan': (string, a significant, low-probability, high-impact risk specific to this company.)\n"
-                    "- 'resolution': (string, Commander Quark's concise, actionable tactical resolution for this specific ticker.)\n"
-                    "Ensure the JSON is perfectly parsable, with no introductory or concluding text.\n\n"
-                    "Stock Data:\n"
-                    f"- Ticker: {filtered_candidate.get('ticker')}\n"
-                    f"- Name: {filtered_candidate.get('name')}\n"
-                    f"- Price: {filtered_candidate.get('price')} {filtered_candidate.get('currency')}\n"
-                    f"- P/E (Trailing): {filtered_candidate.get('pe', 'N/A')}\n" # Use .get with default 'N/A'
-                    f"- P/E (Forward): {filtered_candidate.get('fwd_pe', 'N/A')}\n"
-                    f"- PEG Ratio: {filtered_candidate.get('peg', 'N/A')}\n"
-                    f"- 52-Week High: {filtered_candidate.get('52_high', 'N/A')} {filtered_candidate.get('currency')}\n"
-                    f"- 52-Week Low: {filtered_candidate.get('52_low', 'N/A')} {filtered_candidate.get('currency')}\n"
-                    f"- Target Mean Price: {filtered_candidate.get('target_mean', 'N/A')} {filtered_candidate.get('currency')}\n"
-                    f"- Sector: {filtered_candidate.get('sector', 'Unknown')}\n"
-                    f"- IPO Date: {filtered_candidate.get('ipo_date', 'N/A')}\n"
-                    f"- Volume: {filtered_candidate.get('volume', 0)}\n\n"
-                    "Consider a 'Red Flag' if P/E (trailing or forward) is > 80-100 OR PEG > 2 and no clear growth justification.\n"
-                    "Conclude the 'resolution' with 'Komandants Kvarks ir izdevis Rīkojumu.'"
-                )
-                response_analysis = model.generate_content(prompt_analysis, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
-                raw_analysis_json = response_analysis.text.strip()
-                
-                json_match_analysis = re.search(r"\{.*\}", raw_analysis_json, re.DOTALL)
-                if json_match_analysis:
-                    raw_analysis_json = json_match_analysis.group(0)
-                else:
-                    raise ValueError(f"Could not find a valid JSON object in the analysis response for {filtered_candidate.get('ticker')}.")
+                try:
+                    self.master.after(0, self._update_growth_analysis_log, f"🧠 Kvarks analizē {filtered_candidate.get('ticker')}...")
+                    # Izsaucam Gemini modeli...
+                    prompt_analysis = (
+                        f"{lang_instruction}\n"
+                        "You are Commander Quark, the supreme commander. Analyze the following stock candidate "
+                        "for its potential, hidden risks (black swans), and its niche/secret weapon. "
+                        "Your assessment should be sharp, tactical, and focused on empire-building. "
+                        "Return the analysis as a JSON object with the following keys:\n"
+                        "- 'ticker': (string, e.g., 'SMCI')\n"
+                        "- 'name': (string, e.g., 'Super Micro Computer')\n"
+                        "- 'red_flag': (string, brief warning if P/E > 80, PEG > 2, or other major concern, otherwise empty string.)\n"
+                        "- 'niche': (string, the company's unique 'secret weapon' or market niche.)\n"
+                        "- 'why_10x_100x': (string, detailed tactical reasons for its exponential growth potential, "
+                        "referencing relevant tech/market trends like AI, monopolistic tendencies, infrastructure importance.)\n"
+                        "- 'black_swan': (string, a significant, low-probability, high-impact risk specific to this company.)\n"
+                        "- 'resolution': (string, Commander Quark's concise, actionable tactical resolution for this specific ticker.)\n"
+                        "Ensure the JSON is perfectly parsable, with no introductory or concluding text.\n\n"
+                        "Stock Data:\n"
+                        f"- Ticker: {filtered_candidate.get('ticker')}\n"
+                        f"- Name: {filtered_candidate.get('name')}\n"
+                        f"- Price: {filtered_candidate.get('price')} {filtered_candidate.get('currency')}\n"
+                        f"- P/E (Trailing): {filtered_candidate.get('pe', 'N/A')}\n" # Use .get with default 'N/A'
+                        f"- P/E (Forward): {filtered_candidate.get('fwd_pe', 'N/A')}\n"
+                        f"- PEG Ratio: {filtered_candidate.get('peg', 'N/A')}\n"
+                        f"- 52-Week High: {filtered_candidate.get('52_high', 'N/A')} {filtered_candidate.get('currency')}\n"
+                        f"- 52-Week Low: {filtered_candidate.get('52_low', 'N/A')} {filtered_candidate.get('currency')}\n"
+                        f"- Target Mean Price: {filtered_candidate.get('target_mean', 'N/A')} {filtered_candidate.get('currency')}\n"
+                        f"- Sector: {filtered_candidate.get('sector', 'Unknown')}\n"
+                        f"- IPO Date: {filtered_candidate.get('ipo_date', 'N/A')}\n"
+                        f"- Volume: {filtered_candidate.get('volume', 0)}\n\n"
+                        "Consider a 'Red Flag' if P/E (trailing or forward) is > 80-100 OR PEG > 2 and no clear growth justification.\n"
+                        "Conclude the 'resolution' with 'Komandants Kvarks ir izdevis Rīkojumu.'"
+                    )
+                    response_analysis = model.generate_content(prompt_analysis, safety_settings={'HARASSMENT': 'BLOCK_NONE', 'HATE': 'BLOCK_NONE', 'SEXUAL': 'BLOCK_NONE', 'DANGEROUS': 'BLOCK_NONE'})
+                    raw_analysis_json = response_analysis.text.strip()
+                    
+                    json_match_analysis = re.search(r"\{.*\}", raw_analysis_json, re.DOTALL)
+                    if json_match_analysis:
+                        analysis = json.loads(json_match_analysis.group(0))
+                        self.growth_candidates_data.append(analysis)
+                    time.sleep(2)  # 2 sekunžu pauze, lai neatsistos pret Gemini API limitu
+                except Exception as candidate_err:
+                    self.master.after(0, self._update_growth_analysis_log, f"⚠️ {filtered_candidate.get('ticker')} analīzes kļūda: {candidate_err}")
+                    continue
 
-                analysis = json.loads(raw_analysis_json)
-                self.growth_candidates_data.append(analysis)
-
-            self.master.after(0, self._update_growth_ui_after_hunt)
+            # This line was originally here, moved to finally for unconditional execution.
+            # self.master.after(0, self._update_growth_ui_after_hunt)
 
         except json.JSONDecodeError as jde:
             partial_response = raw_candidates_json[:500] if 'raw_candidates_json' in locals() else raw_analysis_json[:500] if 'raw_analysis_json' in locals() else "N/A"
@@ -1451,6 +1455,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.master.after(0, self._update_growth_analysis_log, i18n.t('error_gemini_api_contact', e=e))
         finally:
             # UZDEVUMS 3: Pārliecināties, ka noslēgumā (arī pie jebkuras kļūdas except blokā) vienmēr tiek izsaukts
+            self.master.after(0, self._update_growth_ui_after_hunt)
             self.master.after(0, self._enable_all_growth_buttons)
 
 
