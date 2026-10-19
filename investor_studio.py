@@ -65,11 +65,17 @@ TRANSLATIONS = {
 
     # Portfolio Tab
     "lbl_portfolio_title": {"lv": "💼 MANAS ETORO AKCIJAS", "en": "💼 MY ETORO STOCKS", "ru": "💼 МОИ АКЦИИ ETORO", "uk": "💼 МОЇ АКЦІЇ ETORO", "it": "💼 LE MIE AZIONI ETORO"},
+    "lbl_portfolio_stocks_title": {"lv": "💼 MANAS ETORO AKCIJAS", "en": "💼 MY ETORO STOCKS", "ru": "💼 МОИ АКЦИИ ETORO", "uk": "💼 МОЇ АКЦІЇ ETORO", "it": "💼 LE MIE AZIONI ETORO"}, # New key for _setup_portfolio_tab
+    "lbl_tickers_hint": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (через кому або новий рядок):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"}, # New key for _setup_portfolio_tab
     "lbl_portfolio_tickers_desc": {"lv": "Ievadiet savus tikerus (atdalītus ar komatu vai jaunā rindā):\nPiemērs: AAPL, NVDA, TSLA, INTC, PYPL", "en": "Enter your tickers (comma-separated or new line):\nExample: AAPL, NVDA, TSLA, INTC, PYPL", "ru": "Введите свои тикеры (через запятую или новую строку):\nПример: AAPL, NVDA, TSLA, INTC, PYPL", "uk": "Введіть свої тікери (через кому або новий рядок):\nПриклад: AAPL, NVDA, TSLA, INTC, PYPL", "it": "Inserisci i tuoi ticker (separati da virgola o su nuova riga):\nEs: AAPL, NVDA, TSLA, INTC, PYPL"},
     "lbl_portfolio_cash_balance": {"lv": "💵 Brīvais atlikums (USD):", "en": "💵 Free Balance (USD):", "ru": "💵 Свободный остаток (USD):", "uk": "💵 Вільний залишок (USD):", "it": "💵 Saldo disponibile (USD):"},
+    "lbl_cash_balance": {"lv": "💵 Brīvais atlikums (USD):", "en": "💵 Free Balance (USD):", "ru": "💵 Свободный остаток (USD):", "uk": "💵 Вільний залишок (USD):", "it": "💵 Saldo disponibile (USD):"}, # New key for _setup_portfolio_tab
     "lbl_portfolio_risk_strategy": {"lv": "🎯 Riska Stratēģija:", "en": "🎯 Risk Strategy:", "ru": "🎯 Стратегия риска:", "uk": "🎯 Стратегія ризику:", "it": "🎯 Strategia di rischio:"},
+    "lbl_risk_strategy": {"lv": "🎯 Riska Stratēģija:", "en": "🎯 Risk Strategy:", "ru": "🎯 Стратегия риска:", "uk": "🎯 Стратегія ризику:", "it": "🎯 Strategia di rischio:"}, # New key for _setup_portfolio_tab
     "seg_risk_conservative": {"lv": "🛡️ Konservatīvs (5-10%)", "en": "🛡️ Conservative (5-10%)", "ru": "🛡️ Консервативный (5-10%)", "uk": "🛡️ Консервативний (5-10%)", "it": "🛡️ Conservativo (5-10%)"},
+    "btn_risk_conservative": {"lv": "🛡️ Konservatīvs", "en": "🛡️ Conservative", "ru": "🛡️ Консервативный", "uk": "🛡️ Консервативний", "it": "🛡️ Conservativo"}, # New key for _setup_portfolio_tab
     "seg_risk_venture_growth": {"lv": "🚀 Venture & Growth", "en": "🚀 Venture & Growth", "ru": "🚀 Венчур и Рост", "uk": "🚀 Венчур та Зростання", "it": "🚀 Venture & Crescita"},
+    "btn_risk_venture": {"lv": "🚀 Venture", "en": "🚀 Venture", "ru": "🚀 Венчур", "uk": "🚀 Венчур", "it": "🚀 Venture"}, # New key for _setup_portfolio_tab
     "btn_save_portfolio": {"lv": "💾 Saglabāt", "en": "💾 Save", "ru": "💾 Сохранить", "uk": "💾 Зберегти", "it": "💾 Salva"},
     "btn_audit_portfolio": {"lv": "🐾 Kvarka Audits", "en": "🐾 Quark's Audit", "ru": "🐾 Аудит Кварка", "uk": "🐾 Аудит Кварка", "it": "🐾 Audit di Quark"},
     "status_portfolio_saved": {"lv": "✅ Portfelis saglabāts!", "en": "✅ Portfolio saved!", "ru": "✅ Портфель сохранен!", "uk": "✅ Портфель збережено!", "it": "✅ Portfolio salvato!"},
@@ -85,7 +91,7 @@ TRANSLATIONS = {
     "btn_audit_loading": {"lv": "⏳ Auditē...", "en": "⏳ Auditing...", "ru": "⏳ Аудит...", "uk": "⏳ Аудит...", "it": "⏳ Audit..."},
     "audit_loading_msg": {"lv": "Komandants Kvarks caurskata {len_tickers} pozīcijas un finanšu rādītājus...\n", "en": "Commander Quark reviews {len_tickers} positions and financial indicators...\n", "ru": "Командир Кварк просматривает {len_tickers} позиций и финансовые показатели...\n", "uk": "Командир Кварк переглядає {len_tickers} позицій та фінансові показники...\n", "it": "Il Comandante Quark esamina {len_tickers} posizioni e indicatori finanziari...\n"},
     "audit_initial_msg": {"lv": "Ievadiet savas akcijas un nospiediet 'Kvarka Audits'...\nKvarks noteiks, kurus 'sīkuļus' likvidēt un kur gudri ieguldīt līdzekļus!", "en": "Enter your stocks and press 'Quark's Audit'...\nQuark will determine which 'minnows' to liquidate and where to invest wisely!", "ru": "Введите свои акции и нажмите 'Аудит Кварка'...\nКварк определит, какие 'мелкие' позиции ликвидировать и куда разумно вложить средства!", "uk": "Введіть свої акції та натисніть 'Аудит Кварка'...\nКварк визначить, які 'дрібниці' ліквідувати і куди розумно вкласти кошти!", "it": "Inserisci i tuoi titoli e premi 'Audit di Quark'...\nQuark determinerà quali 'pesci piccoli' liquidare e dove investire saggiamente!"},
-    "strategy_venture_desc": {"lv": "STRATĒĢIJA: VENTURE & GROWTH HUNTER (Agresīvs riska kapitāls).\n- Vērtē aktīvus no nākotnes tirgus dominances, monopolstāvokļa un AI/tehnoloģiju lēciena prizmas.\n- Augsts P/E vai īslaicīgs peļņas trūkums nav šķērslis, ja ieņēmumu lēciens un infrastruktūras nozīme ir milzīga (piemēram, ARM, SNOW, PLTR).\n- Izbrāķē tikai stagnējošus un lēnus uzņēmumus bez tehnoloģiskas nākotnes.", "en": "STRATEGY: VENTURE & GROWTH HUNTER (Aggressive Venture Capital).\n- Values assets from the perspective of future market dominance, monopoly position, and AI/technology leap.\n- High P/E or temporary lack of profit is not an obstacle if revenue growth and infrastructure importance are enormous (e.g., ARM, SNOW, PLTR).\n- Only rejects stagnant and slow companies without a technological future.", "ru": "СТРАТЕГИЯ: ВЕНЧУРНЫЙ ОХОТНИК ЗА РОСТОМ (Агрессивный венчурный капитал).\n- Оценивает активы с точки зрения будущего доминирования на рынке, монопольного положения и технологического скачка AI.\n- Высокий P/E или временное отсутствие прибыли не является препятствие, если рост выручки и значимость инфраструктуры огромны (например, ARM, SNOW, PLTR).\n- Отбрасывает только стагнирующие и медленные компании без технологического будущего.", "uk": "СТРАТЕГІЯ: ВЕНЧУРНИЙ МИСЛИВЕЦЬ ЗА ЗРОСТАННЯМ (Агресивний венчурний капітал).\n- Оцінює активи з позиції майбутнього домінування на ринку, монопольного становища та стрибка AI/технологій.\n- Високий P/E або тимчасова відсутність прибутку не є перешкодою, якщо стрибок доходів та значення інфраструктури величезні (наприклад, ARM, SNOW, PLTR).\n- Відкидає лише стагнуючі та повільні компанії без технологічного майбутнього.", "it": "STRATEGIA: Cacciatore di Venture & Crescita (Capitale di rischio aggressivo).\n- Valuta gli asset dal punto di vista del dominio futuro del mercato, della posizione di monopolio e del salto tecnologico AI.\n- Un P/E elevato o una temporanea mancanza di profitto non sono un ostacolo se la crescita dei ricavi e l'importanza dell'infrastruttura sono enormi (es. ARM, SNOW, PLTR).\n- Rifiuta solo le aziende stagnanti e lente senza un futuro tecnologico."},
+    "strategy_venture_desc": {"lv": "STRATĒĢIJA: VENTURE & GROWTH HUNTER (Agresīvs riska kapitāls).\n- Vērtē aktīvus no nākotnes tirgus dominances, monopolstāvja un AI/tehnoloģiju lēciena prizmas.\n- Augsts P/E vai īslaicīgs peļņas trūkums nav šķērslis, ja ieņēmumu lēciens un infrastruktūras nozīme ir milzīga (piemēram, ARM, SNOW, PLTR).\n- Izbrāķē tikai stagnējošus un lēnus uzņēmumus bez tehnoloģiskas nākotnes.", "en": "STRATEGY: VENTURE & GROWTH HUNTER (Aggressive Venture Capital).\n- Values assets from the perspective of future market dominance, monopoly position, and AI/technology leap.\n- High P/E or temporary lack of profit is not an obstacle if revenue growth and infrastructure importance are enormous (e.g., ARM, SNOW, PLTR).\n- Only rejects stagnant and slow companies without a technological future.", "ru": "СТРАТЕГИЯ: ВЕНЧУРНЫЙ ОХОТНИК ЗА РОСТОМ (Агрессивный венчурный капитал).\n- Оценивает активы с точки зрения будущего доминирования на рынке, монопольного положения и технологического скачка AI.\n- Высокий P/E или временное отсутствие прибыли не является препятствие, если рост выручки и значимость инфраструктуры огромны (например, ARM, SNOW, PLTR).\n- Отбрасывает только стагнирующие и медленные компании без технологического будущего.", "uk": "СТРАТЕГІЯ: ВЕНЧУРНИЙ МИСЛИВЕЦЬ ЗА ЗРОСТАННЯМ (Агресивний венчурний капітал).\n- Оцінює активи з позиції майбутнього домінування на ринку, монопольного становища та стрибка AI/технологій.\n- Високий P/E або тимчасова відсутність прибутку не є перешкодою, якщо стрибок доходів та значення інфраструктури величезні (наприклад, ARM, SNOW, PLTR).\n- Відкидає лише стагнуючі та повільні компанії без технологічного майбутнього.", "it": "STRATEGIA: Cacciatore di Venture & Crescita (Capitale di rischio aggressivo).\n- Valuta gli asset dal punto di vista del dominio futuro del mercato, della posizione di monopolio e del salto tecnologico AI.\n- Un P/E elevato o una temporanea mancanza di profitto non sono un ostacolo se la crescita dei ricavi e l'importanza dell'infrastruttura sono enormi (es. ARM, SNOW, PLTR).\n- Rifiuta solo le aziende stagnanti e lente senza un futuro tecnologico."},
     "strategy_conservative_desc": {"lv": "STRATĒĢIJA: KONSERVATĪVS (Zems risks, 5-10% stabils pieaugums gadā).\n- Vērtē aktīvus pēc reālas naudas plūsmas, veselīga P/E (< 30-35), dividenžu stabilitātes un zemiem riskiem.\n- Ja uzņēmuma P/E ir pārmērīgs (> 80-100) vai nav peļņas un PEG > 2, norādi to kā bīstamu burbuli un iesaki samazināt pozīciju.\n- Dod priekšroku tirgus indeksiem (VOO/SPY) un stabiliem industrijas milžiem.", "en": "STRATEGY: CONSERVATIVE (Low risk, 5-10% stable annual growth).\n- Values assets by real cash flow, healthy P/E (< 30-35), dividend stability, and low risks.\n- If a company's P/E is excessive (> 80-100) or has no profit and PEG > 2, indicate it as a dangerous bubble and recommend reducing the position.\n- Prefers market indices (VOO/SPY) and stable industry giants.", "ru": "СТРАТЕГИЯ: КОНСЕРВАТИВНАЯ (Низкий риск, 5-10% стабильного роста в год).\n- Оценивает активы по реальному денежному потоку, здоровому P/E (< 30-35), стабильности дивидендов и низким рискам.\n- Если P/E компании чрезмерен (> 80-100) или нет прибыли, а PEG > 2, укажите это как опасный пузырь и рекомендуйте уменьшить позицию.\n- Отдает предпочтение рыночным индексам (VOO/SPY) и стабильным промышленным гигантам.", "uk": "СТРАТЕГІЯ: КОНСЕРВАТИВНА (Низький ризик, 5-10% стабільний річний приріст).\n- Оцінює активи за реальним грошовим потоком, здоровим P/E (< 30-35), стабільністю дивідендів та низькими ризиками.\n- Якщо P/E компанії надмірний (> 80-100) або немає прибутку, а PEG > 2, вкажіть це як небезпечний міхур і рекомендуйте зменшити позицію.\n- Віддає перевагу ринковим індексам (VOO/SPY) та стабільним промисловим гігантам.", "it": "STRATEGIA: CONSERVATIVA (Basso rischio, 5-10% crescita annua stabile).\n- Valuta gli asset in base al flusso di cassa reale, un P/E sano (< 30-35), la stabilità dei dividendi e i bassi rischi.\n- Se il P/E di un'azienda è eccessivo (> 80-100) o non c'è profitto e il PEG > 2, indicalo come una bolla pericolosa e consiglia di ridurre la posizione.\n- Preferisce gli indici di mercato (VOO/SPY) e i giganti del settore stabili."},
     "error_audit_gemini": {"lv": "⚠️ Audita kļūda: {e}", "en": "⚠️ Audit error: {e}", "ru": "⚠️ Ошибка аудита: {e}", "uk": "⚠️ Помилка аудиту: {e}", "it": "⚠️ Errore di audit: {e}"},
     "error_api_missing_data": {"lv": "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus.", "en": "⚠️ Missing API key or failed to retrieve data.", "ru": "⚠️ Отсутствует ключ API или не удалось получить данные.", "uk": "⚠️ Відсутній ключ API або не вдалося отримати дані.", "it": "⚠️ Chiave API mancante o impossibile recuperare i dati."},
@@ -228,7 +234,7 @@ TRANSLATIONS = {
     "rentgen_fetching_data_generating_analysis_msg": {"lv": "🔍 Nolasa datus par {ticker} no {source} un ģenerē Q.V.A.R.K. analīzi...\n", "en": "🔍 Fetching data for {ticker} from {source} and generating Q.V.A.R.K. analysis...\n", "ru": "🔍 Извлечение данных для {ticker} из {source} и генерация анализа Q.V.A.R.K...\n", "uk": "🔍 Отримання даних для {ticker} з {source} та генерація аналізу Q.V.A.R.K...\n", "it": "🔍 Recupero dati per {ticker} da {source} e generazione analisi Q.V.A.R.K...\n"},
     "info_no_data_to_export_rentgen": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet analīzi.", "en": "No data to export. Perform an analysis first.", "ru": "Нет данных для экспорта. Сначала выполните анализ.", "uk": "Немає даних для експорту. Спочатку виконайте аналіз.", "it": "Nessun dato da esportare. Esegui prima un'analisi."},
     "word_save_dialog_title_rentgen": {"lv": "Saglabāt Rentgena atskaiti kā Word failu", "en": "Save X-Ray Report as Word file", "ru": "Сохранить отчет Рентгена как файл Word", "uk": "Зберегти рентген-звіт як файл Word", "it": "Salva rapporto Raggi X come file Word"},
-    "word_analysis_basis_rentgen": {"lv": "Analīze sagatavota ar AuraQuadroOS analītikas moduli.", "en": "Analysis prepared by AuraQuadroOS analytics module.", "ru": "Анализ подготовлен аналитическим модулем AuraQuadroOS.", "uk": "Аналіз підготовлено аналітичним модуliu AuraQuadroOS.", "it": "Analisi preparata dal modulo di analisi AuraQuadroOS."},
+    "word_analysis_basis_rentgen": {"lv": "Analīze sagatavota ar AuraQuadroOS analītikas moduli.", "en": "Analysis prepared by AuraQuadroOS analytics module.", "ru": "Анализ подготовлен аналитическим модулем AuraQuadroOS.", "uk": "Аналіз підготовлено аналітичним moduļu AuraQuadroOS.", "it": "Analisi preparata dal modulo di analisi AuraQuadroOS."},
     # New keys for Portfolio Audit Word export (LEO ADDITION)
     "info_no_data_to_export_portfolio_audit": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet portfeļa auditu.", "en": "No data to export. Perform a portfolio audit first.", "ru": "Нет данных для экспорта. Сначала проведите аудит портфеля.", "uk": "Немає даних для експорту. Спочатку виконайте аудит портфеля.", "it": "Nessun dato da esportare. Esegui prima un audit del portfolio."},
     "word_save_dialog_title_portfolio_audit": {"lv": "Saglabāt portfeļa audita atskaiti", "en": "Save Portfolio Audit Report", "ru": "Сохранить отчет аудита портфеля", "uk": "Зберегти звіт аудиту portfeļa", "it": "Salva rapporto audit portfolio"},
@@ -358,48 +364,48 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.source_selector.set(self.selected_source)
 
 
-        # Update elements in Portfolio tab
-        if hasattr(self, 'lbl_portfolio_title'):
+        # Update elements in Portfolio tab (Adjusted to new widget names)
+        if hasattr(self, 'lbl_portfolio_title'): # This is the old one. If it existed, keep logic for backward compat
             self.lbl_portfolio_title.configure(text=i18n.t("lbl_portfolio_title"))
-        if hasattr(self, 'lbl_portfolio_tickers_desc'):
-            self.lbl_portfolio_tickers_desc.configure(text=i18n.t("lbl_portfolio_tickers_desc"))
-        if hasattr(self, 'lbl_portfolio_cash_balance'):
-            self.lbl_portfolio_cash_balance.configure(text=i18n.t("lbl_portfolio_cash_balance"))
-        if hasattr(self, 'lbl_portfolio_risk_strategy'):
-            self.lbl_portfolio_risk_strategy.configure(text=i18n.t("lbl_portfolio_risk_strategy"))
+        if hasattr(self, 'lbl_portfolio_stocks_title'):
+            self.lbl_portfolio_stocks_title.configure(text=i18n.t("lbl_portfolio_stocks_title"))
+        if hasattr(self, 'lbl_tickers_hint'):
+            self.lbl_tickers_hint.configure(text=i18n.t("lbl_tickers_hint"))
+        if hasattr(self, 'lbl_cash'):
+            self.lbl_cash.configure(text=i18n.t("lbl_cash_balance"))
+        if hasattr(self, 'lbl_risk'):
+            self.lbl_risk.configure(text=i18n.t("lbl_risk_strategy"))
         if hasattr(self, 'seg_risk'):
-            self.seg_risk.configure(values=[i18n.t("seg_risk_conservative"), i18n.t("seg_risk_venture_growth")])
+            self.seg_risk.configure(values=[i18n.t("btn_risk_conservative"), i18n.t("btn_risk_venture")])
             # Re-set the selected value to ensure the text updates
             current_selection_key = None
             # Check the actual content of the current selection, not just the key used for initialization
-            if self.seg_risk.get() == TRANSLATIONS["seg_risk_conservative"][i18n.get_ui_language()]:
-                current_selection_key = "seg_risk_conservative"
-            elif self.seg_risk.get() == TRANSLATIONS["seg_risk_venture_growth"][i18n.get_ui_language()]:
-                current_selection_key = "seg_risk_venture_growth"
-            else: # Fallback to current internal state, then update to localized
-                # This ensures if the previous language's string was set, it maps back correctly
-                if "Konservatīvs" in self.seg_risk.get() or "Conservative" in self.seg_risk.get():
-                    current_selection_key = "seg_risk_conservative"
-                elif "Venture" in self.seg_risk.get() or "Growth" in self.seg_risk.get():
-                    current_selection_key = "seg_risk_venture_growth"
+            # Map old keys to new if necessary for refresh
+            current_selection = self.seg_risk.get()
+            if current_selection == TRANSLATIONS["seg_risk_conservative"][i18n.get_ui_language()] or \
+               current_selection == TRANSLATIONS["btn_risk_conservative"][i18n.get_ui_language()]:
+                current_selection_key = "btn_risk_conservative"
+            elif current_selection == TRANSLATIONS["seg_risk_venture_growth"][i18n.get_ui_language()] or \
+                 current_selection == TRANSLATIONS["btn_risk_venture"][i18n.get_ui_language()]:
+                current_selection_key = "btn_risk_venture"
 
             if current_selection_key:
                  self.seg_risk.set(i18n.t(current_selection_key))
             else: # Fallback if initial set wasn't one of the knowns or still needs to be localized
-                 self.seg_risk.set(i18n.t("seg_risk_conservative"))
+                 self.seg_risk.set(i18n.t("btn_risk_conservative"))
 
-        if hasattr(self, 'btn_save_p'):
-            self.btn_save_p.configure(text=i18n.t("btn_save_portfolio"))
+        if hasattr(self, 'btn_save_tickers'): # Changed from btn_save_p
+            self.btn_save_tickers.configure(text=i18n.t("btn_save_portfolio"))
         if hasattr(self, 'btn_audit'):
             current_btn_text = self.btn_audit.cget("text")
             if not current_btn_text.startswith("⏳"):
-                self.btn_audit.configure(text=i18n.t("btn_audit_portfolio"))
+                self.btn_audit.configure(text="⚔️ Q.V.A.R.K. Audits") # As per new _setup_portfolio_tab literal
         if hasattr(self, 'btn_copy_audit'):
             self.btn_copy_audit.configure(text=i18n.t("btn_copy_summary"))
-        if hasattr(self, 'lbl_inv_portfolio_audit_plan'): # LEO ADDITION
-            self.lbl_inv_portfolio_audit_plan.configure(text=i18n.t("lbl_inv_portfolio_audit_plan")) # LEO ADDITION
-        if hasattr(self, 'btn_export_portfolio_to_word_btn'):
-            self.btn_export_portfolio_to_word_btn.configure(text=i18n.t("btn_save_word"))
+        # if hasattr(self, 'lbl_inv_portfolio_audit_plan'): # This label is not in the new prompt for setup_portfolio_tab
+        #     self.lbl_inv_portfolio_audit_plan.configure(text=i18n.t("lbl_inv_portfolio_audit_plan"))
+        if hasattr(self, 'btn_export_audit'): # Changed from btn_export_portfolio_to_word_btn
+            self.btn_export_audit.configure(text=i18n.t("btn_save_word"))
 
 
         # Update elements in Growth tab
@@ -911,65 +917,70 @@ class InvestorStudioFrame(ctk.CTkFrame):
         f = self.tab_portfolio
         f.grid_columnconfigure(0, weight=1)
         f.grid_columnconfigure(1, weight=1)
-        f.grid_rowconfigure(7, weight=1) # Audit log takes most space
+        f.grid_rowconfigure(6, weight=1)
 
-        self.lbl_portfolio_title = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_title"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.lbl_portfolio_title.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
+        self.lbl_portfolio_stocks_title = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_stocks_title"), font=ctk.CTkFont(size=16, weight="bold"))
+        self.lbl_portfolio_stocks_title.grid(row=0, column=0, columnspan=2, padx=10, pady=(8, 2), sticky="ew")
 
-        self.lbl_portfolio_tickers_desc = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_tickers_desc"), wraplength=400, justify="left")
-        self.lbl_portfolio_tickers_desc.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 5), sticky="w")
+        self.lbl_tickers_hint = ctk.CTkLabel(f, text=i18n.t("lbl_tickers_hint"), font=ctk.CTkFont(size=12), text_color="gray", justify="left")
+        self.lbl_tickers_hint.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 2), sticky="w")
 
-        self.portfolio_tickers_input = ctk.CTkTextbox(f, height=65, wrap="word", # Task 1: Reduced height
-                                                       fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.portfolio_tickers_input.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
-        
-        # Task 1: Moved "Save" and "Audit" buttons here
-        self.btn_save_p = ctk.CTkButton(f, text=i18n.t("btn_save_portfolio"), command=self._save_portfolio,
-                                         fg_color="#0e7490", hover_color="#086078")
-        self.btn_save_p.grid(row=3, column=0, padx=(10, 5), pady=10, sticky="ew") # Shifted from row=5
+        self.tickers_entry_box = ctk.CTkTextbox(f, height=60, wrap="word", fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
+        self.tickers_entry_box.grid(row=2, column=0, columnspan=2, padx=10, pady=(0, 4), sticky="ew")
 
-        self.btn_audit = ctk.CTkButton(f, text=i18n.t("btn_audit_portfolio"), command=self._audit_portfolio,
+        # Poga Saglabāt (pa kreisi) un Brīvais atlikums (pa labi)
+        self.btn_save_tickers = ctk.CTkButton(f, text=i18n.t("btn_save_portfolio"), command=self._save_portfolio,
+                                              fg_color="#0e7490", hover_color="#086078")
+        self.btn_save_tickers.grid(row=3, column=0, padx=(10, 5), pady=3, sticky="ew")
+
+        cash_frame = ctk.CTkFrame(f, fg_color="transparent")
+        cash_frame.grid(row=3, column=1, padx=(5, 10), pady=3, sticky="ew")
+        cash_frame.grid_columnconfigure(1, weight=1)
+
+        self.lbl_cash = ctk.CTkLabel(cash_frame, text=i18n.t("lbl_cash_balance"), font=ctk.CTkFont(size=13))
+        self.lbl_cash.grid(row=0, column=0, padx=(0, 5), sticky="w")
+
+        self.cash_entry = ctk.CTkEntry(cash_frame, placeholder_text="100.0")
+        self.cash_entry.grid(row=0, column=1, sticky="ew")
+
+        # Riska stratēģija
+        risk_frame = ctk.CTkFrame(f, fg_color="transparent")
+        risk_frame.grid(row=4, column=0, columnspan=2, padx=10, pady=3, sticky="ew")
+        risk_frame.grid_columnconfigure(1, weight=1)
+
+        self.lbl_risk = ctk.CTkLabel(risk_frame, text=i18n.t("lbl_risk_strategy"), font=ctk.CTkFont(size=13))
+        self.lbl_risk.grid(row=0, column=0, padx=(0, 10), sticky="w")
+
+        self.seg_risk = ctk.CTkSegmentedButton(risk_frame, values=[i18n.t("btn_risk_conservative"), i18n.t("btn_risk_venture")])
+        self.seg_risk.set(i18n.t("btn_risk_venture"))
+        self.seg_risk.grid(row=0, column=1, sticky="ew")
+
+        # Kustīgā progresa līnija
+        self.portfolio_progress_bar = ctk.CTkProgressBar(f, mode="determinate", progress_color="#0e7490")
+        self.portfolio_progress_bar.grid(row=5, column=0, columnspan=2, padx=10, pady=(4, 6), sticky="ew")
+        self.portfolio_progress_bar.set(0)
+
+        # Audita rezultātu logs
+        self.audit_log_box = ctk.CTkTextbox(f, wrap="word", fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
+        self.audit_log_box.grid(row=6, column=0, columnspan=2, padx=10, pady=(2, 4), sticky="nsew")
+
+        # Audita poga tieši zem plāna loga
+        self.btn_audit = ctk.CTkButton(f, text="⚔️ Q.V.A.R.K. Audits", command=self._audit_portfolio,
                                        fg_color="#0e7490", hover_color="#086078")
-        self.btn_audit.grid(row=3, column=1, padx=(5, 10), pady=10, sticky="ew") # Shifted from row=5
+        self.btn_audit.grid(row=7, column=0, columnspan=2, padx=10, pady=(4, 4), sticky="ew")
 
-        # Shifted from row=3 and row=4
-        self.lbl_portfolio_cash_balance = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_cash_balance"))
-        self.lbl_portfolio_cash_balance.grid(row=4, column=0, padx=10, pady=(5, 0), sticky="w")
-        self.cash_balance_input = ctk.CTkEntry(f, placeholder_text="10000", fg_color="#1e293b", border_color="#334155")
-        self.cash_balance_input.grid(row=4, column=1, padx=10, pady=(5, 0), sticky="ew")
-        
-        self.lbl_portfolio_risk_strategy = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_risk_strategy"))
-        self.lbl_portfolio_risk_strategy.grid(row=5, column=0, padx=10, pady=5, sticky="w")
-        self.seg_risk = ctk.CTkSegmentedButton(f, values=[i18n.t("seg_risk_conservative"), i18n.t("seg_risk_venture_growth")],
-                                              fg_color="#1e293b", selected_color="#0e7490", selected_hover_color="#086078",
-                                              unselected_color="#334155", unselected_hover_color="#475569")
-        self.seg_risk.set(i18n.t("seg_risk_conservative"))
-        self.seg_risk.grid(row=5, column=1, padx=10, pady=5, sticky="ew")
+        # Apakšējā pogu josla
+        self.btn_copy_audit = ctk.CTkButton(f, text=i18n.t("btn_copy_summary"), command=self._copy_portfolio_summary,
+                                            fg_color="#0e7490", hover_color="#086078")
+        self.btn_copy_audit.grid(row=8, column=0, padx=(10, 5), pady=(2, 8), sticky="ew")
 
-        # Ensure self.portfolio_tickers_input, self.cash_balance_input, and self.seg_risk are defined
+        self.btn_export_audit = ctk.CTkButton(f, text=i18n.t("btn_save_word"), command=self._export_portfolio_to_word,
+                                              fg_color="#0e7490", hover_color="#086078")
+        self.btn_export_audit.grid(row=8, column=1, padx=(5, 10), pady=(2, 8), sticky="ew")
+
+        # Ensure self.tickers_entry_box, self.cash_entry, and self.seg_risk are defined
         # before attempting to load data into them.
         self._load_portfolio()
-
-        self.lbl_inv_portfolio_audit_plan = ctk.CTkLabel(f, text=i18n.t("lbl_inv_portfolio_audit_plan"), font=ctk.CTkFont(size=16, weight="bold")) # LEO ADDITION
-        self.lbl_inv_portfolio_audit_plan.grid(row=6, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew") # LEO ADDITION
-
-        self.audit_log_box = ctk.CTkTextbox(f, height=300, wrap="word",
-                                            fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.audit_log_box.grid(row=7, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
-        self.audit_log_box.insert("0.0", i18n.t("audit_initial_msg"))
-        self.audit_log_box.configure(state="disabled")
-
-        # Task 1: `self.audit_log_box` iedot `weight=1`
-        f.grid_rowconfigure(7, weight=1) # This applies weight to the row where audit_log_box is.
-
-        self.btn_copy_audit = ctk.CTkButton(f, text=i18n.t("btn_copy_summary"), command=self._copy_audit_summary,
-                                            fg_color="#0e7490", hover_color="#086078")
-        self.btn_copy_audit.grid(row=8, column=0, padx=(10, 5), pady=(5,10), sticky="ew") # Task 1: Changed columnspan=2 to col=0
-
-        # Task 1: Add "Saglabāt Word (.docx)" button
-        self.btn_export_portfolio_to_word_btn = ctk.CTkButton(f, text=i18n.t("btn_save_word"), command=self._export_portfolio_to_word,
-                                                               fg_color="#0e7490", hover_color="#086078")
-        self.btn_export_portfolio_to_word_btn.grid(row=8, column=1, padx=(5, 10), pady=(5,10), sticky="ew")
 
 
     def _load_portfolio(self):
@@ -979,19 +990,22 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     data = json.load(f)
                     tickers_str = data.get("tickers", "")
                     cash_balance = data.get("cash_balance", "")
-                    risk_strategy = data.get("risk_strategy", i18n.t("seg_risk_conservative")) # Default if not found
+                    risk_strategy = data.get("risk_strategy", i18n.t("btn_risk_conservative")) # Default to new key
 
-                    self.portfolio_tickers_input.delete("0.0", "end")
-                    self.portfolio_tickers_input.insert("0.0", tickers_str)
-                    self.cash_balance_input.delete(0, "end")
-                    self.cash_balance_input.insert(0, str(cash_balance))
-                    # Ensure the loaded risk strategy matches the localized values
-                    if risk_strategy == "Conservative (5-10%)" or risk_strategy == i18n.t("seg_risk_conservative"):
-                        self.seg_risk.set(i18n.t("seg_risk_conservative"))
-                    elif risk_strategy == "Venture & Growth" or risk_strategy == i18n.t("seg_risk_venture_growth"):
-                        self.seg_risk.set(i18n.t("seg_risk_venture_growth"))
+                    self.tickers_entry_box.delete("0.0", "end")
+                    self.tickers_entry_box.insert("0.0", tickers_str)
+                    self.cash_entry.delete(0, "end")
+                    self.cash_entry.insert(0, str(cash_balance))
+                    
+                    # Ensure the loaded risk strategy matches the localized values, mapping old to new if needed
+                    if risk_strategy == "Conservative (5-10%)" or risk_strategy == i18n.t("seg_risk_conservative") or \
+                       risk_strategy == i18n.t("btn_risk_conservative"):
+                        self.seg_risk.set(i18n.t("btn_risk_conservative"))
+                    elif risk_strategy == "Venture & Growth" or risk_strategy == i18n.t("seg_risk_venture_growth") or \
+                         risk_strategy == i18n.t("btn_risk_venture"):
+                        self.seg_risk.set(i18n.t("btn_risk_venture"))
                     else: # Fallback
-                        self.seg_risk.set(i18n.t("seg_risk_conservative"))
+                        self.seg_risk.set(i18n.t("btn_risk_conservative"))
 
             except Exception as e:
                 messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=e))
@@ -1007,9 +1021,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
         pass
 
     def _save_portfolio(self):
-        tickers_raw = self.portfolio_tickers_input.get("0.0", "end").strip()
+        tickers_raw = self.tickers_entry_box.get("0.0", "end").strip()
         tickers_list = [t.strip().upper() for t in re.split(r'[,;\n\s]+', tickers_raw) if t.strip()]
-        cash_balance_str = self.cash_balance_input.get().strip()
+        cash_balance_str = self.cash_entry.get().strip()
         risk_strategy = self.seg_risk.get()
 
         try:
@@ -1033,14 +1047,14 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
 
     def _add_ticker_to_portfolio(self, ticker):
-        current_tickers_str = self.portfolio_tickers_input.get("0.0", "end").strip()
+        current_tickers_str = self.tickers_entry_box.get("0.0", "end").strip()
         tickers_list = [t.strip().upper() for t in re.split(r'[,;\n\s]+', current_tickers_str) if t.strip()]
 
         if ticker not in tickers_list:
             new_tickers_str = f"{current_tickers_str}\n{ticker}" if current_tickers_str else ticker
-            self.portfolio_tickers_input.configure(state="normal")
-            self.portfolio_tickers_input.delete("0.0", "end")
-            self.portfolio_tickers_input.insert("0.0", new_tickers_str)
+            self.tickers_entry_box.configure(state="normal")
+            self.tickers_entry_box.delete("0.0", "end")
+            self.tickers_entry_box.insert("0.0", new_tickers_str)
             # No need to disable here, _save_portfolio will handle updating.
             self._save_portfolio() # Automatically save after adding
             # Display feedback directly in audit_log_box or a temporary status label
@@ -1056,9 +1070,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
 
     def _audit_portfolio(self):
-        tickers_raw = self.portfolio_tickers_input.get("0.0", "end").strip()
+        tickers_raw = self.tickers_entry_box.get("0.0", "end").strip()
         tickers_list = [t.strip().upper() for t in re.split(r'[,;\n\s]+', tickers_raw) if t.strip()]
-        cash_balance_str = self.cash_balance_input.get().strip()
+        cash_balance_str = self.cash_entry.get().strip()
         risk_strategy = self.seg_risk.get()
 
         if not tickers_list:
@@ -1074,11 +1088,16 @@ class InvestorStudioFrame(ctk.CTkFrame):
             messagebox.showerror(i18n.t("error_title"), i18n.t("error_portfolio_save", e=i18n.t("error_invalid_cash_balance")))
             return
 
-        self.btn_audit.configure(state="disabled", text=i18n.t("btn_audit_loading"))
+        # UZDEVUMS 2: Nodrošināt progresjoslas aktivizāciju un drošu paziņojumu:
+        self.btn_audit.configure(state="disabled", text="⏳ Q.V.A.R.K. Auditē...")
+        if hasattr(self, 'portfolio_progress_bar'):
+            self.portfolio_progress_bar.configure(mode="indeterminate")
+            self.portfolio_progress_bar.start()
+
         self.audit_log_box.configure(state="normal")
         self.audit_log_box.delete("0.0", "end")
-        # Task 2: Replace the i18n.t call with the specific f-string
-        self.audit_log_box.insert("0.0", f"🔍 Uzsākts eToro portfeļa audits {len(tickers_list)} aktīviem ar Q.V.A.R.K. dzinēju...\n")
+        count_str = str(len(tickers_list))
+        self.audit_log_box.insert("0.0", "🔍 Uzsākts Q.V.A.R.K. portfeļa audits " + count_str + " aktīviem...\n")
         self.audit_log_box.configure(state="disabled")
 
         threading.Thread(target=self._audit_portfolio_worker, args=(tickers_list, cash_balance, risk_strategy)).start()
@@ -1110,7 +1129,13 @@ class InvestorStudioFrame(ctk.CTkFrame):
 
         final_audit_text = "\n".join(audit_results) + "\n\n" + audit_resolution
         self.master.after(0, self._update_audit_log_final, final_audit_text)
-        self.master.after(0, lambda: self.btn_audit.configure(state="normal", text=i18n.t("btn_audit_portfolio")))
+        
+        # UZDEVUMS 3: Funkcijas _audit_portfolio_worker noslēgumā atjaunot UI:
+        if hasattr(self, 'portfolio_progress_bar'):
+            self.portfolio_progress_bar.stop()
+            self.portfolio_progress_bar.configure(mode="determinate")
+            self.portfolio_progress_bar.set(1.0)
+        self.master.after(0, lambda: self.btn_audit.configure(state="normal", text="⚔️ Q.V.A.R.K. Audits")) # Text as per _setup_portfolio_tab
 
     def _update_audit_log_progress(self, message):
         self.audit_log_box.configure(state="normal")
@@ -1148,7 +1173,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 )
             
             # Determine strategy description based on localized selection
-            strategy_desc = i18n.t("strategy_conservative_desc") if i18n.t("seg_risk_conservative") in risk_strategy else i18n.t("strategy_venture_desc")
+            strategy_desc = i18n.t("strategy_conservative_desc") if i18n.t("btn_risk_conservative") in risk_strategy else i18n.t("strategy_venture_desc") # Use new keys
 
             prompt = (
                 f"{lang_instruction}\n"
@@ -1184,39 +1209,41 @@ class InvestorStudioFrame(ctk.CTkFrame):
         except Exception as e:
             messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
 
-    # Task 3: Create method `_export_portfolio_to_word`
+    # UZDEVUMS 4: Definēt `_export_portfolio_to_word` bez salauztiem f-string simboliem:
     def _export_portfolio_to_word(self):
         if not HAS_DOCX:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing"))
+            messagebox.showerror("Kļūda", "Lai eksportētu uz Word, nepieciešama python-docx bibliotēka.")
             return
 
         report_text = self.audit_log_box.get("0.0", "end").strip()
         if not report_text or "Uzsākts" in report_text or "Gaidu" in report_text:
-            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export_portfolio_audit")) # Use new i18n key
+            messagebox.showinfo("Info", "Nav datu, ko eksportēt. Vispirms veiciet portfeļa auditu.")
             return
 
         from tkinter import filedialog
-        default_filename = f"{i18n.t('word_output_filename_prefix_portfolio_audit')}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use new i18n key
+        time_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_filename = "QVARK_Portfela_Audits_" + time_tag + ".docx"
         save_path = filedialog.asksaveasfilename(
             defaultextension=".docx",
             filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
             initialfile=default_filename,
-            title=i18n.t("word_save_dialog_title_portfolio_audit") # Use new i18n key
+            title="Saglabāt Q.V.A.R.K. portfeļa audita atskaiti"
         )
         if not save_path:
             return
 
         try:
             document = Document()
-            document.add_heading(i18n.t("word_report_title_portfolio_audit"), level=1) # Use new i18n key
-            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}") # Use existing i18n key
-            document.add_paragraph(i18n.t("word_analysis_basis_portfolio_audit")) # Use new i18n key
+            document.add_heading("Q.V.A.R.K. Portfeļa Audita & Risku Atskaite", level=1)
+            time_now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            document.add_paragraph("Ģenerēts: " + time_now_str)
+            document.add_paragraph("Analīze sagatavota ar AuraQuadroOS Q.V.A.R.K. kvantitatīvās vadības moduli.")
             document.add_paragraph("-" * 40)
 
-            for paragraph in report_text.split('\n'):
-                p_clean = paragraph.strip()
-                if p_clean:
-                    document.add_paragraph(p_clean)
+            for line in report_text.split('\n'):
+                line_str = line.strip()
+                if line_str:
+                    document.add_paragraph(line_str)
 
             document.add_paragraph()
             audit_lines = [
@@ -1229,9 +1256,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
             p_audit.italic = True
 
             document.save(save_path)
-            messagebox.showinfo(i18n.t("success_title"), i18n.t("word_success_message", path=save_path)) # Use existing i18n keys
+            messagebox.showinfo("Veiksmīgi saglabāts!", "Portfeļa audita atskaite saglabāta:\n" + str(save_path))
         except Exception as err:
-            messagebox.showerror(i18n.t("error_title"), i18n.t("word_error_saving_message", error_message=err)) # Use existing i18n keys
+            messagebox.showerror("Kļūda", "Neizdevās saglabāt Word failu:\n" + str(err))
 
     # ==========================================
     # 3. CILNE: KVARKA IZAUGSMES MEDNIEKS
@@ -1582,9 +1609,9 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 summary_text += f"{i18n.t('growth_copy_candidate_header', idx_plus_1=idx+1, ticker=ticker, name=name)}\n" # Use i18n key
                 if candidate.get('red_flag'):
                     summary_text += f"   {i18n.t('warning_red_flag', warning_message=candidate['red_flag'])}\n" # Use i18n key
-                summary_text += f"   {i18n.t('growth_copy_niche', niche=candidate.get('niche', ''))}\n" # Use i18n key
-                summary_text += f"   {i18n.t('growth_copy_why', why=candidate.get('why_10x_100x', ''))}\n" # Use i18n key
-                summary_text += f"   {i18n.t('growth_copy_risk', risk=candidate.get('black_swan', ''))}\n" # Use i18n key
+                summary_text += f"   {i18n.t('growth_copy_niche', niche=candidate.get('niche', '')).replace('{}', '')}\n" # Use i18n key
+                summary_text += f"   {i18n.t('growth_copy_why', why=candidate.get('why_10x_100x', '')).replace('{}', '')}\n" # Use i18n key
+                summary_text += f"   {i18n.t('growth_copy_risk', risk=candidate.get('black_swan', '')).replace('{}', '')}\n" # Use i18n key
                 summary_text += f"   {candidate.get('resolution', '')}\n\n"
 
             self.clipboard_clear()
@@ -1684,7 +1711,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.dividends_analysis_box.configure(state="disabled")
             return
 
-        tickers_raw = self.portfolio_tickers_input.get("0.0", "end").strip()
+        tickers_raw = self.tickers_entry_box.get("0.0", "end").strip() # Changed from portfolio_tickers_input
         tickers_list = [t.strip().upper() for t in re.split(r'[,;\n\s]+', tickers_raw) if t.strip()]
 
         if not tickers_list:
@@ -2051,9 +2078,3 @@ class InvestorStudioFrame(ctk.CTkFrame):
             return f"{i18n.t('kvark_strategic_resolution')}{response.text.strip()}"
         except Exception as e:
             return i18n.t('error_kvark_market_intel', e=e) + "\n" + i18n.t('analysis_disclaimer_summary')
-
-    def _update_market_intel_final(self, text):
-        self.market_intel_box.configure(state="normal")
-        self.market_intel_box.delete("0.0", "end")
-        self.market_intel_box.insert("0.0", text)
-        self.market_intel_box.configure(state="disabled")
