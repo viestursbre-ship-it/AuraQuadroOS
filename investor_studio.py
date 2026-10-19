@@ -166,7 +166,7 @@ TRANSLATIONS = {
     "btn_refresh_market_intel": {"lv": "⚡ Atjaunot Klimatu & Insaiderus", "en": "⚡ Refresh Climate & Insiders", "ru": "⚡ Обновить Климат и Инсайдеров", "uk": "⚡ Оновити Клімат та Інсайдерів", "it": "⚡ Aggiorna Clima & Insider"},
     "insider_initial_msg": {"lv": "Nospiediet pogu, lai ielādētu insaideru datus un noskaņojumu...", "en": "Press the button to load insider data and sentiment...", "ru": "Нажмите кнопку, чтобы загрузить данные инсайдеров и настроение...", "uk": "Натисніть кнопку, щоб завантажити дані інсайдеров та настрій...", "it": "Premi il pulsante per caricare i dati e il sentimento degli insider..."},
     "market_news_initial_msg": {"lv": "Gaidu datu pieprasījumu...", "en": "Awaiting data request...", "ru": "Ожидаю запрос данных...", "uk": "Очікую запит даних...", "it": "In attesa di richiesta dati..."},
-    "btn_refresh_market_intel_loading": {"lv": "⏳ Vāc makro datus & Kvarks analizē...", "en": "⏳ Collecting macro data & Quark analyzing...", "ru": "⏳ Собирает макроданные и Кварк анализирует...", "uk": "⏳ Збирает makrodati un Kvarks analizē...", "it": "⏳ Raccolta dati macro & Analisi di Quark..."},
+    "btn_refresh_market_intel_loading": {"lv": "⏳ Vāc makro datus & Kvarks analizē...", "en": "⏳ Collecting macro data & Quark analyzing...", "ru": "⏳ Собирает макроданные и Кварк анализирует...", "uk": "⏳ Zbirka makrodati un Kvarks analizē...", "it": "⏳ Raccolta dati macro & Analisi di Quark..."},
     "fng_not_available": {"lv": "Fear & Greed: Nav pieejams", "en": "Fear & Greed: Not available", "ru": "Индекс страха и жадности: Недоступен", "uk": "Страх і жадібність: Недоступно", "it": "Fear & Greed: Non disponibile"},
     "macro_liquidity_header": {"lv": "=== MAKRO & LIKVIDITĀTE ===", "en": "=== MACRO & LIQUIDITY ===", "ru": "=== МАКРО И ЛИКВИДНОСТЬ ===", "uk": "=== МАКРО ТА ЛІКВІДНІСТЬ ===", "it": "=== MACRO & LIQUIDITÀ ==="},
     "macro_us10y": {"lv": "ASV 10Y Yield", "en": "US 10Y Yield", "ru": "Доходность 10-летних облигаций США", "uk": "Прибутковість 10-річних облігацій США", "it": "Rendimento USA 10Y"},
@@ -581,39 +581,39 @@ class InvestorStudioFrame(ctk.CTkFrame):
     def _format_financial_summary(self, ticker, stats_data):
         """Formats the financial data into a compact, readable string for the Textbox."""
         if stats_data.get('error'):
-            return i18n.t('data_fetch_error') + f": {stats_data['error']}"
+            return f"⚠️ Kļūda nolasot datus: {stats_data['error']}"
 
         name = stats_data.get("name", ticker)
         currency = stats_data.get("currency", "USD")
 
         lines = []
-        lines.append(i18n.t('ticker_info_header', short_name=name, ticker=ticker))
-        lines.append(f"{i18n.t('source_label')}: {self.selected_source}")
-        lines.append("-" * 30)
+        lines.append(f"=== {name} ({ticker}) ===")
+        lines.append(f"Avots: {self.selected_source}")
+        lines.append("-" * 35)
 
-        # Use f-strings with fixed width for better alignment in a monospace font
-        price_str = f"{float(stats_data['price']):.2f}" if isinstance(stats_data['price'], (int, float)) else str(stats_data['price'])
-        low52_str = f"{float(stats_data['52_low']):.2f}" if isinstance(stats_data['52_low'], (int, float)) else str(stats_data['52_low'])
-        high52_str = f"{float(stats_data['52_high']):.2f}" if isinstance(stats_data['52_high'], (int, float)) else str(stats_data['52_high'])
-        pe_str = f"{float(stats_data['pe']):.2f}" if isinstance(stats_data['pe'], (int, float)) else str(stats_data['pe'])
-        fwd_pe_str = f"{float(stats_data['fwd_pe']):.2f}" if isinstance(stats_data['fwd_pe'], (int, float)) else str(stats_data['fwd_pe'])
-        peg_str = f"{float(stats_data['peg']):.2f}" if isinstance(stats_data['peg'], (int, float)) else str(stats_data['peg'])
-        target_mean_str = f"{float(stats_data['target_mean']):.2f}" if isinstance(stats_data['target_mean'], (int, float)) else str(stats_data['target_mean'])
+        # Skaitļu formatēšana
+        price_str = f"{float(stats_data['price']):.2f}" if isinstance(stats_data.get('price'), (int, float)) else str(stats_data.get('price', 'N/A'))
+        low52_str = f"{float(stats_data['52_low']):.2f}" if isinstance(stats_data.get('52_low'), (int, float)) else str(stats_data.get('52_low', 'N/A'))
+        high52_str = f"{float(stats_data['52_high']):.2f}" if isinstance(stats_data.get('52_high'), (int, float)) else str(stats_data.get('52_high', 'N/A'))
+        pe_str = f"{float(stats_data['pe']):.2f}" if isinstance(stats_data.get('pe'), (int, float)) else str(stats_data.get('pe', 'N/A'))
+        fwd_pe_str = f"{float(stats_data['fwd_pe']):.2f}" if isinstance(stats_data.get('fwd_pe'), (int, float)) else str(stats_data.get('fwd_pe', 'N/A'))
+        peg_str = f"{float(stats_data['peg']):.2f}" if isinstance(stats_data.get('peg'), (int, float)) else str(stats_data.get('peg', 'N/A'))
+        target_mean_str = f"{float(stats_data['target_mean']):.2f}" if isinstance(stats_data.get('target_mean'), (int, float)) else str(stats_data.get('target_mean', 'N/A'))
 
-        lines.append(f"{i18n.t('price_label').split(':')[0].strip():<15}: {price_str} {currency}")
-        lines.append(f"{i18n.t('52week_range_label').split(':')[0].strip():<15}: {low52_str} - {high52_str} {currency}")
-        lines.append(f"{i18n.t('pe_label').split(':')[0].strip():<15}: {pe_str}")
-        lines.append(f"{i18n.t('fwd_pe_label').split(':')[0].strip():<15}: {fwd_pe_str}")
-        lines.append(f"{i18n.t('peg_ratio_label').split(':')[0].strip():<15}: {peg_str}")
-        lines.append(f"{i18n.t('target_price_label').split(':')[0].strip():<15}: {target_mean_str} {currency}")
+        lines.append(f"{'Cena:':<18} {price_str} {currency}")
+        lines.append(f"{'52 ned. diapazons:':<18} {low52_str} - {high52_str} {currency}")
+        lines.append(f"{'P/E (faktiskais):':<18} {pe_str}")
+        lines.append(f"{'P/E (prognoze):':<18} {fwd_pe_str}")
+        lines.append(f"{'PEG koeficients:':<18} {peg_str}")
+        lines.append(f"{'Mērķa vid. cena:':<18} {target_mean_str} {currency}")
 
-        if self.selected_source == "⚔️ Cross-Check":
-            lines.append("-" * 30)
+        if self.selected_source in ["⚔️ Cross-Check", "Automātisks Crosscheck (Yahoo + Finnhub + FMP)"]:
+            lines.append("-" * 35)
             lines.append("--- ⚔️ CROSS-CHECK DATI ---")
             lines.append(f"Yahoo Finance: {stats_data.get('yf_price', 'N/A')} {currency}")
             lines.append(f"Alpha Vantage: {stats_data.get('av_price', 'Nav datu')} {currency}")
             lines.append(f"FMP Quote:     {stats_data.get('fmp_price', 'Nav datu')} {currency}")
-            lines.append("-------------------------")
+            lines.append("-" * 35)
 
         return "\n".join(lines)
 
