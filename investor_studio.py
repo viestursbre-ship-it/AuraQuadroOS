@@ -231,9 +231,9 @@ TRANSLATIONS = {
     "word_analysis_basis_rentgen": {"lv": "Analīze sagatavota ar AuraQuadroOS analītikas moduli.", "en": "Analysis prepared by AuraQuadroOS analytics module.", "ru": "Анализ подготовлен аналитическим модулем AuraQuadroOS.", "uk": "Аналіз підготовлено аналітичним модулем AuraQuadroOS.", "it": "Analisi preparata dal modulo di analisi AuraQuadroOS."},
     # New keys for Portfolio Audit Word export (LEO ADDITION)
     "info_no_data_to_export_portfolio_audit": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet portfeļa auditu.", "en": "No data to export. Perform a portfolio audit first.", "ru": "Нет данных для экспорта. Сначала проведите аудит портфеля.", "uk": "Немає даних для експорту. Спочатку виконайте аудит портфеля.", "it": "Nessun dato da esportare. Esegui prima un audit del portfolio."},
-    "word_save_dialog_title_portfolio_audit": {"lv": "Saglabāt portfeļa audita atskaiti", "en": "Save Portfolio Audit Report", "ru": "Сохранить отчет аудита портфеля", "uk": "Зберегти звіт аудиту портфеля", "it": "Salva rapporto audit portfolio"},
-    "word_report_title_portfolio_audit": {"lv": "eToro Portfeļa Audita & Risku Atskaite", "en": "eToro Portfolio Audit & Risk Report", "ru": "Отчет об аудите и рисках портфеля eToro", "uk": "Звіт про аудит та ризики портфеля eToro", "it": "Report Audit & Rischio Portfolio eToro"},
-    "word_analysis_basis_portfolio_audit": {"lv": "Analīze sagatavota ar AuraQuadroOS portfeļa vadības moduli.", "en": "Analysis prepared by AuraQuadroOS portfolio management module.", "ru": "Анализ подготовлен модулем управления портфелем AuraQuadroOS.", "uk": "Аналіз підготовлено модулем управління портфелем AuraQuadroOS.", "it": "Analisi preparata dal modulo di gestione del portfolio AuraQuadroOS."},
+    "word_save_dialog_title_portfolio_audit": {"lv": "Saglabāt portfeļa audita atskaiti", "en": "Save Portfolio Audit Report", "ru": "Сохранить отчет аудита портфеля", "uk": "Зберегти звіт аудиту portfeļa", "it": "Salva rapporto audit portfolio"},
+    "word_report_title_portfolio_audit": {"lv": "eToro Portfeļa Audita & Risku Atskaite", "en": "eToro Portfolio Audit & Risk Report", "ru": "Отчет об аудите и рисках портфеля eToro", "uk": "Звіт про аудит та ризики portfeļa eToro", "it": "Report Audit & Rischio Portfolio eToro"},
+    "word_analysis_basis_portfolio_audit": {"lv": "Analīze sagatavota ar AuraQuadroOS portfeļa vadības moduli.", "en": "Analysis prepared by AuraQuadroOS portfolio management module.", "ru": "Анализ подготовлен модулем управления портфелем AuraQuadroOS.", "uk": "Аналіз підготовлено модулем управління portfeļa AuraQuadroOS.", "it": "Analisi preparata dal modulo di gestione del portfolio AuraQuadroOS."},
     "word_output_filename_prefix_portfolio_audit": {"lv": "Portfela_Audits_", "en": "Portfolio_Audit_", "ru": "Audit_Portfelya_", "uk": "Audyt_Portfelya_", "it": "Audit_Portfolio_"},
 }
 
@@ -575,41 +575,48 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.progress_bar.set(1.0)
 
     def _format_financial_summary(self, ticker, stats_data):
-        """Formats the financial data into a compact, readable string for the Textbox."""
-        if stats_data.get('error'):
-            return f"⚠️ Kļūda nolasot datus: {stats_data['error']}"
+        if not stats_data:
+            return f"=== {ticker} ===\nNav pieejamu tirgus datu."
 
-        name = stats_data.get("name", ticker)
-        currency = stats_data.get("currency", "USD")
+        def fmt_val(val, suffix=""):
+            if val is None or val == "N/A":
+                return "N/A"
+            try:
+                num = float(val)
+                return f"{num:.2f}{suffix}"
+            except (ValueError, TypeError):
+                return str(val)
 
-        lines = []
-        lines.append(f"=== {name} ({ticker}) ===")
-        lines.append(f"Avots: {self.selected_source}")
-        lines.append("-" * 35)
+        name = stats_data.get('name', ticker)
+        source = stats_data.get('source', self.selected_source)
+        currency = stats_data.get('currency', 'USD')
+        price = fmt_val(stats_data.get('price'), f" {currency}")
+        pe = fmt_val(stats_data.get('pe'))
+        fwd_pe = fmt_val(stats_data.get('fwd_pe'))
+        peg = fmt_val(stats_data.get('peg'))
+        high52 = fmt_val(stats_data.get('52_high'), f" {currency}")
+        low52 = fmt_val(stats_data.get('52_low'), f" {currency}")
+        target_mean = fmt_val(stats_data.get('target_mean'), f" {currency}")
 
-        # Skaitļu formatēšana
-        price_str = f"{float(stats_data['price']):.2f}" if isinstance(stats_data.get('price'), (int, float)) else str(stats_data.get('price', 'N/A'))
-        low52_str = f"{float(stats_data['52_low']):.2f}" if isinstance(stats_data.get('52_low'), (int, float)) else str(stats_data.get('52_low', 'N/A'))
-        high52_str = f"{float(stats_data.get('52_high'), 'N/A'):.2f}" if isinstance(stats_data.get('52_high'), (int, float)) else str(stats_data.get('52_high', 'N/A'))
-        pe_str = f"{float(stats_data.get('pe', 'N/A')):.2f}" if isinstance(stats_data.get('pe'), (int, float)) else str(stats_data.get('pe', 'N/A'))
-        fwd_pe_str = f"{float(stats_data.get('fwd_pe', 'N/A')):.2f}" if isinstance(stats_data.get('fwd_pe'), (int, float)) else str(stats_data.get('fwd_pe', 'N/A'))
-        peg_str = f"{float(stats_data.get('peg', 'N/A')):.2f}" if isinstance(stats_data.get('peg'), (int, float)) else str(stats_data.get('peg', 'N/A'))
-        target_mean_str = f"{float(stats_data.get('target_mean', 'N/A')):.2f}" if isinstance(stats_data.get('target_mean'), (int, float)) else str(stats_data.get('target_mean', 'N/A'))
+        lines = [
+            f"=== {name} ({ticker}) ===",
+            f"Avots: {source}",
+            "─" * 35,
+            f"Cena: {price}",
+            f"52 ned. diapazons: {low52} - {high52}",
+            f"P/E (faktiskais): {pe}",
+            f"P/E (prognoze): {fwd_pe}",
+            f"PEG rādītājs: {peg}",
+            f"Mērķa cena (Target Mean): {target_mean}",
+            "─" * 35
+        ]
 
-
-        lines.append(f"{'Cena:':<18} {price_str} {currency}")
-        lines.append(f"{'52 ned. diapazons:':<18} {low52_str} - {high52_str} {currency}")
-        lines.append(f"{'P/E (faktiskais):':<18} {pe_str}")
-        lines.append(f"{'P/E (prognoze):':<18} {fwd_pe_str}")
-        lines.append(f"{'PEG koeficients:':<18} {peg_str}")
-        lines.append(f"{'Mērķa vid. cena:':<18} {target_mean_str} {currency}")
-
-        if self.selected_source == "⚔️ Cross-Check": # Changed to strict Cross-Check
+        if self.selected_source == "⚔️ Cross-Check":
             lines.append("-" * 35)
             lines.append("--- ⚔️ CROSS-CHECK DATI ---")
-            lines.append(f"Yahoo Finance: {stats_data.get('yf_price', 'N/A')} {currency}")
-            lines.append(f"Alpha Vantage: {stats_data.get('av_price', 'Nav datu')} {currency}")
-            lines.append(f"FMP Quote:     {stats_data.get('fmp_price', 'Nav datu')} {currency}")
+            lines.append(f"Yahoo Finance: {fmt_val(stats_data.get('yf_price'))} {currency}")
+            lines.append(f"Alpha Vantage: {fmt_val(stats_data.get('av_price'))} {currency}")
+            lines.append(f"FMP Quote:     {fmt_val(stats_data.get('fmp_price'))} {currency}")
             lines.append("-" * 35)
 
         return "\n".join(lines)
