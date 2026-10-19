@@ -43,7 +43,7 @@ _RADAR_MODE_CODE_MAP = {v: k for k, v in _RADAR_MODE_DISPLAY_MAP.items()}
 
 UI_TEXTS = {
     "LV": {
-        "title": "⚡ AQ-OS Cockpit — Vadības Centrs",
+        "title": "⚡ AQ-OS Cockpit — Vadības Centrs", # This title is overridden for the main window, but kept for consistency if needed elsewhere
         "tab_offers": "💼 Piedāvājumi",
         "tab_hp": "🧠 HP Eksperts",
         "tab_voice": "🎙️ Balss Studija",
@@ -256,7 +256,8 @@ class CockpitWindow(ctk.CTkToplevel):
         # Sākotnējā valoda no config.json, kas paredzēta UI_TEXTS atslēgām
         self.current_lang = _load_initial_ui_language_from_config()
         
-        self.title(UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])["title"])
+        # Atjaunināts loga virsraksts atbilstoši uzdevumam
+        self.title("AuraQuadroOS Cockpit — v1.0.0-demo")
         self.geometry("1020x740")
         self.minsize(850, 600)
 
@@ -265,21 +266,22 @@ class CockpitWindow(ctk.CTkToplevel):
         header_frame = ctk.CTkFrame(self, fg_color="#0f172a", height=60, corner_radius=0)
         header_frame.pack(fill="x", side="top")
 
-        ctk.CTkLabel(
-            header_frame, 
-            text="⚡ AQ-OS MISSION CONTROL", 
-            font=ctk.CTkFont(size=18, weight="bold"),
-            text_color="#38bdf8"
-        ).pack(side="left", padx=20, pady=15)
+        # Noņemti liekie virsraksta teksti no augšējās joslas, atbilstoši uzdevumam.
+        # ctk.CTkLabel(
+        #     header_frame, 
+        #     text="⚡ AQ-OS MISSION CONTROL", 
+        #     font=ctk.CTkFont(size=18, weight="bold"),
+        #     text_color="#38bdf8"
+        # ).pack(side="left", padx=20, pady=15)
 
-        ctk.CTkLabel(
-            header_frame, 
-            text="v2.5 Modular Enterprise Hub", 
-            font=ctk.CTkFont(size=12),
-            text_color="#94a3b8"
-        ).pack(side="left", padx=5, pady=15)
+        # ctk.CTkLabel(
+        #     header_frame, 
+        #     text="v2.5 Modular Enterprise Hub", 
+        #     font=ctk.CTkFont(size=12),
+        #     text_color="#94a3b8"
+        # ).pack(side="left", padx=5, pady=15)
 
-        # Globālais valodas pārslēgs labajā pusē (UI) - aizvietots ar CTkOptionMenu
+        # Globālais valodas pārslēgs labajā pusē (UI)
         self.ui_lang_optionmenu = ctk.CTkOptionMenu(
             header_frame,
             values=list(_UI_LANG_DISPLAY_MAP.keys()),
@@ -291,6 +293,14 @@ class CockpitWindow(ctk.CTkToplevel):
         initial_ui_display_text = _UI_LANG_KEY_MAP.get(self.current_lang, "🇱🇻 LV")
         self.ui_lang_optionmenu.set(initial_ui_display_text)
         self.ui_lang_optionmenu.pack(side="right", padx=20, pady=15)
+        # Pievienojam AuraQuadroOS Cockpit nosaukumu tieši kreisajā pusē, lai aizstātu vecos label
+        ctk.CTkLabel(
+            header_frame,
+            text="AuraQuadroOS Cockpit",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color="#38bdf8"
+        ).pack(side="left", padx=20, pady=15)
+
 
         self.tabview = ctk.CTkTabview(self, fg_color="#1e293b", segmented_button_fg_color="#0f172a")
         self.tabview.pack(fill="both", expand=True, padx=15, pady=15)
@@ -380,13 +390,13 @@ class CockpitWindow(ctk.CTkToplevel):
         except Exception:
             pass
         
-        # Atjaunina galvenā loga nosaukumu un ciļņu pogu tekstus
-        t = UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])
-        self.title(t["title"])
+        # Galvenā loga nosaukums ir fiksēts uz "AuraQuadroOS Cockpit — v1.0.0-demo", to nemainām.
+        # self.title(t["title"]) 
 
         tab_key_order = ["tab_offers", "tab_hp", "tab_bank", "tab_voice", "tab_docs", "tab_warranty", "tab_settings", "tab_invest"]
         
         button_list = list(self.tabview._segmented_button._buttons_dict.values())
+        t = UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"]) # Pārliecināmies, ka t ir definēts ar jaunāko valodu
         for idx, key in enumerate(tab_key_order):
             if idx < len(button_list):
                 button_list[idx].configure(text=t.get(key, key))
@@ -499,7 +509,7 @@ class CockpitWindow(ctk.CTkToplevel):
         self.focus_force()
         t = UI_TEXTS.get(self.current_lang, UI_TEXTS["LV"])
         self.tabview.set(t["tab_offers"])
-        self.offer_module.load_request(subject, sender, body)
+        self.offer_module.load_request("Iekārtas apkope / garantija", "Tehniķis", req_text)
 
     def open_for_voice(self, audio_path):
         self.deiconify()
