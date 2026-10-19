@@ -90,7 +90,7 @@ TRANSLATIONS = {
     "error_api_missing_data": {"lv": "⚠️ Trūkst API atslēgas vai neizdevās nolasīt datus.", "en": "⚠️ Missing API key or failed to retrieve data.", "ru": "⚠️ Отсутствует ключ API или не удалось получить данные.", "uk": "⚠️ Відсутній ключ API або не вдалося отримати дані.", "it": "⚠️ Chiave API mancante o impossibile recuperare i dati."},
 
     # Growth Tab
-    "lbl_growth_description": {"lv": "Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", "en": "Quark scans future markets and hunts for TOP 10 unicorns (AI, medicine, energy, space, etc.):", "ru": "Кварк сканирует будущие рынки и ищет ТОП-10 единорогов (ИИ, медицина, энергетика, космос и др.):", "uk": "Кварк сканує майбутні ринки та полює на ТОП-10 єдинорогів (ШІ, медицина, енергетика, космос тощо):", "it": "Quark scansiona i mercati futuri e cerca i TOP 10 unicorni (AI, medicina, energia, spazio, ecc.):"},
+    "lbl_growth_description": {"lv": "Kvarks skenē nākotnes tirgus un medī TOP 10 vienradžus (AI, medicīna, enerģija, kosmoss, u.c.):", "en": "Quark scans future markets and hunts for TOP 10 unicorns (AI, medicine, energy, space, etc.):", "ru": "Кварк сканирует будущие рынки и ищет ТОП-10 единорогов (ИИ, медицина, энергетика, космос и др.):", "uk": "Кварк сканує майбутні ринки та полює на ТОП-10 єдиноrogus...", "it": "Quark scansiona i mercati futuri e cerca i TOP 10 unicorni (AI, medicina, energia, spazio, ecc.):"},
     "growth_no_candidates": {"lv": "Nav atlasīti vienradžu kandidāti.", "en": "No unicorn candidates selected.", "ru": "Не выбрано ни одного кандидата-единорога.", "uk": "Не вибрано жодного кандидата-єдинорога.", "it": "Nessun candidato unicorno selezionato."},
     "growth_status_initial": {"lv": "Gaidu Komandanta Kvarka rīkojumus...", "en": "Awaiting Commander Quark's orders...", "ru": "Ожидаю приказов Командира Кварка...", "uk": "Очікую наказів Командира Кварка...", "it": "In attesa degli ordini del Comandante Quark..."},
     "btn_hunt_unicorns_loading": {"lv": "⏳ {btn_text}...", "en": "⏳ {btn_text}...", "ru": "⏳ {btn_text}...", "uk": "⏳ {btn_text}...", "it": "⏳ {btn_text}..."},
@@ -1353,7 +1353,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
                     continue
                 
                 # Apply specific filters based on hunt_type
-                keep_candidate = True
+                keep_candidate = True # Initialize as True, filters set to False if criteria not met
                 
                 # Convert price and volume to float/int, default to 0 for safe comparison
                 current_price = float(str(stock_data.get("price", "0")).replace(",", "")) if isinstance(stock_data.get("price"), str) else (stock_data.get("price") or 0)
@@ -1368,20 +1368,16 @@ class InvestorStudioFrame(ctk.CTkFrame):
                 elif hunt_type == "new_stars":
                     try:
                         if ipo_date_str and ipo_date_str != "N/A":
-                            ipo_date = datetime.strptime(ipo_date_str, '%Y-%m-%d')
+                            ipo_date = datetime.strptime(str(ipo_date_str)[:10], '%Y-%m-%d')
                             today = datetime.now()
-                            # 2-5 years ago from today
-                            min_ipo_date = today - timedelta(days=5 * 365.25) # Approx 5 years ago
-                            max_ipo_date = today - timedelta(days=2 * 365.25) # Approx 2 years ago
-                            if not (min_ipo_date <= ipo_date <= max_ipo_date):
+                            min_ipo_date = today - timedelta(days=6 * 365.25)
+                            # Pārbauda tikai tad, ja datums ir reāli derīgs nākotnes vai pārāk vecs
+                            if ipo_date < min_ipo_date:
                                 keep_candidate = False
-                                self.master.after(0, self._update_growth_analysis_log, f"Skipping {ticker}: IPO Date {ipo_date_str} (not within 2-5 years range)")
-                        else:
-                            keep_candidate = False
-                            self.master.after(0, self._update_growth_analysis_log, f"Skipping {ticker}: No valid IPO date found.")
-                    except (ValueError, TypeError): # ipo_date_str might be None or invalid format
-                        keep_candidate = False
-                        self.master.after(0, self._update_growth_analysis_log, f"Skipping {ticker}: Invalid IPO date format {ipo_date_str}")
+                                self.master.after(0, self._update_growth_analysis_log, f"Izlaiž {ticker}: dibināts/IPO pirms 2020. gada")
+                        # Ja datuma nav, uzticamies Gemini atlasei un NEIZMETAM kandidātu
+                    except Exception:
+                        pass # Ja datuma formāts nesakrīt, paturam kandidātu un turpinām
                 
                 if not keep_candidate:
                     continue
