@@ -229,6 +229,12 @@ TRANSLATIONS = {
     "info_no_data_to_export_rentgen": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet analīzi.", "en": "No data to export. Perform an analysis first.", "ru": "Нет данных для экспорта. Сначала выполните анализ.", "uk": "Немає даних для експорту. Спочатку виконайте аналіз.", "it": "Nessun dato da esportare. Esegui prima un'analisi."},
     "word_save_dialog_title_rentgen": {"lv": "Saglabāt Rentgena atskaiti kā Word failu", "en": "Save X-Ray Report as Word file", "ru": "Сохранить отчет Рентгена как файл Word", "uk": "Зберегти рентген-звіт як файл Word", "it": "Salva rapporto Raggi X come file Word"},
     "word_analysis_basis_rentgen": {"lv": "Analīze sagatavota ar AuraQuadroOS analītikas moduli.", "en": "Analysis prepared by AuraQuadroOS analytics module.", "ru": "Анализ подготовлен аналитическим модулем AuraQuadroOS.", "uk": "Аналіз підготовлено аналітичним модулем AuraQuadroOS.", "it": "Analisi preparata dal modulo di analisi AuraQuadroOS."},
+    # New keys for Portfolio Audit Word export (LEO ADDITION)
+    "info_no_data_to_export_portfolio_audit": {"lv": "Nav datu, ko eksportēt. Vispirms veiciet portfeļa auditu.", "en": "No data to export. Perform a portfolio audit first.", "ru": "Нет данных для экспорта. Сначала проведите аудит портфеля.", "uk": "Немає даних для експорту. Спочатку виконайте аудит портфеля.", "it": "Nessun dato da esportare. Esegui prima un audit del portfolio."},
+    "word_save_dialog_title_portfolio_audit": {"lv": "Saglabāt portfeļa audita atskaiti", "en": "Save Portfolio Audit Report", "ru": "Сохранить отчет аудита портфеля", "uk": "Зберегти звіт аудиту портфеля", "it": "Salva rapporto audit portfolio"},
+    "word_report_title_portfolio_audit": {"lv": "eToro Portfeļa Audita & Risku Atskaite", "en": "eToro Portfolio Audit & Risk Report", "ru": "Отчет об аудите и рисках портфеля eToro", "uk": "Звіт про аудит та ризики портфеля eToro", "it": "Report Audit & Rischio Portfolio eToro"},
+    "word_analysis_basis_portfolio_audit": {"lv": "Analīze sagatavota ar AuraQuadroOS portfeļa vadības moduli.", "en": "Analysis prepared by AuraQuadroOS portfolio management module.", "ru": "Анализ подготовлен модулем управления портфелем AuraQuadroOS.", "uk": "Аналіз підготовлено модулем управління портфелем AuraQuadroOS.", "it": "Analisi preparata dal modulo di gestione del portfolio AuraQuadroOS."},
+    "word_output_filename_prefix_portfolio_audit": {"lv": "Portfela_Audits_", "en": "Portfolio_Audit_", "ru": "Audit_Portfelya_", "uk": "Audyt_Portfelya_", "it": "Audit_Portfolio_"},
 }
 
 # Transform TRANSLATIONS into i18n-compatible format for setting the dictionary
@@ -392,6 +398,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.btn_copy_audit.configure(text=i18n.t("btn_copy_summary"))
         if hasattr(self, 'lbl_inv_portfolio_audit_plan'): # LEO ADDITION
             self.lbl_inv_portfolio_audit_plan.configure(text=i18n.t("lbl_inv_portfolio_audit_plan")) # LEO ADDITION
+        if hasattr(self, 'btn_export_portfolio_to_word_btn'):
+            self.btn_export_portfolio_to_word_btn.configure(text=i18n.t("btn_save_word"))
 
 
         # Update elements in Growth tab
@@ -901,37 +909,36 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.lbl_portfolio_tickers_desc = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_tickers_desc"), wraplength=400, justify="left")
         self.lbl_portfolio_tickers_desc.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 5), sticky="w")
 
-        self.portfolio_tickers_input = ctk.CTkTextbox(f, height=100, wrap="word",
+        self.portfolio_tickers_input = ctk.CTkTextbox(f, height=65, wrap="word", # Task 1: Reduced height
                                                        fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
         self.portfolio_tickers_input.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
-        # self._load_portfolio() # MOVED TO THE END OF THIS METHOD TO ENSURE WIDGETS ARE INITIALIZED
+        
+        # Task 1: Moved "Save" and "Audit" buttons here
+        self.btn_save_p = ctk.CTkButton(f, text=i18n.t("btn_save_portfolio"), command=self._save_portfolio,
+                                         fg_color="#0e7490", hover_color="#086078")
+        self.btn_save_p.grid(row=3, column=0, padx=(10, 5), pady=10, sticky="ew") # Shifted from row=5
 
+        self.btn_audit = ctk.CTkButton(f, text=i18n.t("btn_audit_portfolio"), command=self._audit_portfolio,
+                                       fg_color="#0e7490", hover_color="#086078")
+        self.btn_audit.grid(row=3, column=1, padx=(5, 10), pady=10, sticky="ew") # Shifted from row=5
+
+        # Shifted from row=3 and row=4
         self.lbl_portfolio_cash_balance = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_cash_balance"))
-        self.lbl_portfolio_cash_balance.grid(row=3, column=0, padx=10, pady=(5, 0), sticky="w")
+        self.lbl_portfolio_cash_balance.grid(row=4, column=0, padx=10, pady=(5, 0), sticky="w")
         self.cash_balance_input = ctk.CTkEntry(f, placeholder_text="10000", fg_color="#1e293b", border_color="#334155")
-        self.cash_balance_input.grid(row=3, column=1, padx=10, pady=(5, 0), sticky="ew")
-        # self._load_cash_balance() # REDUNDANT, REMOVED CALL
-
+        self.cash_balance_input.grid(row=4, column=1, padx=10, pady=(5, 0), sticky="ew")
+        
         self.lbl_portfolio_risk_strategy = ctk.CTkLabel(f, text=i18n.t("lbl_portfolio_risk_strategy"))
-        self.lbl_portfolio_risk_strategy.grid(row=4, column=0, padx=10, pady=5, sticky="w")
+        self.lbl_portfolio_risk_strategy.grid(row=5, column=0, padx=10, pady=5, sticky="w")
         self.seg_risk = ctk.CTkSegmentedButton(f, values=[i18n.t("seg_risk_conservative"), i18n.t("seg_risk_venture_growth")],
                                               fg_color="#1e293b", selected_color="#0e7490", selected_hover_color="#086078",
                                               unselected_color="#334155", unselected_hover_color="#475569")
         self.seg_risk.set(i18n.t("seg_risk_conservative"))
-        self.seg_risk.grid(row=4, column=1, padx=10, pady=5, sticky="ew")
-        # self._load_risk_strategy() # REDUNDANT, REMOVED CALL
+        self.seg_risk.grid(row=5, column=1, padx=10, pady=5, sticky="ew")
 
         # Ensure self.portfolio_tickers_input, self.cash_balance_input, and self.seg_risk are defined
         # before attempting to load data into them.
         self._load_portfolio()
-
-        self.btn_save_p = ctk.CTkButton(f, text=i18n.t("btn_save_portfolio"), command=self._save_portfolio,
-                                         fg_color="#0e7490", hover_color="#086078")
-        self.btn_save_p.grid(row=5, column=0, padx=(10, 5), pady=10, sticky="ew")
-
-        self.btn_audit = ctk.CTkButton(f, text=i18n.t("btn_audit_portfolio"), command=self._audit_portfolio,
-                                       fg_color="#0e7490", hover_color="#086078")
-        self.btn_audit.grid(row=5, column=1, padx=(5, 10), pady=10, sticky="ew")
 
         self.lbl_inv_portfolio_audit_plan = ctk.CTkLabel(f, text=i18n.t("lbl_inv_portfolio_audit_plan"), font=ctk.CTkFont(size=16, weight="bold")) # LEO ADDITION
         self.lbl_inv_portfolio_audit_plan.grid(row=6, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew") # LEO ADDITION
@@ -942,9 +949,18 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.audit_log_box.insert("0.0", i18n.t("audit_initial_msg"))
         self.audit_log_box.configure(state="disabled")
 
+        # Task 1: `self.audit_log_box` iedot `weight=1`
+        f.grid_rowconfigure(7, weight=1) # This applies weight to the row where audit_log_box is.
+
         self.btn_copy_audit = ctk.CTkButton(f, text=i18n.t("btn_copy_summary"), command=self._copy_audit_summary,
                                             fg_color="#0e7490", hover_color="#086078")
-        self.btn_copy_audit.grid(row=8, column=0, columnspan=2, padx=10, pady=(5,10), sticky="ew")
+        self.btn_copy_audit.grid(row=8, column=0, padx=(10, 5), pady=(5,10), sticky="ew") # Task 1: Changed columnspan=2 to col=0
+
+        # Task 1: Add "Saglabāt Word (.docx)" button
+        self.btn_export_portfolio_to_word_btn = ctk.CTkButton(f, text=i18n.t("btn_save_word"), command=self._export_portfolio_to_word,
+                                                               fg_color="#0e7490", hover_color="#086078")
+        self.btn_export_portfolio_to_word_btn.grid(row=8, column=1, padx=(5, 10), pady=(5,10), sticky="ew")
+
 
     def _load_portfolio(self):
         if PORTFOLIO_FILE.exists():
@@ -1051,7 +1067,8 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.btn_audit.configure(state="disabled", text=i18n.t("btn_audit_loading"))
         self.audit_log_box.configure(state="normal")
         self.audit_log_box.delete("0.0", "end")
-        self.audit_log_box.insert("0.0", i18n.t("audit_loading_msg", len_tickers=len(tickers_list)))
+        # Task 2: Replace the i18n.t call with the specific f-string
+        self.audit_log_box.insert("0.0", f"🔍 Uzsākts eToro portfeļa audits {len(tickers_list)} aktīviem ar Q.V.A.R.K. dzinēju...\n")
         self.audit_log_box.configure(state="disabled")
 
         threading.Thread(target=self._audit_portfolio_worker, args=(tickers_list, cash_balance, risk_strategy)).start()
@@ -1156,6 +1173,55 @@ class InvestorStudioFrame(ctk.CTkFrame):
             self.audit_log_box.configure(state="disabled") # Re-disable
         except Exception as e:
             messagebox.showerror(i18n.t("error_title"), i18n.t("error_copying", e=e))
+
+    # Task 3: Create method `_export_portfolio_to_word`
+    def _export_portfolio_to_word(self):
+        if not HAS_DOCX:
+            messagebox.showerror(i18n.t("error_title"), i18n.t("error_docx_missing"))
+            return
+
+        report_text = self.audit_log_box.get("0.0", "end").strip()
+        if not report_text or "Uzsākts" in report_text or "Gaidu" in report_text:
+            messagebox.showinfo(i18n.t("info_title"), i18n.t("info_no_data_to_export_portfolio_audit")) # Use new i18n key
+            return
+
+        from tkinter import filedialog
+        default_filename = f"{i18n.t('word_output_filename_prefix_portfolio_audit')}{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx" # Use new i18n key
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".docx",
+            filetypes=[("Word dokumenti", "*.docx"), ("Visi faili", "*.*")],
+            initialfile=default_filename,
+            title=i18n.t("word_save_dialog_title_portfolio_audit") # Use new i18n key
+        )
+        if not save_path:
+            return
+
+        try:
+            document = Document()
+            document.add_heading(i18n.t("word_report_title_portfolio_audit"), level=1) # Use new i18n key
+            document.add_paragraph(f"{i18n.t('word_generated_on')}{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}") # Use existing i18n key
+            document.add_paragraph(i18n.t("word_analysis_basis_portfolio_audit")) # Use new i18n key
+            document.add_paragraph("-" * 40)
+
+            for paragraph in report_text.split('\n'):
+                p_clean = paragraph.strip()
+                if p_clean:
+                    document.add_paragraph(p_clean)
+
+            document.add_paragraph()
+            audit_lines = [
+                "─" * 45,
+                "Verification status: CLEARED & AUDITED",
+                "Quantitative Engine: Q.V.A.R.K. Core v2.5 (Quantitative Value Assessment & Risk Kernel)",
+                "Division: Strategic Risk Analytics | AuraQuadroOS Financial Division"
+            ]
+            p_audit = document.add_paragraph("\n".join(audit_lines))
+            p_audit.italic = True
+
+            document.save(save_path)
+            messagebox.showinfo(i18n.t("success_title"), i18n.t("word_success_message", path=save_path)) # Use existing i18n keys
+        except Exception as err:
+            messagebox.showerror(i18n.t("error_title"), i18n.t("word_error_saving_message", error_message=err)) # Use existing i18n keys
 
     # ==========================================
     # 3. CILNE: KVARKA IZAUGSMES MEDNIEKS
