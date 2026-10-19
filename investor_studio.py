@@ -1148,7 +1148,7 @@ class InvestorStudioFrame(ctk.CTkFrame):
         f = self.tab_growth
         f.grid_columnconfigure(0, weight=1)
         f.grid_columnconfigure(1, weight=1)
-        f.grid_rowconfigure(5, weight=1) # Allow resolution box to expand (was row 3, now row 5)
+        f.grid_rowconfigure(6, weight=1)
 
         self.lbl_growth_radar_title = ctk.CTkLabel(f, text=i18n.t("lbl_potential_radar"), font=ctk.CTkFont(size=16, weight="bold"))
         self.lbl_growth_radar_title.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
@@ -1156,51 +1156,62 @@ class InvestorStudioFrame(ctk.CTkFrame):
         self.lbl_growth_description = ctk.CTkLabel(f, text=i18n.t("lbl_growth_description"), wraplength=400, justify="left")
         self.lbl_growth_description.grid(row=1, column=0, columnspan=2, padx=10, pady=(0, 5), sticky="w")
 
-        # Dropdown for unicorn watchlist
+        # Datu avotu selektors
+        self.growth_source_options = ["Automātisks Crosscheck (Yahoo + Finnhub + FMP)", "Yahoo Finance", "Finnhub", "FMP"]
+        self.growth_source_selector = ctk.CTkOptionMenu(
+            f, 
+            values=self.growth_source_options,
+            fg_color="#1e293b", 
+            button_color="#0e7490", 
+            button_hover_color="#086078"
+        )
+        self.growth_source_selector.set("Automātisks Crosscheck (Yahoo + Finnhub + FMP)")
+        self.growth_source_selector.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
+
+        # Vienradžu saraksta izvēlne un Medību poga
         self.growth_watchlist_names = [item["name"] for item in GROWTH_WATCHLIST]
         self.growth_selector = ctk.CTkOptionMenu(f, values=[""] + self.growth_watchlist_names,
                                                  command=self._select_growth_candidate,
                                                  fg_color="#1e293b", button_color="#0e7490", button_hover_color="#086078")
         self.growth_selector.set(i18n.t("growth_no_candidates"))
-        self.growth_selector.grid(row=2, column=0, padx=(10, 5), pady=5, sticky="ew")
+        self.growth_selector.grid(row=3, column=0, padx=(10, 5), pady=5, sticky="ew")
 
-        # Original "Hunt New Unicorns" button (Task 1: call _hunt_unicorns_general)
         self.btn_scan_all_growth = ctk.CTkButton(f, text=i18n.t("btn_hunt_unicorns"), command=lambda: self._hunt_unicorns_general("unicorns"),
                                                  fg_color="#0e7490", hover_color="#086078")
-        self.btn_scan_all_growth.grid(row=2, column=1, padx=(5, 10), pady=5, sticky="ew")
+        self.btn_scan_all_growth.grid(row=3, column=1, padx=(5, 10), pady=5, sticky="ew")
 
-        # New buttons for penny stocks and new stars (Task 1)
+        # Jaunās pogas Penny Stocks un Jaunajām Zvaigznēm
         self.btn_hunt_penny_stocks = ctk.CTkButton(f, text=i18n.t("btn_penny_stocks_hunter"), command=lambda: self._hunt_unicorns_general("penny_stocks"),
                                                     fg_color="#0e7490", hover_color="#086078")
-        self.btn_hunt_penny_stocks.grid(row=3, column=0, padx=(10, 5), pady=5, sticky="ew")
+        self.btn_hunt_penny_stocks.grid(row=4, column=0, padx=(10, 5), pady=5, sticky="ew")
 
         self.btn_hunt_new_stars = ctk.CTkButton(f, text=i18n.t("btn_new_stars_hunter"), command=lambda: self._hunt_unicorns_general("new_stars"),
                                                 fg_color="#0e7490", hover_color="#086078")
-        self.btn_hunt_new_stars.grid(row=3, column=1, padx=(5, 10), pady=5, sticky="ew")
+        self.btn_hunt_new_stars.grid(row=4, column=1, padx=(5, 10), pady=5, sticky="ew")
 
         self.lbl_growth_resolution_title = ctk.CTkLabel(f, text=i18n.t("lbl_inv_growth_resolution_title"), font=ctk.CTkFont(size=16, weight="bold"))
-        self.lbl_growth_resolution_title.grid(row=4, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew") # Adjusted row
+        self.lbl_growth_resolution_title.grid(row=5, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
 
         self.growth_analysis_box = ctk.CTkTextbox(f, height=300, wrap="word",
                                                   fg_color="#1e293b", text_color="#f8fafc", border_color="#334155")
-        self.growth_analysis_box.grid(row=5, column=0, columnspan=2, padx=10, pady=5, sticky="nsew") # Adjusted row
+        self.growth_analysis_box.grid(row=6, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
         self.growth_analysis_box.insert("0.0", i18n.t("growth_status_initial"))
         self.growth_analysis_box.configure(state="disabled")
 
         self.btn_copy_growth = ctk.CTkButton(f, text=i18n.t("btn_copy_analysis"), command=self._copy_growth_analysis,
                                              fg_color="#0e7490", hover_color="#086078")
-        self.btn_copy_growth.grid(row=6, column=0, padx=(10, 5), pady=5, sticky="ew") # Adjusted row
+        self.btn_copy_growth.grid(row=7, column=0, padx=(10, 5), pady=5, sticky="ew")
 
         self.btn_export_word = ctk.CTkButton(f, text=i18n.t("btn_save_word"), command=self._export_growth_to_word,
                                              fg_color="#0e7490", hover_color="#086078")
-        self.btn_export_word.grid(row=6, column=1, padx=(5, 10), pady=5, sticky="ew") # Adjusted row
+        self.btn_export_word.grid(row=7, column=1, padx=(5, 10), pady=5, sticky="ew")
 
         self.btn_add_growth_to_portfolio = ctk.CTkButton(f, text=i18n.t("btn_add_to_portfolio"),
                                                           command=self._add_selected_growth_to_portfolio,
                                                           fg_color="#28a745", hover_color="#218838")
-        self.btn_add_growth_to_portfolio.grid(row=7, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew") # Adjusted row
+        self.btn_add_growth_to_portfolio.grid(row=8, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew")
 
-        self.growth_candidates_data = [] # Stores parsed unicorn data
+        self.growth_candidates_data = []
 
     def _select_growth_candidate(self, selected_name):
         if selected_name == i18n.t("growth_no_candidates") or not self.growth_candidates_data:
