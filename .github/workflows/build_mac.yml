@@ -1,0 +1,49 @@
+name: Build macOS Binary
+
+on:
+  workflow_dispatch: # Ļauj palaist procesu ar vienu pogas spiedienu no GitHub tīmekļa lapas
+  push:
+    branches: [ main, master ] # Vai jebkurš tavs aktīvais zars
+
+jobs:
+  build-macos:
+    runs-on: macos-13 # x86_64 Mac vide, kas nodrošina labu saderību
+
+    steps:
+      - name: Lejupielādēt kodu (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Uzstādīt Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalēt atkarības
+        run: |
+          python -m pip install --upgrade pip
+          pip install customtkinter python-docx pyinstaller
+          # Ja tev ir requirements.txt, vari atkomentēt:
+          # pip install -r requirements.txt
+          # Pievienojam arī pārējās bibliotēkas, ko izmanto moduļi:
+          pip install google-generativeai requests yfinance
+
+      - name: Kompilēt macOS aplikāciju ar PyInstaller
+        run: |
+          # PyInstaller uz macOS izveido kārtīgu .app pakotni
+          pyinstaller --noconfirm --onedir --windowed \
+            --name "AuraQuadroOS" \
+            --collect-all customtkinter \
+            --collect-all docx \
+            --add-data "config.json:." \
+            radar_service.py
+
+      - name: Arhivēt rezultātu ZIP failā
+        run: |
+          cd dist
+          zip -r AuraQuadroOS-macOS.zip AuraQuadroOS.app
+
+      - name: Augšupielādēt gatavo failu kā Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AuraQuadroOS-macOS
+          path: dist/AuraQuadroOS-macOS.zip
