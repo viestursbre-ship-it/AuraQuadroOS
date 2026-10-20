@@ -24,6 +24,12 @@ jobs:
           pip install pyinstaller
           pip install -r requirements.txt
 
+      - name: Izveidot noklusējuma config.json, ja trūkst
+        run: |
+          if [ ! -f config.json ]; then
+            echo '{"active_language": "lv", "risk_model": "BALANCED_ALPHA"}' > config.json
+          fi
+
       - name: Kompilēt macOS aplikāciju ar PyInstaller
         run: |
           pyinstaller --noconfirm --onedir --windowed \
