@@ -286,7 +286,8 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
             (v is not None and not isinstance(v, (list, dict)))
             for v in legal_analysis.values()
         ):
-            doc.add_heading(i18n.t("legal_analysis_corrector_title"), level=2)
+            # Update: Replace "legal_analysis_corrector_title" with direct localized string
+            doc.add_heading("Juridiskā risku analīze", level=2) # Replaced with direct localized string
             
             add_sec(i18n.t("risk_level_title"), legal_analysis.get("risk_level", "N/A"), level=3)
             add_sec(i18n.t("critical_points_title"), legal_analysis.get("critical_points", []), level=3)
@@ -307,10 +308,12 @@ Atgrieziet TIKAI derīgu JSON objektu, bez markdown blokiem vai papildu teksta, 
             add_sec(i18n.t("grammatical_corrections_title"), legal_analysis.get("grammatical_corrections", []), level=3)
             add_sec(i18n.t("party_name_inconsistencies_title"), legal_analysis.get("party_name_inconsistencies", []), level=3)
 
-        add_sec(i18n.t("suggested_corrections_title"), data.get("suggested_corrections", []))
-        add_sec(i18n.t("summary_human_language_title"), data.get("summary", "N/A"))
+        # Update: Replace with direct localized strings
+        add_sec("Ieteiktie labojumi un korekcijas", data.get("suggested_corrections", []))
+        add_sec("Dokumenta kopsavilkums saprotamā valodā", data.get("summary", "N/A"))
 
-        add_sec(i18n.t("general_risks_warnings_title"), data.get("risks_warnings", []))
+        # Update: Replace with direct localized strings
+        add_sec("Galvenie riski un brīdinājumi", data.get("risks_warnings", []))
 
         current_output_path = output_path_base
         attempt_count = 0
@@ -511,7 +514,8 @@ class DocDigestFrame(ctk.CTkFrame):
 
         legal_analysis = analysis.get("legal_analysis", {})
         if legal_analysis and any(v for v in legal_analysis.values() if v and (isinstance(v, dict) and any(sub_v for sub_v in v.values() if sub_v and str(sub_v).strip().upper() != "N/A") or isinstance(v, list) and v and any(item.strip().upper() != "N/A" for item in v) or (isinstance(v, str) and v.strip().upper() != "N/A"))):
-            lines.append(i18n.t("report_legal_analysis_title").upper() + ":")
+            # Update: Replaced with direct localized string
+            lines.append("JURIDISKĀ RISKU ANALĪZE")
             risk_level = legal_analysis.get("risk_level", "N/A").upper()
             if risk_level == i18n.t("risk_red").upper():
                 lines.append(f"   🔴 {i18n.t('report_risk_level')}: {risk_level} - {i18n.t('risk_red_warning')}!")
@@ -578,19 +582,22 @@ class DocDigestFrame(ctk.CTkFrame):
 
         suggested_corrections = analysis.get("suggested_corrections", [])
         if suggested_corrections and any(sc.strip().upper() != "N/A" for sc in suggested_corrections):
-            lines.append(i18n.t("report_suggested_corrections_title").upper() + ":")
+            # Update: Replaced with direct localized string
+            lines.append("IETEIKTIE LABOJUMI UN KOREKCIJAS:")
             for sc in suggested_corrections:
                 lines.append(f"   • {sc}")
             lines.append("")
 
         summary = analysis.get("summary", i18n.t("not_available_short"))
         if summary.strip().upper() != "N/A" and summary.strip() != "":
-            lines.append(i18n.t("report_summary_human_language_title").upper() + ":")
+            # Update: Replaced with direct localized string
+            lines.append("DOKUMENTA KOPSAVILKUMS SAPROTAMĀ VALODĀ:")
             lines.append(f"   {summary}\n")
 
         risks = analysis.get("risks_warnings", [])
         if risks and any(r_item for r_item in risks if r_item and r_item.strip().upper() != "N/A" and r_item.strip() != ""):
-            lines.append(i18n.t("report_general_risks_warnings_title").upper() + ":")
+            # Update: Replaced with direct localized string
+            lines.append("GALVENIE RISKI UN BRĪDINĀJUMI:")
             if isinstance(risks, list):
                 for r_item in risks:
                     if r_item and r_item.strip().upper() != "N/A" and r_item.strip() != "":
