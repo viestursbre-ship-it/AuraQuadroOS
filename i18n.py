@@ -81,6 +81,9 @@ TRANSLATIONS = {
         "btn_open_contracts": "📊 Atvērt Līgumu Reģistru",
         "btn_open_conclusion": "📄 Atvērt Slēdzienu",
         "lbl_doc_waiting_status": "0% - Gaida dokumentu",
+        "status_waiting_doc": "Gaida dokumentu...",
+        "status_starting_processing": "Sāk apstrādi: {filename}",
+        "txt_output_initial_message": "Šeit parādīsies dokumenta analīzes rezultāts un kopsavilkums.",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "TIKERA ANALĪZE", # NEW KEY
         "btn_audit_ticker": "⚡ Analizēt Tīkeri",
@@ -146,6 +149,9 @@ TRANSLATIONS = {
         "btn_open_contracts": "📊 Open Contracts Register",
         "btn_open_conclusion": "📄 Open Report",
         "lbl_doc_waiting_status": "0% - Waiting for document",
+        "status_waiting_doc": "Waiting for document...",
+        "status_starting_processing": "Starting processing: {filename}",
+        "txt_output_initial_message": "Document analysis results and summary will appear here.",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "TICKER ANALYSIS", # NEW KEY
         "btn_audit_ticker": "⚡ Analyze Ticker",
@@ -211,6 +217,9 @@ TRANSLATIONS = {
         "btn_open_contracts": "📊 Відкрити реєстр договорів",
         "btn_open_conclusion": "📄 Відкрити висновок",
         "lbl_doc_waiting_status": "0% - Очікування документа",
+        "status_waiting_doc": "Очікування документа...",
+        "status_starting_processing": "Початок обробки: {filename}",
+        "txt_output_initial_message": "Тут з'явиться результат аналізу документа та резюме.",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "АНАЛІЗ ТІКЕРА", # NEW KEY
         "btn_audit_ticker": "⚡ Аналізувати тикер",
@@ -276,6 +285,9 @@ TRANSLATIONS = {
         "btn_open_contracts": "📊 Открыть реестр договоров",
         "btn_open_conclusion": "📄 Открыть заключение",
         "lbl_doc_waiting_status": "0% - Ожидание документа",
+        "status_waiting_doc": "Ожидание документа...",
+        "status_starting_processing": "Начало обработки: {filename}",
+        "txt_output_initial_message": "Здесь появится результат анализа документа и резюме.",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "АНАЛИЗ ТИКЕРА", # NEW KEY
         "btn_audit_ticker": "⚡ Анализировать тикер",
@@ -341,6 +353,9 @@ TRANSLATIONS = {
         "btn_open_contracts": "📊 Apri registro contratti",
         "btn_open_conclusion": "📄 Apri relazione",
         "lbl_doc_waiting_status": "0% - In attesa del documento",
+        "status_waiting_doc": "In attesa del documento...",
+        "status_starting_processing": "Inizio elaborazione: {filename}",
+        "txt_output_initial_message": "I risultati dell'analisi del documento e il riepilogo appariranno qui.",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "ANALISI TICKER", # NEW KEY
         "btn_audit_ticker": "⚡ Analizza ticker",
@@ -509,31 +524,40 @@ def get_text(key: str, default: str = "") -> str:
     # Ja joprojām nav atrasts, atgriež norādīto noklusējumu vai pašu atslēgu (nav tukšums)
     return default or key
 
-def t(key: str, lang: str = None) -> str:
+def t(key: str, lang: str = None, default: str = None, **kwargs) -> str:
     """
     Atgriež tulkotu tekstu norādītajā valodā vai pašreizējā UI valodā, ja valoda nav norādīta.
     Nodrošina fallback uz 'lv' un tad 'en', ja atslēga nav atrasta norādītajā valodā.
+    Atbalsta dinamisko teksta formatēšanu caur **kwargs.
     """
-    # Normalizē norādīto 'lang' parametru vai izmanto normalizēto UI valodu
     if lang:
         target_lang = _normalize_lang_input(lang)
     else:
-        target_lang = get_ui_language() # Šī funkcija jau atgriež normalizētu, atbalstītu valodas kodu
+        target_lang = get_ui_language()
 
     # Mēģina iegūt tulkojumu mērķa valodā
-    if key in TRANSLATIONS.get(target_lang, {}):
-        return TRANSLATIONS[target_lang][key]
+    text = TRANSLATIONS.get(target_lang, {}).get(key)
 
     # Ja nav atrasts mērķa valodā, mēģina "lv" kā atkāpes variantu
-    if key in TRANSLATIONS.get('lv', {}):
-        return TRANSLATIONS['lv'][key]
+    if text is None:
+        text = TRANSLATIONS.get('lv', {}).get(key)
 
     # Ja nav atrasts "lv", mēģina "en" kā atkāpes variantu
-    if key in TRANSLATIONS.get('en', {}):
-        return TRANSLATIONS['en'][key]
+    if text is None:
+        text = TRANSLATIONS.get('en', {}).get(key)
+    
+    # Ja joprojām nav atrasts, izmanto default vai pašu atslēgu
+    if text is None:
+        text = default if default is not None else key
 
-    # Ja joprojām nav atrasts, atgriež pašu atslēgu (nav tukšums)
-    return key
+    if kwargs and isinstance(text, str):
+        try:
+            return text.format(**kwargs)
+        except (KeyError, IndexError, ValueError): # Catch specific formatting errors
+            # Ja formatēšana neizdodas, atgriež nesformatētu tekstu.
+            # Piemēram, ja trūkst kwargs parametra vai ir lieks.
+            return text
+    return text
 
 def register_translations(module_dict: dict):
     """
