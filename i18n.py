@@ -84,6 +84,15 @@ TRANSLATIONS = {
         "status_waiting_doc": "Gaida dokumentu...",
         "status_starting_processing": "Sāk apstrādi: {filename}",
         "txt_output_initial_message": "Šeit parādīsies dokumenta analīzes rezultāts un kopsavilkums.",
+        # Atskaites sekcija un progresa atslēgas (NEW)
+        "status_word_summary_opened": "Pārskats sagatavots un atvērts",
+        "report_hidden_costs": "Slēptās izmaksas un papildu maksājumi:",
+        "report_penalties": "Līgumsodi un sankcijas:",
+        "REPORT_LEGAL_ANALYSIS_TITLE": "JURIDISKĀ RISKU ANALĪZE",
+        "report_risk_level": "Risku līmenis",
+        "report_critical_points": "Kritiskie punkti un riski:",
+        "report_automatic_extensions": "Automātiskā pagarināšana:",
+        "report_termination_clauses": "Līguma laušanas noteikumi:",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "TIKERA ANALĪZE", # NEW KEY
         "btn_audit_ticker": "⚡ Analizēt Tīkeri",
@@ -152,6 +161,15 @@ TRANSLATIONS = {
         "status_waiting_doc": "Waiting for document...",
         "status_starting_processing": "Starting processing: {filename}",
         "txt_output_initial_message": "Document analysis results and summary will appear here.",
+        # Atskaites sekcija un progresa atslēgas (NEW)
+        "status_word_summary_opened": "Summary generated and opened",
+        "report_hidden_costs": "Hidden Costs & Additional Fees:",
+        "report_penalties": "Penalties & Sanctions:",
+        "REPORT_LEGAL_ANALYSIS_TITLE": "LEGAL RISK ANALYSIS",
+        "report_risk_level": "Risk Level",
+        "report_critical_points": "Critical Points & Risks:",
+        "report_automatic_extensions": "Automatic Renewals:",
+        "report_termination_clauses": "Termination Clauses:",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "TICKER ANALYSIS", # NEW KEY
         "btn_audit_ticker": "⚡ Analyze Ticker",
@@ -220,6 +238,15 @@ TRANSLATIONS = {
         "status_waiting_doc": "Очікування документа...",
         "status_starting_processing": "Початок обробки: {filename}",
         "txt_output_initial_message": "Тут з'явиться результат аналізу документа та резюме.",
+        # Atskaites sekcija un progresa atslēgas (NEW)
+        "status_word_summary_opened": "Підсумок підготовлено та відкрито",
+        "report_hidden_costs": "Приховані витрати та додаткові платежі:",
+        "report_penalties": "Штрафи та санкції:",
+        "REPORT_LEGAL_ANALYSIS_TITLE": "ЮРИДИЧНИЙ АНАЛІЗ РИЗИКІВ",
+        "report_risk_level": "Рівень ризику",
+        "report_critical_points": "Критичні точки та ризики:",
+        "report_automatic_extensions": "Автоматичне поновлення:",
+        "report_termination_clauses": "Умови розірвання договору:",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "АНАЛІЗ ТІКЕРА", # NEW KEY
         "btn_audit_ticker": "⚡ Аналізувати тикер",
@@ -288,6 +315,15 @@ TRANSLATIONS = {
         "status_waiting_doc": "Ожидание документа...",
         "status_starting_processing": "Начало обработки: {filename}",
         "txt_output_initial_message": "Здесь появится результат анализа документа и резюме.",
+        # Atskaites sekcija un progresa atslēgas (NEW)
+        "status_word_summary_opened": "Обзор подготовлен и открыт",
+        "report_hidden_costs": "Скрытые расходы и дополнительные платежи:",
+        "report_penalties": "Штрафы и санкции:",
+        "REPORT_LEGAL_ANALYSIS_TITLE": "ЮРИДИЧЕСКИЙ АНАЛИЗ РИСКОВ",
+        "report_risk_level": "Уровень риска",
+        "report_critical_points": "Критические точки и риски:",
+        "report_automatic_extensions": "Автоматическое продление:",
+        "report_termination_clauses": "Условия расторжения договора:",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "АНАЛИЗ ТИКЕРА", # NEW KEY
         "btn_audit_ticker": "⚡ Анализировать тикер",
@@ -356,6 +392,15 @@ TRANSLATIONS = {
         "status_waiting_doc": "In attesa del documento...",
         "status_starting_processing": "Inizio elaborazione: {filename}",
         "txt_output_initial_message": "I risultati dell'analisi del documento e il riepilogo appariranno qui.",
+        # Atskaites sekcija un progresa atslēgas (NEW)
+        "status_word_summary_opened": "Riepilogo generato e aperto",
+        "report_hidden_costs": "Costi nascosti e spese aggiuntive:",
+        "report_penalties": "Penalità e sanzioni:",
+        "REPORT_LEGAL_ANALYSIS_TITLE": "ANALISI LEGALE DEI RISCHI",
+        "report_risk_level": "Livello di rischio",
+        "report_critical_points": "Punti critici e rischi:",
+        "report_automatic_extensions": "Rinnovo automatico:",
+        "report_termination_clauses": "Clausole di risoluzione:",
         # Investor Studio papildu atslēgas
         "lbl_ticker_analysis": "ANALISI TICKER", # NEW KEY
         "btn_audit_ticker": "⚡ Analizza ticker",
